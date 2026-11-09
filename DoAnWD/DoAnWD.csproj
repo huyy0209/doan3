@@ -151,6 +151,7 @@
     <Compile Include="UI\Theme\Theme.cs" />
     <Compile Include="UI\Theme\ThemeManager.cs" />
     <Compile Include="UI\Theme\Icons.cs" />
+    <Compile Include="UI\Theme\Ui.cs" />
     <Compile Include="UI\Theme\PageTransition.cs">
       <SubType>Component</SubType>
     </Compile>

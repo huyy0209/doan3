@@ -12,414 +12,480 @@ using DoAnWD.UI;
 namespace DoAnWD
 {
     /// <summary>
-    /// Dialog Ghép Lớp - quản lý ca học tại trung tâm.
-    ///
-    /// - Người dùng chọn NGÀY bắt đầu / kết thúc; GIỜ lấy theo ca học
-    ///   (ví dụ "Tối (18h-20h)" => 18:00 ngày bắt đầu đến 20:00 ngày kết thúc).
-    /// - Ca bị trùng của gia sư HOẶC học viên được tô đỏ trong danh sách ca.
-    /// - Trạng thái lớp tự tính theo thời gian, không cho chọn tay.
-    /// - Mọi kiểm tra xung đột dùng chung LopHocService.TimXungDot.
+    /// Ghép lớp mới theo 3 bước:
+    ///   1. Tìm và chọn học viên (gõ tên, SĐT, tên phụ huynh, trường... không cần dấu)
+    ///   2. Chọn ca + khoảng ngày (ca học viên đã bận bị đánh dấu)
+    ///   3. Chọn gia sư: lọc theo môn, mặc định chỉ hiện người còn trống ca đã chọn
+    /// Kiểm tra trùng lịch được tính ngay trong bộ nhớ; khi lưu, LopHocService kiểm tra lại lần cuối.
     /// </summary>
     public partial class frmChucNangGhepLop : Form
     {
-        private HocVienService _hocVienService;
-        private GiaSuService _giaSuService;
-        private LopHocService _lopHocService;
+        private readonly LopHocService _lopHocService = new LopHocService();
 
-        // Cache các ca đã bận => DrawItem không phải truy vấn CSDL mỗi lần vẽ
-        private HashSet<string> _caDaBan = new HashSet<string>();
-        private bool _dangKhoiTao = true;
+        private List<HocVien> _hocViens = new List<HocVien>();
+        private List<GiaSu> _giaSus = new List<GiaSu>();
+        private List<LopHoc> _lopHoatDong = new List<LopHoc>();
+
+        // Bước 1
+        private TextBox txtTimHV;
+        private ListBox lstHV;
+        private Label lblHVInfo;
+        // Bước 2
+        private ListBox lstCa;
+        private DateTimePicker dtpBatDau, dtpKetThuc;
+        private TextBox txtHocPhi;
+        private Label lblCanhBao;
+        // Bước 3
+        private TextBox txtTimGS;
+        private ComboBox cboMon;
+        private CheckBox chkChiTrong;
+        private ListBox lstGS;
+        private Label lblLichGS;
+        // Chân
+        private Label lblTomTat;
+        private ThemedButton btnGhepLop, btnHuy;
 
         public frmChucNangGhepLop()
         {
             InitializeComponent();
-            ThemeManager.Apply(this);
-            _hocVienService = new HocVienService();
-            _giaSuService = new GiaSuService();
-            _lopHocService = new LopHocService();
-            Load += FrmChucNangGhepLop_Load;
-            FormClosed += FrmChucNangGhepLop_FormClosed;
 
-            // Ngày học chọn theo ngày, giờ lấy theo ca
-            dtpBatDau.CustomFormat = Constants.Format.DateFormat;
-            dtpKetThuc.CustomFormat = Constants.Format.DateFormat;
+            // Màn hình nhỏ (laptop 1366x768): thu hộp thoại vừa 92% vùng làm việc
+            var vung = Screen.PrimaryScreen.WorkingArea;
+            Size = new Size(Math.Min(Width, (int)(vung.Width * 0.92)), Math.Min(Height, (int)(vung.Height * 0.92)));
+            MinimumSize = new Size(Math.Min(MinimumSize.Width, Width), Math.Min(MinimumSize.Height, Height));
 
-            dtpBatDau.ValueChanged += (s, e) => CapNhatKiemTra();
-            dtpKetThuc.ValueChanged += (s, e) => CapNhatKiemTra();
-            cboCaHoc.SelectedIndexChanged += (s, e) => CapNhatKiemTra();
+            BuildUi();
+            Load += (s, e) => NapDuLieu();
+            FormClosed += (s, e) => _lopHocService.Dispose();
+        }
 
-            // Hiển thị gia sư kèm chuyên môn + trạng thái
-            cboGiaSu.Format += CboGiaSu_Format;
+        // ===================================================================
+        // DỰNG GIAO DIỆN
+        // ===================================================================
 
-            // Custom draw cho ComboBox ca học
-            cboCaHoc.DrawMode = DrawMode.OwnerDrawFixed;
-            cboCaHoc.ItemHeight = 22;
-            cboCaHoc.DrawItem += CboCaHoc_DrawItem;
+        private void BuildUi()
+        {
+            BackColor = Theme.Paper;
+            Font = Theme.Body;
+            Padding = new Padding(24, 18, 24, 18);
 
-            // Lịch dạy của gia sư: mỗi dòng một lớp, chấm màu theo ca
-            lstLichGiaSu.DrawMode = DrawMode.OwnerDrawFixed;
-            lstLichGiaSu.ItemHeight = 22;
-            lstLichGiaSu.Font = Theme.Body;
-            lstLichGiaSu.DrawItem += LstLichGiaSu_DrawItem;
+            // ---- Bước 1: học viên ----
+            txtTimHV = Ui.Input("Tìm tên, SĐT, phụ huynh, trường...");
+            txtTimHV.TextChanged += (s, e) => LocHocVien();
+            lstHV = Ui.List(52, VeHocVien);
+            lstHV.SelectedIndexChanged += (s, e) => { CapNhatCa(); LocGiaSu(); CapNhat(); };
+            lblHVInfo = Ui.Text("", true);
+            lblHVInfo.MaximumSize = new Size(330, 0);
+            var sec1 = Ui.Section("1. Học viên");
+            sec1.Controls.Add(Ui.Stack(false, txtTimHV, KhungList(lstHV), lblHVInfo));
+            ((TableLayoutPanel)sec1.Controls[0]).RowStyles[1] = new RowStyle(SizeType.Percent, 100);
 
-            // Học phí: cho phép gõ "1.500.000" / "1,500,000"; tự định dạng khi rời ô
+            // ---- Bước 2: ca và thời gian ----
+            lstCa = Ui.List(40, VeCa);
+            lstCa.Items.AddRange(Constants.CaHoc.TatCaCaHoc);
+            lstCa.Height = 40 * 6 + 2;
+            lstCa.Dock = DockStyle.Top;
+            lstCa.SelectedIndexChanged += (s, e) => { LocGiaSu(); CapNhat(); };
+
+            dtpBatDau = Ui.Date(140);
+            dtpKetThuc = Ui.Date(140);
+            dtpBatDau.MinDate = DateTime.Now.Date;
+            dtpBatDau.Value = DateTime.Now.Date.AddDays(1);
+            dtpKetThuc.Value = dtpBatDau.Value.AddMonths(1);
+            dtpBatDau.ValueChanged += (s, e) => { if (dtpKetThuc.Value <= dtpBatDau.Value) dtpKetThuc.Value = dtpBatDau.Value.AddMonths(1); CapNhatCa(); LocGiaSu(); CapNhat(); };
+            dtpKetThuc.ValueChanged += (s, e) => { CapNhatCa(); LocGiaSu(); CapNhat(); };
+
+            var nhanh = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top, Margin = new Padding(0), WrapContents = false };
+            foreach (int thang in new[] { 1, 2, 3 })
+            {
+                var b = Ui.Button($"{thang} tháng", ButtonKind.Ghost, Glyph.None, 82);
+                b.Height = 32;
+                int t = thang;
+                b.Click += (s, e) => dtpKetThuc.Value = dtpBatDau.Value.AddMonths(t);
+                nhanh.Controls.Add(b);
+            }
+
+            txtHocPhi = Ui.Input("Ví dụ: 1.500.000", 200);
+            txtHocPhi.TextChanged += (s, e) => CapNhat();
             txtHocPhi.Leave += (s, e) =>
             {
                 decimal hp;
                 if (TryParseHocPhi(txtHocPhi.Text, out hp))
                     txtHocPhi.Text = hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
             };
+
+            lblCanhBao = Ui.Text("", true);
+            lblCanhBao.MaximumSize = new Size(300, 0);
+
+            var sec2 = Ui.Section("2. Ca và thời gian");
+            sec2.Controls.Add(Ui.Stack(false,
+                Ui.FieldLabel("Ca học"), lstCa,
+                Ui.FieldLabel("Từ ngày – đến ngày"), Ui.Row(dtpBatDau, dtpKetThuc), nhanh,
+                Ui.FieldLabel("Học phí cả khóa (đ)"), txtHocPhi,
+                lblCanhBao));
+
+            // ---- Bước 3: gia sư ----
+            txtTimGS = Ui.Input("Tìm tên, SĐT gia sư...");
+            txtTimGS.TextChanged += (s, e) => LocGiaSu();
+            cboMon = Ui.Combo();
+            cboMon.SelectedIndexChanged += (s, e) => LocGiaSu();
+            chkChiTrong = new CheckBox
+            {
+                Text = "Chỉ hiện gia sư còn trống ca này", Checked = true, AutoSize = true,
+                Font = Theme.Body, ForeColor = Theme.Text, Margin = new Padding(0, 4, 0, 6)
+            };
+            chkChiTrong.CheckedChanged += (s, e) => LocGiaSu();
+            lstGS = Ui.List(52, VeGiaSu);
+            lstGS.SelectedIndexChanged += (s, e) => { HienLichGiaSu(); CapNhat(); };
+            lblLichGS = Ui.Text("", true);
+            lblLichGS.MaximumSize = new Size(380, 0);
+
+            var sec3 = Ui.Section("3. Gia sư");
+            var stack3 = Ui.Stack(false, txtTimGS, cboMon, chkChiTrong, KhungList(lstGS), lblLichGS);
+            stack3.RowStyles[3] = new RowStyle(SizeType.Percent, 100);
+            sec3.Controls.Add(stack3);
+
+            // ---- Ba cột ----
+            var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = new Padding(0, 12, 0, 12) };
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+            cot.Controls.Add(sec1, 0, 0);
+            cot.Controls.Add(sec2, 1, 0);
+            cot.Controls.Add(sec3, 2, 0);
+            sec3.Margin = new Padding(0);
+
+            // ---- Tiêu đề + chân ----
+            var header = Ui.Stack(false, Ui.Title("Ghép lớp mới"),
+                Ui.Text("Chọn học viên, ca học rồi gia sư còn trống. Môn học lấy theo chuyên môn của gia sư.", true));
+
+            lblTomTat = new Label { AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = Theme.BodyStrong, ForeColor = Theme.Text };
+            btnHuy = Ui.Button("Hủy", ButtonKind.Secondary, Glyph.Close, 110);
+            btnHuy.Click += (s, e) => Close();
+            btnGhepLop = Ui.Button("Ghép lớp", ButtonKind.Primary, Glyph.Check, 150);
+            btnGhepLop.Margin = new Padding(0, 4, 0, 4);
+            btnGhepLop.Click += BtnGhepLop_Click;
+            var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, AutoSize = true };
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            footer.Controls.Add(lblTomTat, 0, 0);
+            footer.Controls.Add(btnHuy, 1, 0);
+            footer.Controls.Add(btnGhepLop, 2, 0);
+
+            var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3 };
+            root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            root.Controls.Add(header, 0, 0);
+            root.Controls.Add(cot, 0, 1);
+            root.Controls.Add(footer, 0, 2);
+            Controls.Add(root);
+
+            AcceptButton = btnGhepLop;
+            CancelButton = btnHuy;
+            ThemeManager.EnableDoubleBuffer(this);
         }
 
-        private void FrmChucNangGhepLop_Load(object sender, EventArgs e)
+        /// <summary>Bọc ListBox trong khung viền mảnh</summary>
+        private static Control KhungList(ListBox l)
+        {
+            var p = new Panel { Dock = DockStyle.Fill, Padding = new Padding(1), BackColor = Theme.Rule, Margin = new Padding(0, 4, 0, 4), MinimumSize = new Size(0, 160) };
+            p.Controls.Add(l);
+            return p;
+        }
+
+        // ===================================================================
+        // DỮ LIỆU
+        // ===================================================================
+
+        private void NapDuLieu()
         {
             try
             {
-                cboHocVien.DataSource = _hocVienService.GetAll().OrderBy(h => h.HoTen).ToList();
-                cboHocVien.DisplayMember = "HoTen";
-                cboHocVien.ValueMember = "MaHV";
+                using (var hv = new HocVienService()) _hocViens = hv.GetAll().OrderBy(h => h.HoTen).ToList();
+                using (var gs = new GiaSuService()) _giaSus = gs.GetForGhepLop().ToList();
+                _lopHoatDong = _lopHocService.GetAll().Where(l => l.DangHoatDong).ToList();
 
-                // Mọi gia sư trừ "Tạm nghỉ" - xung đột được kiểm tra theo ca
-                cboGiaSu.DataSource = _giaSuService.GetForGhepLop().ToList();
-                cboGiaSu.DisplayMember = "HoTen";
-                cboGiaSu.ValueMember = "MaGS";
+                cboMon.Items.Clear();
+                cboMon.Items.Add("Tất cả môn");
+                cboMon.Items.AddRange(_giaSus.Select(g => g.ChuyenMon).Where(m => !string.IsNullOrWhiteSpace(m))
+                    .Distinct().OrderBy(m => m).ToArray());
+                cboMon.SelectedIndex = 0;
 
-                cboCaHoc.DataSource = Constants.CaHoc.TatCaCaHoc.ToList();
-
-                // Trạng thái chỉ để xem - tính tự động theo thời gian
-                cboTrangThai.Items.Clear();
-                cboTrangThai.Items.AddRange(new object[]
-                {
-                    Constants.LopHocStatus.ChuaBatDau,
-                    Constants.LopHocStatus.DangDienRa
-                });
-                cboTrangThai.Enabled = false;
-
-                dtpBatDau.MinDate = DateTime.Now.Date;
-                dtpBatDau.Value = DateTime.Now.Date.AddDays(1);
-                dtpKetThuc.Value = dtpBatDau.Value.AddMonths(1);
-
-                if (cboHocVien.Items.Count == 0 || cboGiaSu.Items.Count == 0)
-                {
-                    lblWarningCaHoc.Text = cboHocVien.Items.Count == 0
-                        ? "Chưa có học viên. Thêm học viên trước khi ghép lớp."
-                        : "Không có gia sư nào nhận lớp: tất cả đang tạm nghỉ.";
-                    lblWarningCaHoc.ForeColor = Theme.Margin;
-                    lblWarningCaHoc.Visible = true;
-                    DatTrangThaiNutGhep(false);
-                }
+                LocHocVien();
+                LocGiaSu();
+                CapNhat();
+                txtTimHV.Focus();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi khởi tạo: {ex.Message}",
+                MessageBox.Show($"Không tải được dữ liệu: {ex.GetBaseException().Message}",
                     Constants.Messages.ErrorTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            finally
-            {
-                _dangKhoiTao = false;
-                CapNhatKiemTra();
-            }
         }
 
-        // ===================================================================
-        // CHỌN HỌC VIÊN / GIA SƯ
-        // ===================================================================
+        private HocVien HocVienChon => lstHV.SelectedItem as HocVien;
+        private GiaSu GiaSuChon => lstGS.SelectedItem as GiaSu;
+        private string CaChon => lstCa.SelectedItem as string;
 
-        private void cboHocVien_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var selected = cboHocVien.SelectedItem as HocVien;
-            if (selected != null)
-            {
-                txtSDT_HV.Text = selected.SDT ?? "";
-                txtDiaChi_HV.Text = selected.DiaChi ?? "";
-            }
-            CapNhatKiemTra();
-        }
-
-        private void cboGiaSu_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var selected = cboGiaSu.SelectedItem as GiaSu;
-            if (selected != null)
-            {
-                txtSDT_GS.Text = selected.SDT ?? "";
-                txtChuyenMon_GS.Text = selected.ChuyenMon ?? "";
-                txtChuyenMon_GS.BackColor = Theme.InkSoft;
-                txtChuyenMon_GS.ForeColor = Theme.Ink;
-
-                HienThiLichGiaSu(selected.MaGS);
-            }
-            CapNhatKiemTra();
-        }
-
-        private void CboGiaSu_Format(object sender, ListControlConvertEventArgs e)
-        {
-            var gs = e.ListItem as GiaSu;
-            if (gs != null)
-                e.Value = $"{gs.HoTen} - {gs.ChuyenMon} ({gs.TrangThai ?? Constants.GiaSuStatus.Ranh})";
-        }
-
-        /// <summary>
-        /// Hiển thị lịch dạy hiện tại của gia sư
-        /// </summary>
-        private void HienThiLichGiaSu(int maGS)
-        {
-            try
-            {
-                lstLichGiaSu.Items.Clear();
-
-                var lichHoc = _lopHocService.GetAll()
-                    .Where(l => l.MaGS == maGS && l.DangHoatDong)
-                    .OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc))
-                    .ThenBy(l => l.ThoiGianBatDau)
-                    .ToList();
-
-                if (lichHoc.Count == 0)
-                {
-                    lstLichGiaSu.Items.Add("Chưa có lớp nào. Có thể ghép ở bất kỳ ca nào.");
-                    lblTitleLichGS.Text = "Gia sư đang rảnh";
-                    lblTitleLichGS.ForeColor = Theme.Success;
-                    return;
-                }
-
-                foreach (var lop in lichHoc)
-                    lstLichGiaSu.Items.Add(lop);
-
-                lblTitleLichGS.Text = $"Đang dạy {lichHoc.Count} lớp";
-                lblTitleLichGS.ForeColor = Theme.TextMuted;
-            }
-            catch (Exception ex)
-            {
-                lstLichGiaSu.Items.Clear();
-                lstLichGiaSu.Items.Add($"Không đọc được lịch dạy: {ex.Message}");
-            }
-        }
-
-        // ===================================================================
-        // THỜI GIAN THEO CA
-        // ===================================================================
-
-        /// <summary>
-        /// Ghép ngày đã chọn với giờ của ca học
-        /// </summary>
-        private void LayKhoangThoiGian(out DateTime batDau, out DateTime ketThuc)
+        private void LayKhoang(string ca, out DateTime bd, out DateTime kt)
         {
             int gioBD, gioKT;
-            string ca = cboCaHoc.SelectedItem as string;
-
             if (Constants.CaHoc.TryGetGio(ca, out gioBD, out gioKT))
             {
-                batDau = dtpBatDau.Value.Date.AddHours(gioBD);
-                ketThuc = dtpKetThuc.Value.Date.AddHours(gioKT);
+                bd = dtpBatDau.Value.Date.AddHours(gioBD);
+                kt = dtpKetThuc.Value.Date.AddHours(gioKT);
             }
             else
             {
-                batDau = dtpBatDau.Value.Date;
-                ketThuc = dtpKetThuc.Value.Date.AddDays(1).AddTicks(-1);
+                bd = dtpBatDau.Value.Date;
+                kt = dtpKetThuc.Value.Date.AddDays(1).AddTicks(-1);
             }
+        }
+
+        /// <summary>Lớp đang hoạt động trùng ca + trùng ngày với khoảng đang chọn</summary>
+        private LopHoc LopTrung(Func<LopHoc, bool> cuaAi, string ca)
+        {
+            if (ca == null) return null;
+            DateTime bd, kt;
+            LayKhoang(ca, out bd, out kt);
+            var moi = new LopHoc { CaHoc = ca, ThoiGianBatDau = bd, ThoiGianKetThuc = kt };
+            return _lopHoatDong.FirstOrDefault(l => cuaAi(l) && l.TrungLich(moi));
+        }
+
+        private void LocHocVien()
+        {
+            var chon = HocVienChon;
+            string tk = txtTimHV.Text;
+            var ds = _hocViens.Where(h => TimKiem.Khop(tk, h.HoTen, h.SDT, h.TenPhuHuynh, h.SDTPhuHuynh, h.TruongLop, h.TrinhDo)).ToList();
+
+            lstHV.BeginUpdate();
+            lstHV.Items.Clear();
+            lstHV.Items.AddRange(ds.Cast<object>().ToArray());
+            if (chon != null && ds.Contains(chon)) lstHV.SelectedItem = chon;
+            else if (ds.Count == 1) lstHV.SelectedIndex = 0;
+            lstHV.EndUpdate();
+            if (lstHV.SelectedIndex < 0) { CapNhatCa(); CapNhat(); }
+        }
+
+        private void LocGiaSu()
+        {
+            var chon = GiaSuChon;
+            string tk = txtTimGS.Text;
+            string mon = cboMon.SelectedIndex > 0 ? cboMon.SelectedItem as string : null;
+            string ca = CaChon;
+
+            var ds = _giaSus
+                .Where(g => mon == null || g.ChuyenMon == mon)
+                .Where(g => TimKiem.Khop(tk, g.HoTen, g.SDT, g.ChuyenMon))
+                .Where(g => !chkChiTrong.Checked || ca == null || LopTrung(l => l.MaGS == g.MaGS, ca) == null)
+                .OrderBy(g => ca != null && LopTrung(l => l.MaGS == g.MaGS, ca) != null) // người trống lên trước
+                .ThenBy(g => _lopHoatDong.Count(l => l.MaGS == g.MaGS))               // ít lớp lên trước
+                .ThenBy(g => g.HoTen)
+                .ToList();
+
+            lstGS.BeginUpdate();
+            lstGS.Items.Clear();
+            lstGS.Items.AddRange(ds.Cast<object>().ToArray());
+            if (chon != null && ds.Contains(chon)) lstGS.SelectedItem = chon;
+            lstGS.EndUpdate();
+            HienLichGiaSu();
+            CapNhat();
+        }
+
+        /// <summary>Thông tin học viên + vẽ lại danh sách ca (ca học viên đã bận)</summary>
+        private void CapNhatCa()
+        {
+            var hv = HocVienChon;
+            if (hv == null)
+                lblHVInfo.Text = _hocViens.Count == 0 ? "Chưa có học viên. Thêm học viên ở trang Học viên trước." : "Chọn một học viên trong danh sách.";
+            else
+            {
+                var lop = _lopHoatDong.Where(l => l.MaHV == hv.MaHV).ToList();
+                lblHVInfo.Text = lop.Count == 0
+                    ? "Chưa có lớp nào đang học."
+                    : "Đang học: " + string.Join("; ", lop.Select(l => $"{l.MonHoc} ({Theme.ShiftShortName(l.CaHoc)})"));
+            }
+            lstCa.Invalidate();
+        }
+
+        private void HienLichGiaSu()
+        {
+            var gs = GiaSuChon;
+            if (gs == null) { lblLichGS.Text = ""; return; }
+            var lop = _lopHoatDong.Where(l => l.MaGS == gs.MaGS)
+                .OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc)).ToList();
+            lblLichGS.Text = lop.Count == 0
+                ? $"{gs.HoTen} chưa dạy lớp nào."
+                : $"Lịch dạy: " + string.Join("; ", lop.Select(l => $"{Theme.ShiftShortName(l.CaHoc)} {l.MonHoc} đến {l.ThoiGianKetThuc:dd/MM}"));
+        }
+
+        /// <summary>Tóm tắt + cảnh báo + bật/tắt nút Ghép lớp</summary>
+        private void CapNhat()
+        {
+            var hv = HocVienChon;
+            var gs = GiaSuChon;
+            string ca = CaChon;
+            decimal hp;
+            bool coHocPhi = TryParseHocPhi(txtHocPhi.Text, out hp);
+
+            string loi = null;
+            if (ca != null && hv != null)
+            {
+                var trung = LopTrung(l => l.MaHV == hv.MaHV, ca);
+                if (trung != null) loi = $"{hv.HoTen} đã học {trung.MonHoc} ca này đến {trung.ThoiGianKetThuc:dd/MM/yyyy}.";
+            }
+            if (loi == null && ca != null && gs != null)
+            {
+                var trung = LopTrung(l => l.MaGS == gs.MaGS, ca);
+                if (trung != null) loi = $"{gs.HoTen} đã dạy {trung.HocVien?.HoTen} ca này đến {trung.ThoiGianKetThuc:dd/MM/yyyy}.";
+            }
+            if (loi == null && dtpKetThuc.Value.Date <= dtpBatDau.Value.Date)
+                loi = "Ngày kết thúc phải sau ngày bắt đầu.";
+            if (loi == null && !string.IsNullOrWhiteSpace(txtHocPhi.Text) && !coHocPhi)
+                loi = "Học phí phải là số, ví dụ 1.500.000.";
+
+            if (loi != null)
+            {
+                lblCanhBao.Text = loi;
+                lblCanhBao.ForeColor = Theme.Margin;
+            }
+            else if (ca != null)
+            {
+                DateTime bd, kt;
+                LayKhoang(ca, out bd, out kt);
+                int soNgay = (kt.Date - bd.Date).Days + 1;
+                lblCanhBao.Text = $"{soNgay} buổi, {bd:HH:mm}–{kt:HH:mm} mỗi ngày.";
+                lblCanhBao.ForeColor = Theme.Success;
+            }
+            else
+            {
+                lblCanhBao.Text = "Chọn một ca học.";
+                lblCanhBao.ForeColor = Theme.TextMuted;
+            }
+
+            // Tóm tắt cho người dùng kiểm tra trước khi bấm
+            var thieu = new List<string>();
+            if (hv == null) thieu.Add("học viên");
+            if (ca == null) thieu.Add("ca học");
+            if (gs == null) thieu.Add("gia sư");
+            if (!coHocPhi) thieu.Add("học phí");
+
+            if (thieu.Count > 0)
+            {
+                lblTomTat.Text = "Còn thiếu: " + string.Join(", ", thieu) + ".";
+                lblTomTat.ForeColor = Theme.TextMuted;
+            }
+            else
+            {
+                lblTomTat.Text = $"{hv.HoTen} học {gs.ChuyenMon} với {gs.HoTen}, ca {Theme.ShiftShortName(ca)}, " +
+                                 $"{dtpBatDau.Value:dd/MM} – {dtpKetThuc.Value:dd/MM/yyyy}, {hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ";
+                lblTomTat.ForeColor = loi == null ? Theme.Text : Theme.Margin;
+            }
+
+            btnGhepLop.Enabled = thieu.Count == 0 && loi == null;
+        }
+
+        private static bool TryParseHocPhi(string text, out decimal hocPhi)
+        {
+            hocPhi = 0;
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            string so = new string(text.Where(char.IsDigit).ToArray());
+            return so.Length > 0 && so.Length <= 12 && decimal.TryParse(so, out hocPhi) && hocPhi > 0;
         }
 
         // ===================================================================
-        // KIỂM TRA XUNG ĐỘT REAL-TIME
+        // VẼ DANH SÁCH
         // ===================================================================
 
-        /// <summary>
-        /// Tính lại cache ca bận + cảnh báo xung đột + trạng thái dự kiến
-        /// </summary>
-        private void CapNhatKiemTra()
-        {
-            if (_dangKhoiTao) return;
-
-            if (!(cboGiaSu.SelectedValue is int) || !(cboHocVien.SelectedValue is int))
-            {
-                _caDaBan.Clear();
-                cboCaHoc.Invalidate();
-                return;
-            }
-
-            int maGS = (int)cboGiaSu.SelectedValue;
-            int maHV = (int)cboHocVien.SelectedValue;
-            DateTime batDau, ketThuc;
-            LayKhoangThoiGian(out batDau, out ketThuc);
-
-            try
-            {
-                _caDaBan = _lopHocService.GetCaDaBan(maGS, maHV, batDau, ketThuc);
-                cboCaHoc.Invalidate();
-
-                // Trạng thái dự kiến của lớp mới
-                var lopTam = new LopHoc { ThoiGianBatDau = batDau, ThoiGianKetThuc = ketThuc };
-                cboTrangThai.SelectedItem = lopTam.TrangThaiTheoThoiGian;
-
-                string loi = null;
-                if (batDau >= ketThuc)
-                    loi = Constants.Messages.ThoiGianKhongHopLe;
-                else if (cboCaHoc.SelectedItem != null)
-                {
-                    var gs = cboGiaSu.SelectedItem as GiaSu;
-                    loi = _lopHocService.TimXungDot(maGS, maHV, gs?.ChuyenMon,
-                        cboCaHoc.SelectedItem.ToString(), batDau, ketThuc);
-                }
-
-                if (loi != null)
-                {
-                    lblWarningCaHoc.Text = loi;
-                    lblWarningCaHoc.ForeColor = Theme.Margin;
-                    DatTrangThaiNutGhep(false);
-                }
-                else
-                {
-                    int soNgay = (ketThuc.Date - batDau.Date).Days + 1;
-                    lblWarningCaHoc.Text = $"Ca còn trống: {soNgay} ngày, {batDau:HH:mm}–{ketThuc:HH:mm} mỗi ngày";
-                    lblWarningCaHoc.ForeColor = Theme.Success;
-                    DatTrangThaiNutGhep(true);
-                }
-                lblWarningCaHoc.Visible = true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Lỗi kiểm tra xung đột: {ex.Message}");
-            }
-        }
-
-        private void DatTrangThaiNutGhep(bool choPhep)
-        {
-            btnGhepLop.Enabled = choPhep;
-        }
-
-        /// <summary>
-        /// Vẽ ca học: chấm màu theo ca; ca đã có lớp thì chữ mờ, gạch ngang, ghi chú "đã có lớp"
-        /// </summary>
-        private void CboCaHoc_DrawItem(object sender, DrawItemEventArgs e)
+        private void VeHocVien(object sender, DrawItemEventArgs e)
         {
             if (e.Index < 0) return;
-
-            string caHoc = cboCaHoc.Items[e.Index].ToString();
-            bool isBusy = _caDaBan.Contains(caHoc);
-            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-            bool inEditBox = (e.State & DrawItemState.ComboBoxEdit) == DrawItemState.ComboBoxEdit;
-
+            var hv = (HocVien)lstHV.Items[e.Index];
+            var r = Ui.DrawListItemBackground(e);
             var g = e.Graphics;
-            using (var bg = new SolidBrush(isSelected && !inEditBox ? Theme.InkSoft : Theme.Surface))
-                g.FillRectangle(bg, e.Bounds);
 
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using (var dot = new SolidBrush(isBusy ? Theme.Rule : Theme.ShiftColor(caHoc)))
-                g.FillEllipse(dot, e.Bounds.Left + 6, e.Bounds.Top + e.Bounds.Height / 2f - 4, 8, 8);
+            int soLop = _lopHoatDong.Count(l => l.MaHV == hv.MaHV);
+            int tagW = soLop > 0 ? Ui.DrawTag(g, $"{soLop} lớp", r, Theme.Ink, Theme.InkSoft) : 0;
 
-            var textRect = new Rectangle(e.Bounds.Left + 20, e.Bounds.Top, e.Bounds.Width - 24, e.Bounds.Height);
-            var font = isBusy ? new Font(Theme.Body, FontStyle.Strikeout) : Theme.Body;
-            TextRenderer.DrawText(g, caHoc, font, textRect, isBusy ? Theme.TextFaint : Theme.Text,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
-            if (isBusy)
-            {
-                font.Dispose();
-                TextRenderer.DrawText(g, "đã có lớp", Theme.Small, textRect, Theme.Margin,
-                    TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
-            }
+            var line1 = new Rectangle(r.X, r.Y, r.Width - tagW, r.Height / 2);
+            var line2 = new Rectangle(r.X, r.Y + r.Height / 2, r.Width - tagW, r.Height / 2);
+            TextRenderer.DrawText(g, hv.HoTen, Theme.BodyStrong, line1, Theme.Text,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+
+            var phu = new List<string>();
+            if (!string.IsNullOrWhiteSpace(hv.TenPhuHuynh)) phu.Add("PH " + hv.TenPhuHuynh);
+            if (!string.IsNullOrWhiteSpace(hv.SDTLienHe)) phu.Add(hv.SDTLienHe);
+            if (!string.IsNullOrWhiteSpace(hv.TrinhDo)) phu.Add(hv.TrinhDo);
+            TextRenderer.DrawText(g, string.Join(", ", phu), Theme.Small, line2, Theme.TextMuted,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
-        /// <summary>
-        /// Một dòng lịch dạy: chấm màu ca, tên ca, môn, khoảng ngày, trạng thái
-        /// </summary>
-        private void LstLichGiaSu_DrawItem(object sender, DrawItemEventArgs e)
+        private void VeCa(object sender, DrawItemEventArgs e)
         {
             if (e.Index < 0) return;
+            string ca = (string)lstCa.Items[e.Index];
+            var hv = HocVienChon;
+            var trung = hv != null ? LopTrung(l => l.MaHV == hv.MaHV, ca) : null;
+
+            var r = Ui.DrawListItemBackground(e, trung != null);
             var g = e.Graphics;
-            using (var bg = new SolidBrush(Theme.Surface)) g.FillRectangle(bg, e.Bounds);
-
-            var item = lstLichGiaSu.Items[e.Index];
-            var lop = item as LopHoc;
-            var b = e.Bounds;
-
-            if (lop == null)
-            {
-                TextRenderer.DrawText(g, item.ToString(), Theme.Body, b, Theme.TextMuted,
-                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
-                return;
-            }
-
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using (var dot = new SolidBrush(Theme.ShiftColor(lop.CaHoc)))
-                g.FillEllipse(dot, b.Left + 2, b.Top + b.Height / 2f - 4, 8, 8);
+            using (var b = new SolidBrush(trung != null ? Theme.Rule : Theme.ShiftColor(ca)))
+                g.FillEllipse(b, r.X, r.Y + r.Height / 2f - 5, 10, 10);
 
-            var flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis;
-            TextRenderer.DrawText(g, lop.CaHoc, Theme.BodyStrong, new Rectangle(b.Left + 16, b.Top, 170, b.Height), Theme.Text, flags);
-            TextRenderer.DrawText(g, lop.MonHoc, Theme.Body, new Rectangle(b.Left + 190, b.Top, 130, b.Height), Theme.Text, flags);
-            TextRenderer.DrawText(g, $"{lop.ThoiGianBatDau:dd/MM} – {lop.ThoiGianKetThuc:dd/MM/yyyy}", Theme.Body,
-                new Rectangle(b.Left + 325, b.Top, 190, b.Height), Theme.TextMuted, flags);
+            int tagW = trung != null ? Ui.DrawTag(g, "HV đã có lớp", r, Theme.Margin, Theme.MarginSoft) : 0;
+            TextRenderer.DrawText(g, ca, Theme.Body, new Rectangle(r.X + 18, r.Y, r.Width - 18 - tagW, r.Height),
+                trung != null ? Theme.TextFaint : Theme.Text,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        }
 
-            string tt = lop.TrangThaiTheoThoiGian;
-            TextRenderer.DrawText(g, tt, Theme.SmallStrong, new Rectangle(b.Left + 520, b.Top, b.Width - 520, b.Height),
-                Theme.StatusColor(tt), flags);
+        private void VeGiaSu(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            var gs = (GiaSu)lstGS.Items[e.Index];
+            string ca = CaChon;
+            bool trung = ca != null && LopTrung(l => l.MaGS == gs.MaGS, ca) != null;
+
+            var r = Ui.DrawListItemBackground(e, trung);
+            var g = e.Graphics;
+            int tagW = 0;
+            if (ca != null)
+                tagW = trung ? Ui.DrawTag(g, "Trùng ca", r, Theme.Margin, Theme.MarginSoft)
+                             : Ui.DrawTag(g, "Trống ca", r, Theme.Success, Theme.SuccessSoft);
+
+            int soLop = _lopHoatDong.Count(l => l.MaGS == gs.MaGS);
+            var line1 = new Rectangle(r.X, r.Y, r.Width - tagW, r.Height / 2);
+            var line2 = new Rectangle(r.X, r.Y + r.Height / 2, r.Width - tagW, r.Height / 2);
+            TextRenderer.DrawText(g, gs.HoTen, Theme.BodyStrong, line1, trung ? Theme.TextMuted : Theme.Text,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            TextRenderer.DrawText(g, $"{gs.ChuyenMon}, {(soLop == 0 ? "chưa có lớp" : soLop + " lớp đang dạy")}",
+                Theme.Small, line2, Theme.TextMuted,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
         // ===================================================================
         // GHÉP LỚP
         // ===================================================================
 
-        private static bool TryParseHocPhi(string text, out decimal hocPhi)
+        private void BtnGhepLop_Click(object sender, EventArgs e)
         {
-            hocPhi = 0;
-            if (string.IsNullOrWhiteSpace(text)) return false;
+            var hv = HocVienChon;
+            var gs = GiaSuChon;
+            string ca = CaChon;
+            decimal hp;
+            if (hv == null || gs == null || ca == null || !TryParseHocPhi(txtHocPhi.Text, out hp)) return;
 
-            string sach = new string(text.Where(char.IsDigit).ToArray());
-            return sach.Length > 0 && sach.Length <= 12 && decimal.TryParse(sach, out hocPhi);
-        }
-
-        private void btnGhepLop_Click(object sender, EventArgs e)
-        {
             try
             {
-                if (!(cboHocVien.SelectedValue is int))
-                {
-                    CanhBao(Constants.Messages.VuiLongChonHocVien, cboHocVien);
-                    return;
-                }
-
-                var selectedGiaSu = cboGiaSu.SelectedItem as GiaSu;
-                if (selectedGiaSu == null)
-                {
-                    CanhBao(Constants.Messages.VuiLongChonGiaSu, cboGiaSu);
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(selectedGiaSu.ChuyenMon))
-                {
-                    CanhBao("Gia sư chưa có chuyên môn. Vui lòng cập nhật chuyên môn cho gia sư trước.", cboGiaSu);
-                    return;
-                }
-
-                decimal hocPhi;
-                if (!TryParseHocPhi(txtHocPhi.Text, out hocPhi))
-                {
-                    CanhBao("Học phí phải là số (ví dụ: 1.500.000).", txtHocPhi);
-                    return;
-                }
-
-                if (cboCaHoc.SelectedItem == null)
-                {
-                    CanhBao(Constants.Messages.VuiLongChonCaHoc, cboCaHoc);
-                    return;
-                }
-
-                int maHV = (int)cboHocVien.SelectedValue;
-                int maGS = selectedGiaSu.MaGS;
-                string monHoc = selectedGiaSu.ChuyenMon.Trim();
-                string caHoc = cboCaHoc.SelectedItem.ToString();
-                DateTime batDau, ketThuc;
-                LayKhoangThoiGian(out batDau, out ketThuc);
-
-                var lop = _lopHocService.GhepLop(maHV, maGS, monHoc, hocPhi, null, batDau, ketThuc, caHoc);
+                DateTime bd, kt;
+                LayKhoang(ca, out bd, out kt);
+                var lop = _lopHocService.GhepLop(hv.MaHV, gs.MaGS, gs.ChuyenMon.Trim(), hp, null, bd, kt, ca);
 
                 MessageBox.Show(
-                    "Ghép lớp thành công!\n\n" +
-                    $"Môn học: {monHoc}\n" +
-                    $"Học viên: {cboHocVien.Text}\n" +
-                    $"Gia sư: {selectedGiaSu.HoTen}\n" +
-                    $"Ca học: {caHoc}\n" +
-                    $"Thời gian: {batDau:dd/MM/yyyy} - {ketThuc:dd/MM/yyyy}\n" +
-                    $"Học phí: {hocPhi:N0} đ\n" +
-                    $"Trạng thái: {lop.TrangThai}",
+                    $"Đã ghép lớp {lop.MonHoc}.\n\nHọc viên: {hv.HoTen}\nGia sư: {gs.HoTen}\nCa: {ca}\n" +
+                    $"Từ {bd:dd/MM/yyyy} đến {kt:dd/MM/yyyy}\nHọc phí: {hp:N0} đ\nTrạng thái: {lop.TrangThai}",
                     Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 DialogResult = DialogResult.OK;
@@ -432,31 +498,12 @@ namespace DoAnWD
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(ex.Message, Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                CapNhatKiemTra();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"{Constants.Messages.LoiKhiGhepLop}{ex.GetBaseException().Message}",
                     Constants.Messages.ErrorTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private static void CanhBao(string message, Control focus)
-        {
-            MessageBox.Show(message, Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            focus?.Focus();
-        }
-
-        private void btnHuy_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void FrmChucNangGhepLop_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            _hocVienService?.Dispose();
-            _giaSuService?.Dispose();
-            _lopHocService?.Dispose();
         }
     }
 }

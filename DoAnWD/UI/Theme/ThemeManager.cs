@@ -102,6 +102,8 @@ namespace DoAnWD.UI
 
         private static void StyleThemedButton(ThemedButton b)
         {
+            // Nút dựng bằng code (không có Name) đã tự chọn kiểu => giữ nguyên
+            if (string.IsNullOrEmpty(b.Name)) { b.Font = Theme.Button; return; }
             b.Kind = KindFor(b.Name);
             if (b.Glyph == Glyph.None) b.Glyph = GlyphFor(b.Name);
             b.Font = Theme.Button;
@@ -210,6 +212,9 @@ namespace DoAnWD.UI
                 else if (key.StartsWith("BatDau") || key.StartsWith("KetThuc") || key.StartsWith("ThoiGian") || key.StartsWith("Ngay")) width = 98;
                 else if (key.StartsWith("So")) width = 70;
 
+                // Cột tên người được ưu tiên rộng hơn khi phải co
+                bool laTen = key == "HoTen" || key == "HocVien" || key == "GiaSu" || key == "TenDangNhap";
+
                 if (key == "HocPhi" || key.StartsWith("TongHocPhi"))
                 {
                     col.DefaultCellStyle.Format = "N0";
@@ -217,15 +222,16 @@ namespace DoAnWD.UI
                     col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
                 }
 
-                plan.Add(System.Tuple.Create(col, width));
-                total += width > 0 ? width : fillDesired;
+                plan.Add(System.Tuple.Create(col, width > 0 ? width : (laTen ? -190 : 0)));
+                total += width > 0 ? width : (laTen ? 190 : fillDesired);
             }
 
             bool vua = total <= dgv.ClientSize.Width;
             foreach (var item in plan)
             {
                 var col = item.Item1;
-                int width = item.Item2;
+                int width = Math.Max(0, item.Item2);
+                int trongSo = item.Item2 < 0 ? -item.Item2 : (item.Item2 > 0 ? item.Item2 : fillDesired);
                 col.MinimumWidth = 40;
 
                 if (vua && width > 0)
@@ -238,7 +244,7 @@ namespace DoAnWD.UI
                 {
                     // Hẹp: mọi cột co theo tỉ lệ, không hiện thanh cuộn ngang
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                    col.FillWeight = width > 0 ? width : fillDesired;
+                    col.FillWeight = trongSo;
                 }
             }
         }

@@ -32,6 +32,7 @@ namespace DoAnWD
         private void FrmGiaSu_Load(object sender, EventArgs e)
         {
             cboTrangThai.SelectedIndex = 0;
+            TaoBoLoc();
             new ToolTip().SetToolTip(cboTrangThai,
                 "Rảnh / Bận / Đang dạy được tính tự động theo lịch dạy.\n" +
                 "Chọn \"Tạm nghỉ\" để gia sư ngừng nhận lớp mới.");
@@ -49,6 +50,7 @@ namespace DoAnWD
 
                 ConfigureGridColumns();
                 ClearInputs();
+                NapDanhSachMon();
             }
             catch (Exception ex)
             {
@@ -301,14 +303,66 @@ namespace DoAnWD
             }
         }
 
+        // ===================================================================
+        // LỌC: từ khóa + môn + trạng thái
+        // ===================================================================
+
+        private ComboBox cboLocMon, cboLocTrangThai;
+
+        /// <summary>Thêm 2 ô lọc vào khung tìm kiếm (bên phải ô từ khóa)</summary>
+        private void TaoBoLoc()
+        {
+            cboLocMon = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 160, FlatStyle = FlatStyle.Flat, Font = DoAnWD.UI.Theme.Body };
+            cboLocTrangThai = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 140, FlatStyle = FlatStyle.Flat, Font = DoAnWD.UI.Theme.Body };
+            cboLocTrangThai.Items.Add("Mọi trạng thái");
+            cboLocTrangThai.Items.AddRange(Constants.GiaSuStatus.TatCa);
+            cboLocTrangThai.SelectedIndex = 0;
+
+            int phai = panelSearch.ClientSize.Width - 15;
+            cboLocTrangThai.Location = new Point(phai - cboLocTrangThai.Width, txtTimKiem.Top);
+            cboLocMon.Location = new Point(cboLocTrangThai.Left - 10 - cboLocMon.Width, txtTimKiem.Top);
+            txtTimKiem.Width = cboLocMon.Left - 10 - txtTimKiem.Left;
+            foreach (var c in new Control[] { cboLocMon, cboLocTrangThai })
+            {
+                c.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                panelSearch.Controls.Add(c);
+            }
+            cboLocMon.SelectedIndexChanged += (s, e) => ApDungLoc();
+            cboLocTrangThai.SelectedIndexChanged += (s, e) => ApDungLoc();
+        }
+
+        private void NapDanhSachMon()
+        {
+            if (cboLocMon == null) return;
+            string dangChon = cboLocMon.SelectedIndex > 0 ? cboLocMon.SelectedItem as string : null;
+            cboLocMon.Items.Clear();
+            cboLocMon.Items.Add("Mọi môn");
+            cboLocMon.Items.AddRange(_service.GetAll().Select(g => g.ChuyenMon)
+                .Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m => m).ToArray());
+            cboLocMon.SelectedItem = dangChon;
+            if (cboLocMon.SelectedIndex < 0) cboLocMon.SelectedIndex = 0;
+        }
+
+        private void ApDungLoc()
+        {
+            if (cboLocMon == null) return;
+            string tuKhoa = txtTimKiem.ForeColor == Color.Gray ? "" : txtTimKiem.Text;
+            string mon = cboLocMon.SelectedIndex > 0 ? cboLocMon.SelectedItem as string : null;
+            string tt = cboLocTrangThai.SelectedIndex > 0 ? cboLocTrangThai.SelectedItem as string : null;
+
+            _bs.DataSource = _service.Search(tuKhoa)
+                .Where(g => mon == null || g.ChuyenMon == mon)
+                .Where(g => tt == null || (g.TrangThai ?? Constants.GiaSuStatus.Ranh) == tt)
+                .ToList();
+        }
+
         private void txtTimKiem_TextChanged(object sender, EventArgs e)
         {
-            if (txtTimKiem.ForeColor == Color.Gray) return;
+            if (txtTimKiem.ForeColor == Color.Gray && cboLocMon == null) return;
 
             try
             {
-                var results = _service.Search(txtTimKiem.Text);
-                _bs.DataSource = results.ToList();
+                ApDungLoc();
             }
             catch (Exception ex)
             {
