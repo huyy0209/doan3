@@ -32,7 +32,8 @@ namespace DoAnWD
             {
                 MessageBox.Show(
                     "CSDL chưa được nâng cấp lên phiên bản mới.\n\n" +
-                    "Hãy chạy script Database\\NangCap_v2.sql trong SQL Server Management Studio rồi mở lại ứng dụng.\n\n" +
+                    "Cách nhanh: đóng ứng dụng, chạy file CaiDatCSDL.bat ở thư mục dự án.\n" +
+                    "Hoặc chạy lần lượt các script 01 → 03 trong thư mục Database bằng SQL Server Management Studio.\n\n" +
                     "Chi tiết: " + ex.GetBaseException().Message,
                     "Cần nâng cấp CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -55,7 +56,7 @@ namespace DoAnWD
 
         /// <summary>
         /// Kiểm tra CSDL QuanLyGiaSu có tồn tại và kết nối được không.
-        /// Nếu lỗi: hiển thị hướng dẫn chạy script Database/QuanLyGiaSu.sql
+        /// Nếu lỗi: hiển thị hướng dẫn chạy script Database/01_QuanLyGiaSu.sql
         /// và sửa connection string trong App.config.
         /// </summary>
         private static bool KiemTraKetNoiCSDL()
@@ -70,8 +71,8 @@ namespace DoAnWD
 
                 MessageBox.Show(
                     "Chưa tìm thấy CSDL 'QuanLyGiaSu'.\n\n" +
-                    "Hãy chạy script Database\\QuanLyGiaSu.sql trong SQL Server Management Studio, " +
-                    "sau đó mở lại ứng dụng.",
+                    "Cách nhanh: chạy file CaiDatCSDL.bat ở thư mục dự án rồi mở lại ứng dụng.\n" +
+                    "Hoặc chạy lần lượt các script 01 → 03 trong thư mục Database bằng SQL Server Management Studio.",
                     "Chưa có CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)

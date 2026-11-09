@@ -1,5 +1,5 @@
 ﻿/* ===================================================================
-   QuanLyGiaSu - THÊM DỮ LIỆU MẪU (chạy SAU script QuanLyGiaSu.sql)
+   QuanLyGiaSu - THÊM DỮ LIỆU MẪU (chạy SAU script 01_QuanLyGiaSu.sql)
    - 14 gia sư, 30 học viên, ~45 lớp học ở đủ trạng thái:
      đã kết thúc, đang diễn ra, chưa bắt đầu, sắp học trong 24 giờ, đã hủy
    - Ngày tính theo ngày chạy script => luôn có dữ liệu "hôm nay"

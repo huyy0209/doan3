@@ -99,6 +99,7 @@ namespace DoAnWD
                     dgv.Columns["GiaSu"].HeaderText = "Gia sư";
                     dgv.Columns["TrangThai"].HeaderText = "Trạng thái";
                     dgv.Columns["NgayTao"].HeaderText = "Ngày tạo";
+                    if (dgv.Columns.Contains("MaGS")) dgv.Columns["MaGS"].Visible = false;
                     dgv.Columns["NgayTao"].DefaultCellStyle.Format = "dd/MM/yyyy";
                 }
                 cboGiaSu.Items.Clear();

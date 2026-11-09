@@ -1,7 +1,7 @@
 ﻿/* ===================================================================
    QuanLyGiaSu - Script tạo CSDL + dữ liệu mẫu
    Chạy trong SQL Server Management Studio (SSMS) hoặc:
-     sqlcmd -S . -E -i Database\QuanLyGiaSu.sql
+     sqlcmd -S . -E -i Database\01_QuanLyGiaSu.sql
    Script chạy lại nhiều lần được (bảng đã có thì bỏ qua).
    =================================================================== */
 IF DB_ID(N'QuanLyGiaSu') IS NULL

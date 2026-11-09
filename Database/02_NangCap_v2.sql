@@ -1,5 +1,5 @@
 ﻿/* ===================================================================
-   QuanLyGiaSu - NÂNG CẤP v2 (chạy SAU QuanLyGiaSu.sql)
+   QuanLyGiaSu - NÂNG CẤP v2 (chạy SAU 01_QuanLyGiaSu.sql)
    - Hồ sơ học viên: phụ huynh, SĐT phụ huynh, trường/lớp, trình độ, ghi chú
    - BuoiHoc  : điểm danh từng buổi + điểm bài test 15 phút (không bắt buộc)
    - ThanhToan: các lần đóng học phí của từng lớp

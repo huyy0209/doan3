@@ -1,5 +1,5 @@
 ﻿/* ===================================================================
-   QuanLyGiaSu - NÂNG CẤP v3 (chạy SAU NangCap_v2.sql)
+   QuanLyGiaSu - NÂNG CẤP v3 (chạy SAU 02_NangCap_v2.sql)
    Hồ sơ gia sư: email, học vấn / bằng cấp, số năm kinh nghiệm,
    các ca nhận dạy (dùng khi ghép lớp), ghi chú.
    Chạy lại nhiều lần được.

@@ -34,6 +34,18 @@ namespace DoAnWD
 
         private void FrmThongKe_Load(object sender, EventArgs e)
         {
+            // Tiêu đề cột khai báo một lần; tự áp lại mỗi khi bảng nạp dữ liệu (kể cả ở tab chưa mở)
+            ThemeManager.TieuDeCot(dgvGiaSu, "MaGS", "Mã", "HoTen", "Họ tên", "ChuyenMon", "Chuyên môn", "TrangThai", "Trạng thái", "SoLop", "Số lớp");
+            ThemeManager.TieuDeCot(dgvLopHoc, "MaLop", "Mã lớp", "HocVien", "Học viên", "MonHoc", "Môn học", "CaHoc", "Ca học",
+                "BatDau", "Bắt đầu", "KetThuc", "Kết thúc", "HocPhi", "Học phí", "TrangThai", "Trạng thái");
+            ThemeManager.TieuDeCot(dgvThongKeCa, "CaHoc", "Ca học", "SoLop", "Số lớp", "SoGiaSu", "Số gia sư", "TongHocPhi", "Tổng học phí");
+            // Hai bảng "sắp ..." bỏ cột mã lớp để đủ chỗ cho tên người và số ngày còn lại
+            foreach (var g in new[] { dgvSapBatDau, dgvSapKetThuc })
+                ThemeManager.TieuDeCot(g, "MaLop", null, "HocVien", "Học viên", "GiaSu", "Gia sư", "MonHoc", "Môn", "CaHoc", "Ca",
+                    "BatDau", "Bắt đầu", "KetThuc", "Kết thúc", "SoNgayConLai", "Còn", "HocPhi", "Học phí");
+            dgvSapBatDau.DataBindingComplete += (s, ev) => ToDongGap(dgvSapBatDau, _mocSapBatDau);
+            dgvSapKetThuc.DataBindingComplete += (s, ev) => ToDongGap(dgvSapKetThuc, _mocSapKetThuc);
+
             InitializeDoanhThuLabel();
             tabControl.SizeChanged += (s, ev) => SapXepBoCuc();
             SapXepBoCuc();
@@ -89,7 +101,8 @@ namespace DoAnWD
         private void SapXepBoCuc()
         {
             const int le = 20, khe = 16;
-            int w = Math.Max(900, tabControl.ClientSize.Width - 2 * le - 8);
+            // Trừ sẵn bề rộng thanh cuộn dọc của tab để khối bên phải không bị cắt mất cạnh
+            int w = Math.Max(900, tabLopHoc.ClientSize.Width - 2 * le - SystemInformation.VerticalScrollBarWidth);
 
             // Tab Tổng quan: 3 ô số liệu + 2 khối trạng thái
             panelCards.Width = w;
@@ -120,9 +133,10 @@ namespace DoAnWD
             gbLopHocGS.SetBounds(le, gbLopHocGS.Top, w, gbLopHocGS.Height);
 
             // Tab Lớp học
-            int sapW = 440;
-            gbThongKeCa.SetBounds(le, gbThongKeCa.Top, w - sapW - khe, gbThongKeCa.Height);
-            gbSapBatDau.SetBounds(le + w - sapW, gbSapBatDau.Top, sapW, gbSapBatDau.Height);
+            // Thống kê theo ca chỉ 4 cột => hẹp; lớp sắp bắt đầu nhiều cột => rộng hơn
+            int caW = Math.Max(440, (int)(w * 0.36));
+            gbThongKeCa.SetBounds(le, gbThongKeCa.Top, caW, gbThongKeCa.Height);
+            gbSapBatDau.SetBounds(le + caW + khe, gbSapBatDau.Top, w - caW - khe, gbSapBatDau.Height);
             gbSapKetThuc.SetBounds(le, gbSapKetThuc.Top, w, gbSapKetThuc.Height);
         }
 
@@ -431,6 +445,9 @@ namespace DoAnWD
                 col.Width = 120;
             });
 
+            SetColumnProperty(dgvLopHoc, "BatDau", col => col.HeaderText = "Bắt đầu");
+            SetColumnProperty(dgvLopHoc, "KetThuc", col => col.HeaderText = "Kết thúc");
+
             SetColumnProperty(dgvLopHoc, "CaHoc", col =>
             {
                 col.HeaderText = "Ca học";
@@ -451,17 +468,20 @@ namespace DoAnWD
         {
             try
             {
-                var thongKeCa = _lopHocService.GetLopConHoatDong()
-                    .Where(l => !string.IsNullOrEmpty(l.CaHoc))
-                    .GroupBy(l => l.CaHoc)
-                    .Select(g => new
+                // Đủ 6 ca theo thứ tự trong ngày (ca chưa có lớp hiện số 0 để thấy ngay ca còn trống)
+                var lop = _lopHocService.GetLopConHoatDong().Where(l => !string.IsNullOrEmpty(l.CaHoc)).ToList();
+                var thongKeCa = Constants.CaHoc.TatCaCaHoc
+                    .Select(ca =>
                     {
-                        CaHoc = g.Key,
-                        SoLop = g.Count(),
-                        SoGiaSu = g.Select(l => l.MaGS).Distinct().Count(),
-                        TongHocPhi = g.Sum(l => l.HocPhi)
+                        var g = lop.Where(l => l.CaHoc == ca).ToList();
+                        return new
+                        {
+                            CaHoc = ca,
+                            SoLop = g.Count,
+                            SoGiaSu = g.Select(l => l.MaGS).Distinct().Count(),
+                            TongHocPhi = g.Sum(l => l.HocPhi ?? 0)
+                        };
                     })
-                    .OrderByDescending(x => x.SoLop)
                     .ToList();
 
                 dgvThongKeCa.DataSource = thongKeCa;
@@ -469,23 +489,9 @@ namespace DoAnWD
                 if (dgvThongKeCa?.Columns == null || dgvThongKeCa.Columns.Count == 0)
                     return;
 
-                SetColumnProperty(dgvThongKeCa, "CaHoc", col =>
-                {
-                    col.HeaderText = "Ca học";
-                    col.Width = 150;
-                });
-
-                SetColumnProperty(dgvThongKeCa, "SoLop", col =>
-                {
-                    col.HeaderText = "Số lớp";
-                    col.Width = 70;
-                });
-
-                SetColumnProperty(dgvThongKeCa, "SoGiaSu", col =>
-                {
-                    col.HeaderText = "Số GS";
-                    col.Width = 70;
-                });
+                SetColumnProperty(dgvThongKeCa, "CaHoc", col => col.HeaderText = "Ca học");
+                SetColumnProperty(dgvThongKeCa, "SoLop", col => col.HeaderText = "Số lớp");
+                SetColumnProperty(dgvThongKeCa, "SoGiaSu", col => col.HeaderText = "Số gia sư");
 
                 SetColumnProperty(dgvThongKeCa, "TongHocPhi", col =>
                 {
@@ -508,89 +514,53 @@ namespace DoAnWD
         {
             try
             {
-                var lopSapBatDau = _lopHocService.GetUpcomingLopHoc(7)
-                    .Select(l => new
-                    {
-                        l.MaLop,
-                        GiaSu = l.GiaSu?.HoTen ?? "N/A",
-                        HocVien = l.HocVien?.HoTen ?? "N/A",
-                        l.MonHoc,
-                        l.CaHoc,
-                        BatDau = l.ThoiGianBatDau.HasValue ? l.ThoiGianBatDau.Value.ToString("dd/MM HH:mm") : "",
-                        SoNgayConLai = l.ThoiGianBatDau.HasValue
-                            ? (int)(l.ThoiGianBatDau.Value - DateTime.Now).TotalDays
-                            : 0,
-                        l.HocPhi
-                    })
-                    .OrderBy(l => l.SoNgayConLai)
+                var ds = _lopHocService.GetUpcomingLopHoc(7)
+                    .Where(l => l.ThoiGianBatDau.HasValue)
+                    .OrderBy(l => l.ThoiGianBatDau)
                     .ToList();
-
-                dgvSapBatDau.DataSource = lopSapBatDau;
-
-                if (dgvSapBatDau?.Columns == null || dgvSapBatDau.Columns.Count == 0)
-                    return;
-
-                SetColumnProperty(dgvSapBatDau, "MaLop", col =>
+                _mocSapBatDau = new System.Collections.Generic.List<DateTime>();
+                dgvSapBatDau.DataSource = ds.Select(l => new
                 {
-                    col.HeaderText = "Mã";
-                    col.Width = 50;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "GiaSu", col =>
-                {
-                    col.Width = 100;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "HocVien", col =>
-                {
-                    col.Width = 100;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "MonHoc", col =>
-                {
-                    col.Width = 70;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "CaHoc", col =>
-                {
-                    col.Width = 120;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "BatDau", col =>
-                {
-                    col.Width = 90;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "SoNgayConLai", col =>
-                {
-                    col.HeaderText = "Còn (ngày)";
-                    col.Width = 80;
-                });
-
-                SetColumnProperty(dgvSapBatDau, "HocPhi", col =>
-                {
-                    col.HeaderText = "Học phí";
-                    col.DefaultCellStyle.Format = "N0";
-                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-                });
-
-                // Highlight lớp sắp bắt đầu trong 24h
-                foreach (DataGridViewRow row in dgvSapBatDau.Rows)
-                {
-                    if (row.Cells["SoNgayConLai"]?.Value != null)
-                    {
-                        int soNgay = Convert.ToInt32(row.Cells["SoNgayConLai"].Value);
-                        if (soNgay <= 1)
-                        {
-                            row.DefaultCellStyle.BackColor = DoAnWD.UI.Theme.WarningSoft;
-                            row.DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
-                        }
-                    }
-                }
+                    l.MaLop,
+                    HocVien = l.HocVien?.HoTen ?? "",
+                    GiaSu = l.GiaSu?.HoTen ?? "",
+                    l.MonHoc,
+                    CaHoc = Constants.CaHoc.TenNgan(l.CaHoc),
+                    BatDau = l.ThoiGianBatDau.Value.ToString("dd/MM"),
+                    SoNgayConLai = ConBaoLau(l.ThoiGianBatDau.Value),
+                    l.HocPhi
+                }).ToList();
+                _mocSapBatDau = ds.Select(l => l.ThoiGianBatDau.Value).ToList();
+                ToDongGap(dgvSapBatDau, _mocSapBatDau);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi LoadLopSapBatDau: {ex.Message}");
+            }
+        }
+
+        /// <summary>"Hôm nay", "Ngày mai", "3 ngày"... dễ đọc hơn số ngày bị làm tròn xuống 0</summary>
+        private System.Collections.Generic.List<DateTime> _mocSapBatDau = new System.Collections.Generic.List<DateTime>();
+        private System.Collections.Generic.List<DateTime> _mocSapKetThuc = new System.Collections.Generic.List<DateTime>();
+
+        private static string ConBaoLau(DateTime moc)
+        {
+            int ngay = (moc.Date - DateTime.Today).Days;
+            if (ngay <= 0) return "Hôm nay";
+            if (ngay == 1) return "Ngày mai";
+            return ngay + " ngày";
+        }
+
+        /// <summary>Tô nền vàng nhạt cho lớp diễn ra trong vòng 24 giờ</summary>
+        private static void ToDongGap(DataGridView dgv, System.Collections.Generic.List<DateTime> moc)
+        {
+            for (int i = 0; i < dgv.Rows.Count && i < moc.Count; i++)
+            {
+                if ((moc[i] - DateTime.Now).TotalHours <= 24)
+                {
+                    dgv.Rows[i].DefaultCellStyle.BackColor = DoAnWD.UI.Theme.WarningSoft;
+                    dgv.Rows[i].DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
+                }
             }
         }
 
@@ -602,79 +572,27 @@ namespace DoAnWD
         {
             try
             {
-                var lopSapKetThuc = _lopHocService.GetLopConHoatDong()
+                var ds = _lopHocService.GetLopConHoatDong()
                     .Where(l => l.TrangThai == Constants.LopHocStatus.DangDienRa &&
                                 l.ThoiGianKetThuc.HasValue &&
                                 l.ThoiGianKetThuc.Value >= DateTime.Now &&
                                 l.ThoiGianKetThuc.Value <= DateTime.Now.AddDays(7))
-                    .Select(l => new
-                    {
-                        l.MaLop,
-                        GiaSu = l.GiaSu?.HoTen ?? "N/A",
-                        HocVien = l.HocVien?.HoTen ?? "N/A",
-                        l.MonHoc,
-                        l.CaHoc,
-                        KetThuc = l.ThoiGianKetThuc.HasValue ? l.ThoiGianKetThuc.Value.ToString("dd/MM HH:mm") : "",
-                        SoNgayConLai = (int)(l.ThoiGianKetThuc.Value - DateTime.Now).TotalDays
-                    })
-                    .OrderBy(l => l.SoNgayConLai)
+                    .OrderBy(l => l.ThoiGianKetThuc)
                     .ToList();
-
-                dgvSapKetThuc.DataSource = lopSapKetThuc;
-
-                if (dgvSapKetThuc?.Columns == null || dgvSapKetThuc.Columns.Count == 0)
-                    return;
-
-                SetColumnProperty(dgvSapKetThuc, "MaLop", col =>
+                _mocSapKetThuc = new System.Collections.Generic.List<DateTime>();
+                dgvSapKetThuc.DataSource = ds.Select(l => new
                 {
-                    col.HeaderText = "Mã";
-                    col.Width = 50;
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "GiaSu", col =>
-                {
-                    col.HeaderText = "Gia sư";
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "HocVien", col =>
-                {
-                    col.HeaderText = "Học viên";
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "MonHoc", col =>
-                {
-                    col.HeaderText = "Môn học";
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "CaHoc", col =>
-                {
-                    col.HeaderText = "Ca học";
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "KetThuc", col =>
-                {
-                    col.HeaderText = "Kết thúc";
-                });
-
-                SetColumnProperty(dgvSapKetThuc, "SoNgayConLai", col =>
-                {
-                    col.HeaderText = "Còn (ngày)";
-                    col.Width = 80;
-                });
-
-                // Highlight lớp sắp kết thúc trong 24h
-                foreach (DataGridViewRow row in dgvSapKetThuc.Rows)
-                {
-                    if (row.Cells["SoNgayConLai"]?.Value != null)
-                    {
-                        int soNgay = Convert.ToInt32(row.Cells["SoNgayConLai"].Value);
-                        if (soNgay <= 1)
-                        {
-                            row.DefaultCellStyle.BackColor = DoAnWD.UI.Theme.WarningSoft;
-                            row.DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
-                        }
-                    }
-                }
+                    l.MaLop,
+                    HocVien = l.HocVien?.HoTen ?? "",
+                    GiaSu = l.GiaSu?.HoTen ?? "",
+                    l.MonHoc,
+                    CaHoc = Constants.CaHoc.TenNgan(l.CaHoc),
+                    KetThuc = l.ThoiGianKetThuc.Value.ToString("dd/MM"),
+                    SoNgayConLai = ConBaoLau(l.ThoiGianKetThuc.Value),
+                    l.HocPhi
+                }).ToList();
+                _mocSapKetThuc = ds.Select(l => l.ThoiGianKetThuc.Value).ToList();
+                ToDongGap(dgvSapKetThuc, _mocSapKetThuc);
             }
             catch (Exception ex)
             {

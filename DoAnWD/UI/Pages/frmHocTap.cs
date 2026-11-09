@@ -146,13 +146,15 @@ namespace DoAnWD
                 FlatStyle = FlatStyle.Flat, DisplayStyle = DataGridViewComboBoxDisplayStyle.DropDownButton
             };
             cDD.Items.AddRange(Constants.DiemDanh.TatCa);
+            cDD.DefaultCellStyle.Padding = new Padding(5, 0, 5, 0);
             dgvDiemDanh.Columns.Add(cDD);
             var cDiem = cot("DiemText", "Điểm test (0–10)", 90, false);
-            cDiem.DefaultCellStyle.BackColor = Theme.InkFocus;
             cDiem.DefaultCellStyle.Font = Theme.BodyStrong;
+            // Ô nhập đang gõ nằm gọn trong khung vẽ của ô (ThemeManager vẽ khung như ô nhập)
+            cDiem.DefaultCellStyle.Padding = new Padding(11, 0, 11, 0);
             dgvDiemDanh.Columns.Add(cDiem);
             var cNX = cot("NhanXet", "Nhận xét", 200, false);
-            cNX.DefaultCellStyle.BackColor = Theme.InkFocus;
+            cNX.DefaultCellStyle.Padding = new Padding(11, 0, 11, 0);
             dgvDiemDanh.Columns.Add(cNX);
             dgvDiemDanh.Columns.Add(cot("DaLuu", "", 70, true));
             dgvDiemDanh.DataSource = _dongs;

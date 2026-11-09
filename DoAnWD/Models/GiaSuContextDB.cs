@@ -9,7 +9,7 @@ namespace DoAnWD.Models
     {
         static GiaSuContextDB()
         {
-            // CSDL được tạo bằng script Database/QuanLyGiaSu.sql
+            // CSDL được tạo bằng script Database/01_QuanLyGiaSu.sql
             // => tắt cơ chế tự tạo/kiểm tra model của EF
             Database.SetInitializer<GiaSuContextDB>(null);
         }

@@ -60,84 +60,114 @@
   <ItemGroup>
     <Compile Include="BLL\Dto\HocTapDto.cs" />
     <Compile Include="BLL\Services\BaoCaoService.cs" />
+    <Compile Include="BLL\Services\GiaSuService.cs" />
     <Compile Include="BLL\Services\HocPhiService.cs" />
     <Compile Include="BLL\Services\HocTapService.cs" />
-    <Compile Include="BLL\Services\TaiKhoanService.cs" />
-    <Compile Include="BLL\Services\GiaSuService.cs" />
     <Compile Include="BLL\Services\HocVienService.cs" />
     <Compile Include="BLL\Services\LopHocService.cs" />
     <Compile Include="BLL\Services\NotificationService.cs" />
+    <Compile Include="BLL\Services\TaiKhoanService.cs" />
     <Compile Include="BLL\Services\ThongKeService.cs" />
     <Compile Include="BLL\Validators\GiaSuValidator.cs" />
     <Compile Include="BLL\Validators\HocVienValidator.cs" />
     <Compile Include="BLL\Validators\LopHocValidator.cs" />
     <Compile Include="Common\Constants.cs" />
-    <Compile Include="Common\TimKiem.cs" />
     <Compile Include="Common\SoTien.cs" />
+    <Compile Include="Common\TimKiem.cs" />
     <Compile Include="DAL\Interfaces\IRepository.cs" />
     <Compile Include="DAL\Repositories\GiaSuRepository.cs" />
     <Compile Include="DAL\Repositories\HocVienRepository.cs" />
     <Compile Include="DAL\Repositories\LopHocRepository.cs" />
     <Compile Include="DAL\Repositories\Repository.cs" />
-    <Compile Include="UI\frmCalendarView.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmCalendarView.Designer.cs">
-      <DependentUpon>frmCalendarView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmChucNangGhepLop.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmChucNangGhepLop.Designer.cs">
-      <DependentUpon>frmChucNangGhepLop.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmGiaSu.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmGiaSu.Designer.cs">
-      <DependentUpon>frmGiaSu.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmHocVien.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmHocVien.Designer.cs">
-      <DependentUpon>frmHocVien.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmGhepLop.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmGhepLop.Designer.cs">
-      <DependentUpon>frmGhepLop.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmNotificationToast.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmNotificationToast.Designer.cs">
-      <DependentUpon>frmNotificationToast.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmThongKe.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmThongKe.Designer.cs">
-      <DependentUpon>frmThongKe.cs</DependentUpon>
-    </Compile>
     <Compile Include="Models\BuoiHoc.cs" />
-    <Compile Include="Models\ThanhToan.cs" />
-    <Compile Include="Models\TaiKhoan.cs" />
     <Compile Include="Models\GiaSu.cs" />
     <Compile Include="Models\GiaSuContextDB.cs" />
     <Compile Include="Models\HocVien.cs" />
     <Compile Include="Models\LopHoc.cs" />
     <Compile Include="Models\sysdiagram.cs" />
+    <Compile Include="Models\TaiKhoan.cs" />
+    <Compile Include="Models\ThanhToan.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\Theme\ThemedButton.cs">
-      <SubType>Component</SubType>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\Theme\SectionBox.cs">
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="UI\Controls\HoSoEditors.cs" />
+    <Compile Include="UI\Dialogs\dlgHoSo.cs" />
+    <Compile Include="UI\Dialogs\frmChucNangGhepLop.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Dialogs\frmChucNangGhepLop.Designer.cs">
+      <DependentUpon>frmChucNangGhepLop.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Dialogs\frmDangNhap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Dialogs\frmNotificationToast.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Dialogs\frmNotificationToast.Designer.cs">
+      <DependentUpon>frmNotificationToast.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Pages\frmCalendarView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmCalendarView.Designer.cs">
+      <DependentUpon>frmCalendarView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Pages\frmGhepLop.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmGhepLop.Designer.cs">
+      <DependentUpon>frmGhepLop.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Pages\frmGiaSu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmGiaSu.Designer.cs">
+      <DependentUpon>frmGiaSu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Pages\frmHocPhi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmHocTap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmHocVien.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmHocVien.Designer.cs">
+      <DependentUpon>frmHocVien.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Pages\frmTaiKhoan.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmThongKe.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmThongKe.Designer.cs">
+      <DependentUpon>frmThongKe.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Theme\Icons.cs" />
+    <Compile Include="UI\Theme\MonthGrid.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\Theme\NavButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Theme\Pager.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Theme\ScoreChart.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Theme\SectionBox.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\Theme\ShiftRibbon.cs">
@@ -146,65 +176,17 @@
     <Compile Include="UI\Theme\TabStrip.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Theme\MonthGrid.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="UI\Theme\Theme.cs" />
+    <Compile Include="UI\Theme\ThemedButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Theme\ThemeManager.cs" />
-    <Compile Include="UI\Theme\Icons.cs" />
     <Compile Include="UI\Theme\Ui.cs" />
-    <Compile Include="UI\Theme\Pager.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="UI\Theme\ScoreChart.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="UI\frmDangNhap.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmTaiKhoan.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmHocPhi.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\HoSoEditors.cs" />
-    <Compile Include="UI\frmHocTap.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="UI\TrangChu.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\TrangChu.Designer.cs">
       <DependentUpon>TrangChu.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="UI\frmChucNangGhepLop.resx">
-      <DependentUpon>frmChucNangGhepLop.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\frmHocVien.resx">
-      <DependentUpon>frmHocVien.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\frmThongKe.resx">
-      <DependentUpon>frmThongKe.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
   <ItemGroup>

@@ -27,7 +27,7 @@
         [StringLength(200)]
         public string DiaChi { get; set; }
 
-        // ----- Hồ sơ (bổ sung ở NangCap_v2.sql) -----
+        // ----- Hồ sơ (bổ sung ở 02_NangCap_v2.sql) -----
         [StringLength(100)]
         public string TenPhuHuynh { get; set; }
 

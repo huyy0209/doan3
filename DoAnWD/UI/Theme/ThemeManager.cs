@@ -187,6 +187,10 @@ namespace DoAnWD.UI
 
             dgv.CellPainting -= PaintSpecialCell;
             dgv.CellPainting += PaintSpecialCell;
+            dgv.EditingControlShowing -= Grid_EditingControlShowing;
+            dgv.EditingControlShowing += Grid_EditingControlShowing;
+            dgv.CurrentCellChanged -= Grid_CurrentCellChanged;
+            dgv.CurrentCellChanged += Grid_CurrentCellChanged;
             dgv.DataBindingComplete -= Grid_DataBindingComplete;
             dgv.DataBindingComplete += Grid_DataBindingComplete;
             dgv.SizeChanged -= Grid_SizeChanged;
@@ -261,9 +265,42 @@ namespace DoAnWD.UI
             SizeColumns((DataGridView)sender);
         }
 
+        // ---------------- Tiêu đề cột ----------------
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<DataGridView, System.Collections.Generic.Dictionary<string, string>>
+            _tieuDe = new System.Runtime.CompilerServices.ConditionalWeakTable<DataGridView, System.Collections.Generic.Dictionary<string, string>>();
+
+        /// <summary>
+        /// Khai báo tiêu đề tiếng Việt cho các cột (theo tên thuộc tính). Giá trị null = ẩn cột.
+        /// Được áp lại mỗi lần bảng nạp dữ liệu, kể cả bảng nằm ở tab chưa mở (lúc đó cột chưa được tạo).
+        /// </summary>
+        public static void TieuDeCot(DataGridView dgv, params string[] cap)
+        {
+            var map = new System.Collections.Generic.Dictionary<string, string>();
+            for (int i = 0; i + 1 < cap.Length; i += 2) map[cap[i]] = cap[i + 1];
+            _tieuDe.Remove(dgv);
+            _tieuDe.Add(dgv, map);
+            ApTieuDe(dgv);
+        }
+
+        private static void ApTieuDe(DataGridView dgv)
+        {
+            System.Collections.Generic.Dictionary<string, string> map;
+            if (!_tieuDe.TryGetValue(dgv, out map)) return;
+            foreach (DataGridViewColumn c in dgv.Columns)
+            {
+                string key = !string.IsNullOrEmpty(c.DataPropertyName) ? c.DataPropertyName : c.Name;
+                string ten;
+                if (!map.TryGetValue(key, out ten)) continue;
+                if (ten == null) c.Visible = false;
+                else c.HeaderText = ten;
+            }
+        }
+
         private static void Grid_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             var dgv = (DataGridView)sender;
+            ApTieuDe(dgv);
             // Chạy sau code cấu hình cột của từng form
             if (dgv.IsHandleCreated) dgv.BeginInvoke((MethodInvoker)(() => SizeColumns(dgv)));
             else SizeColumns(dgv);
@@ -292,6 +329,7 @@ namespace DoAnWD.UI
                 else if (key == "SDT") width = 112;
                 else if (key == "HocPhi" || key.StartsWith("TongHocPhi") || key.StartsWith("DoanhThu")) width = 108;
                 else if (key.StartsWith("BatDau") || key.StartsWith("KetThuc") || key.StartsWith("ThoiGian") || key.StartsWith("Ngay")) width = 98;
+                else if (key == "SoNgayConLai") width = 86;
                 else if (key.StartsWith("So")) width = 70;
 
                 // Cột tên người được ưu tiên rộng hơn khi phải co
@@ -309,6 +347,8 @@ namespace DoAnWD.UI
             }
 
             bool vua = total <= dgv.ClientSize.Width;
+            // Toàn cột cố định (ví dụ bảng thống kê theo ca) mà còn dư chỗ => giãn đều theo tỉ lệ để lấp kín bảng
+            if (vua && plan.All(t => t.Item2 > 0)) vua = false;
             foreach (var item in plan)
             {
                 var col = item.Item1;
@@ -332,8 +372,12 @@ namespace DoAnWD.UI
         }
 
         /// <summary>
-        /// Cột "TrangThai": nhãn bo tròn theo màu trạng thái.
-        /// Cột "CaHoc": chấm màu của ca trước tên ca.
+        /// Tự vẽ mọi ô của bảng để hiển thị luôn đồng nhất (không phụ thuộc viền mặc định của DataGridView,
+        /// vốn bị mất / lệch khi click hoặc khi ô vừa sửa xong):
+        /// - nền: xanh nhạt nếu dòng đang chọn, ngược lại theo màu dòng;
+        /// - ô được sửa (bảng điểm danh): khung như ô nhập, viền xanh khi đang chọn;
+        /// - cột trạng thái: nhãn bo tròn; cột ca học: chấm màu theo ca;
+        /// - một đường kẻ mảnh dưới mỗi dòng.
         /// </summary>
         private static void PaintSpecialCell(object sender, DataGridViewCellPaintingEventArgs e)
         {
@@ -341,54 +385,92 @@ namespace DoAnWD.UI
 
             var dgv = (DataGridView)sender;
             var col = dgv.Columns[e.ColumnIndex];
+            var cell = dgv[e.ColumnIndex, e.RowIndex];
             string key = !string.IsNullOrEmpty(col.DataPropertyName) ? col.DataPropertyName : col.Name;
-            bool isStatus = key == "TrangThai" || key == "TrangThaiTheoThoiGian" || key == "XepLoai" ||
-                            key == "TinhTrang" || (key == "DiemDanh" && dgv.ReadOnly);
-            bool isShift = key == "CaHoc";
+            bool suaDuoc = !dgv.ReadOnly && !cell.ReadOnly;
+            bool isStatus = !suaDuoc && (key == "TrangThai" || key == "TrangThaiTheoThoiGian" || key == "XepLoai" ||
+                            key == "TinhTrang" || (key == "DiemDanh" && dgv.ReadOnly));
+            bool isShift = !suaDuoc && key == "CaHoc";
             bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
+            bool oHienTai = dgv.CurrentCell != null && dgv.CurrentCell.RowIndex == e.RowIndex && dgv.CurrentCell.ColumnIndex == e.ColumnIndex;
             string text = e.FormattedValue?.ToString() ?? "";
-
-            if (!isStatus && !isShift || text.Length == 0)
-            {
-                // Ô thường: vẽ như mặc định nhưng bỏ khung chấm chấm (focus) làm vỡ dòng khi click
-                e.Paint(e.CellBounds, e.PaintParts & ~DataGridViewPaintParts.Focus);
-                if (selected) VeVachChon(dgv, e);
-                e.Handled = true;
-                return;
-            }
-
-            // Tự tô nền để ô nhãn/ca cùng màu xanh với cả dòng đang chọn
-            using (var nen = new SolidBrush(selected ? Theme.RowSelect : e.CellStyle.BackColor))
-                e.Graphics.FillRectangle(nen, e.CellBounds);
-            e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
-            if (selected) VeVachChon(dgv, e);
             var g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             var b = e.CellBounds;
 
-            if (isStatus)
+            // 1. Nền
+            Color nen = selected && !suaDuoc ? Theme.RowSelect : e.CellStyle.BackColor;
+            using (var br = new SolidBrush(nen)) g.FillRectangle(br, b);
+
+            // 2. Nội dung
+            if (suaDuoc)
+                VeONhap(g, b, text, e.CellStyle, oHienTai, cell is DataGridViewComboBoxCell);
+            else if (isStatus && text.Length > 0)
+                VeNhan(g, b, text);
+            else if (isShift && text.Length > 0)
             {
-                var size = TextRenderer.MeasureText(text, Theme.SmallStrong);
-                float w = Math.Min(size.Width + 12, b.Width - 12);
-                var pill = new RectangleF(b.X + 8, b.Y + (b.Height - 22) / 2f, w, 22);
-                using (var path = Theme.RoundedRect(pill, 11))
-                using (var brush = new SolidBrush(Theme.StatusSoftColor(text)))
-                    g.FillPath(brush, path);
-                var textRect = Rectangle.Round(new RectangleF(pill.X + 6, pill.Y, pill.Width - 10, pill.Height));
-                TextRenderer.DrawText(g, text, Theme.SmallStrong, textRect, Theme.StatusColor(text),
-                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine |
-                    TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
-            }
-            else
-            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 using (var brush = new SolidBrush(Theme.ShiftColor(text)))
                     g.FillEllipse(brush, b.X + 10, b.Y + b.Height / 2f - 4, 8, 8);
                 var textRect = new Rectangle(b.X + 24, b.Y, b.Width - 28, b.Height);
                 TextRenderer.DrawText(g, text, e.CellStyle.Font ?? Theme.Body, textRect, e.CellStyle.ForeColor,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
             }
+            else
+                e.Paint(b, DataGridViewPaintParts.ContentBackground | DataGridViewPaintParts.ContentForeground |
+                           DataGridViewPaintParts.ErrorIcon);
 
+            // 3. Kẻ dòng + vạch chọn
+            using (var p = new Pen(dgv.GridColor)) g.DrawLine(p, b.Left, b.Bottom - 1, b.Right, b.Bottom - 1);
+            if (selected) VeVachChon(dgv, e);
             e.Handled = true;
+        }
+
+        private static void VeNhan(Graphics g, Rectangle b, string text)
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var size = TextRenderer.MeasureText(text, Theme.SmallStrong);
+            float w = Math.Min(size.Width + 12, b.Width - 12);
+            var pill = new RectangleF(b.X + 8, b.Y + (b.Height - 22) / 2f, w, 22);
+            using (var path = Theme.RoundedRect(pill, 11))
+            using (var brush = new SolidBrush(Theme.StatusSoftColor(text)))
+                g.FillPath(brush, path);
+            var textRect = Rectangle.Round(new RectangleF(pill.X + 6, pill.Y, pill.Width - 10, pill.Height));
+            TextRenderer.DrawText(g, text, Theme.SmallStrong, textRect, Theme.StatusColor(text),
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine |
+                TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+        }
+
+        /// <summary>Ô sửa được vẽ như một ô nhập: nền trắng, viền xám; ô đang chọn viền xanh</summary>
+        private static void VeONhap(Graphics g, Rectangle b, string text, DataGridViewCellStyle st, bool dangChon, bool laCombo)
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var khung = new RectangleF(b.X + 4.5f, b.Y + 4.5f, b.Width - 9, b.Height - 10);
+            using (var path = Theme.RoundedRect(khung, 4))
+            {
+                using (var br = new SolidBrush(Theme.Surface)) g.FillPath(br, path);
+                using (var p = new Pen(dangChon ? Theme.RowSelectBar : Theme.RuleStrong, dangChon ? 1.6f : 1f)) g.DrawPath(p, path);
+            }
+
+            int phai = laCombo ? 22 : 0;
+            var vungChu = new Rectangle(b.X + 11, b.Y, b.Width - 22 - phai, b.Height - 1);
+            var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding;
+            var canh = st.Alignment;
+            if (canh == DataGridViewContentAlignment.MiddleCenter || canh == DataGridViewContentAlignment.TopCenter ||
+                canh == DataGridViewContentAlignment.BottomCenter) flags |= TextFormatFlags.HorizontalCenter;
+            else if (canh == DataGridViewContentAlignment.MiddleRight || canh == DataGridViewContentAlignment.TopRight ||
+                     canh == DataGridViewContentAlignment.BottomRight) flags |= TextFormatFlags.Right;
+            TextRenderer.DrawText(g, text, st.Font ?? Theme.Body, vungChu, st.ForeColor, flags);
+
+            if (laCombo)
+            {
+                // Mũi tên xổ xuống
+                float cx = khung.Right - 12, cy = khung.Y + khung.Height / 2f;
+                using (var p = new Pen(Theme.TextMuted, 1.5f))
+                {
+                    g.DrawLine(p, cx - 4, cy - 2, cx, cy + 2);
+                    g.DrawLine(p, cx, cy + 2, cx + 4, cy - 2);
+                }
+            }
         }
 
         /// <summary>Vạch xanh đậm ở đầu dòng đang chọn (chỉ vẽ ở cột hiển thị đầu tiên)</summary>
@@ -399,6 +481,22 @@ namespace DoAnWD.UI
             if (dau == null || dau.Index != e.ColumnIndex) return;
             using (var b = new SolidBrush(Theme.RowSelectBar))
                 e.Graphics.FillRectangle(b, e.CellBounds.X, e.CellBounds.Y, 3, e.CellBounds.Height - 1);
+        }
+
+        /// <summary>Ô nhập của bảng (khi đang gõ) nằm gọn trong khung, nền trắng như ô nhập thường</summary>
+        private static void Grid_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            e.CellStyle.BackColor = Theme.Surface;
+            e.CellStyle.SelectionBackColor = Theme.Surface;
+            var tb = e.Control as TextBox;
+            if (tb != null) tb.BorderStyle = BorderStyle.None;
+        }
+
+        /// <summary>Đổi ô đang chọn thì vẽ lại hai ô (cũ và mới) để viền xanh đi theo</summary>
+        private static void Grid_CurrentCellChanged(object sender, EventArgs e)
+        {
+            var dgv = (DataGridView)sender;
+            if (!dgv.ReadOnly) dgv.Invalidate();
         }
 
         private static void StyleTextBox(TextBox t)

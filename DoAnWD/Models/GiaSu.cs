@@ -30,7 +30,7 @@
         [StringLength(50)]
         public string TrangThai { get; set; }
 
-        // ----- Hồ sơ (bổ sung ở NangCap_v3.sql) -----
+        // ----- Hồ sơ (bổ sung ở 03_NangCap_v3.sql) -----
         [StringLength(100)]
         public string Email { get; set; }
 

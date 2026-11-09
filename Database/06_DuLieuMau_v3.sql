@@ -1,5 +1,5 @@
 ﻿/* ===================================================================
-   QuanLyGiaSu - DỮ LIỆU MẪU v3 (chạy SAU NangCap_v3.sql)
+   QuanLyGiaSu - DỮ LIỆU MẪU v3 (chạy SAU 03_NangCap_v3.sql)
    - Hồ sơ gia sư còn trống: email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú
    - Ghi chú cho học viên còn trống
    - Tài khoản đăng nhập cho mọi gia sư chưa có: gs<Mã gia sư> / 123456
