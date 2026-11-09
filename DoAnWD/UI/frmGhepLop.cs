@@ -22,6 +22,14 @@ namespace DoAnWD
         {
             InitializeComponent();
 
+            // Nút chính "Ghép lớp mới" đặt ở góc phải tiêu đề trang - chỗ mắt tìm đầu tiên
+            btnGhepLop.Parent = panelTop;
+            btnGhepLop.Size = new Size(176, 42);
+            btnGhepLop.Location = new Point(panelTop.Width - btnGhepLop.Width - 24, (panelTop.Height - 42) / 2);
+            btnGhepLop.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnXoaLop.Left = 15;
+            btnRefresh.Left = btnXoaLop.Right + 12;
+
             // Ô chi tiết co theo bề ngang khung
             foreach (var tb in new Control[] { txtHoTen, txtChuyenMon })
                 tb.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -50,6 +58,10 @@ namespace DoAnWD
 
         private void LoadGiaSuList()
         {
+            // Danh sách lớp nhiều cột hơn => nhường 60% bề ngang cho khung bên phải
+            if (splitContainer.Width > 900)
+                splitContainer.SplitterDistance = (int)(splitContainer.Width * 0.36);
+
             try
             {
                 int? maGSDangChon = null;
@@ -91,6 +103,7 @@ namespace DoAnWD
             {
                 dgvGiaSu.Columns["MaGS"].HeaderText = "Mã";
                 dgvGiaSu.Columns["MaGS"].Width = 50;
+                dgvGiaSu.Columns["MaGS"].Visible = false; // mã đã hiện ở khung chi tiết bên dưới
                 dgvGiaSu.Columns["HoTen"].HeaderText = "Họ tên";
                 dgvGiaSu.Columns["ChuyenMon"].HeaderText = "Chuyên môn";
                 dgvGiaSu.Columns["TrangThai"].HeaderText = "Trạng thái";
@@ -186,6 +199,7 @@ namespace DoAnWD
             {
                 dgvLopHoc.Columns["MaLop"].HeaderText = "Mã lớp";
                 dgvLopHoc.Columns["MaLop"].Width = 70;
+                dgvLopHoc.Columns["MaLop"].Visible = false; // vẫn dùng để hủy/xóa, không cần hiện
                 dgvLopHoc.Columns["HocVien"].HeaderText = "Học viên";
                 dgvLopHoc.Columns["MonHoc"].HeaderText = "Môn học";
                 dgvLopHoc.Columns["BatDau"].HeaderText = "Bắt đầu";

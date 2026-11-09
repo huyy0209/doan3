@@ -96,6 +96,10 @@ Giao diện dựa trên hình ảnh **vở ô li**: nền giấy trắng xanh, m
 | Menu trái | Nền tím đậm; vạch đỏ chỉ mục đang mở và trượt theo khi chuyển màn hình (tắt nếu Windows tắt hiệu ứng) |
 | Bảng | Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang |
 | Lịch học | Control tự vẽ, co giãn theo cửa sổ; mỗi lớp hiện ở **mọi ngày** trong khoảng học (trước đây chỉ hiện ở ngày bắt đầu) |
+| Nút bấm | Có icon (thêm, sửa, xóa, lưu, làm mới...) và 4 kiểu màu: chính (tím đặc), phụ (tím nhạt), xóa (đỏ), nhẹ (chữ tím); hành động chính của trang đặt ở góc phải tiêu đề |
+| Ô số liệu | Mỗi loại một màu: gia sư tím, học viên xanh lá, lớp học cam; số trạng thái tô theo màu trạng thái |
+| Ô nhập | Nền tím rất nhạt khi đang gõ để biết con trỏ ở đâu |
+| Chuyển trang | Trang cũ mờ dần, trang mới hiện dần và trượt nhẹ 24px (~220ms) |
 | Chống nháy | Double buffering cho bảng/panel, `WS_EX_COMPOSITED` cho cửa sổ chính |
 
 Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
@@ -107,6 +111,8 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `ThemedButton.cs` | Nút bo góc: Primary / Secondary / Danger / Ghost |
 | `SectionBox.cs` | Thay GroupBox: khung mảnh, tiêu đề nằm trong khung |
 | `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
+| `Icons.cs` | Bộ icon nét mảnh vẽ bằng GDI+, không cần file ảnh |
+| `PageTransition.cs` | Hiệu ứng chuyển trang |
 | `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
 
 ## Lịch sử nâng cấp
@@ -118,6 +124,7 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `feat(ui): upgrade…` | Nâng cấp hộp thoại ghép lớp, danh sách lớp, trang chủ, thống kê; dùng DbContext mới mỗi lần làm mới để tránh dữ liệu cũ |
 | `docs: add README` | Tài liệu này |
 | `feat(ui): redesign…` | Thiết kế lại toàn bộ giao diện theo chủ đề "vở ô li" |
+| `feat(ui): readability…` | Chữ to hơn, nút có icon và màu rõ, ô số liệu theo màu, hiệu ứng chuyển trang |
 
 ## Dữ liệu mẫu
 

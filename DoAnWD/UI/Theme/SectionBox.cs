@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
@@ -34,8 +34,14 @@ namespace DoAnWD.UI
                 using (var p = new Pen(Theme.Rule)) g.DrawPath(p, path);
             }
 
-            TextRenderer.DrawText(g, Text, Theme.Section, new Point(10, 7), Theme.Text,
-                TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+            if (!string.IsNullOrEmpty(Text))
+            {
+                // Vạch mực tím trước tiêu đề giúp mắt tìm nhanh từng khối
+                using (var bar = new SolidBrush(Theme.Ink))
+                    g.FillRectangle(bar, 10, 9, 3, 16);
+                TextRenderer.DrawText(g, Text, Theme.Section, new Point(19, 6), Theme.Text,
+                    TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+            }
         }
     }
 }

@@ -85,10 +85,28 @@ namespace DoAnWD.UI
             return ButtonKind.Secondary;
         }
 
+        public static Glyph GlyphFor(string name)
+        {
+            string n = (name ?? "").ToLowerInvariant();
+            if (n.Contains("xoa") || n.Contains("delete")) return Glyph.Trash;
+            if (n.Contains("them") || n.Contains("gheplop")) return Glyph.Plus;
+            if (n.Contains("sua")) return Glyph.Edit;
+            if (n.Contains("luu") || n.Contains("save")) return Glyph.Check;
+            if (n.Contains("huy")) return Glyph.Close;
+            if (n.Contains("refresh") || n.Contains("lammoi")) return Glyph.Refresh;
+            if (n.Contains("prev")) return Glyph.ChevronLeft;
+            if (n.Contains("next")) return Glyph.ChevronRight;
+            if (n.Contains("today")) return Glyph.Calendar;
+            return Glyph.None;
+        }
+
         private static void StyleThemedButton(ThemedButton b)
         {
             b.Kind = KindFor(b.Name);
+            if (b.Glyph == Glyph.None) b.Glyph = GlyphFor(b.Name);
             b.Font = Theme.Button;
+            // Nút quá thấp khó bấm: tối thiểu 38px
+            if (b.Height < 38 && b.Dock == DockStyle.None) b.Height = 38;
         }
 
         private static void StylePlainButton(Button b)
@@ -129,14 +147,16 @@ namespace DoAnWD.UI
             head.SelectionBackColor = Theme.Surface;
             head.SelectionForeColor = Theme.TextMuted;
             head.Font = Theme.Label;
+            head.ForeColor = Theme.Ink;
             head.Padding = new Padding(8, 0, 8, 0);
             head.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            head.WrapMode = DataGridViewTriState.False;
 
             var cell = dgv.DefaultCellStyle;
             cell.BackColor = Theme.Surface;
             cell.ForeColor = Theme.Text;
             cell.Font = Theme.Body;
-            cell.SelectionBackColor = Theme.InkSoft;
+            cell.SelectionBackColor = Theme.InkSelect;
             cell.SelectionForeColor = Theme.Text;
             cell.Padding = new Padding(8, 0, 8, 0);
 
@@ -278,11 +298,27 @@ namespace DoAnWD.UI
             t.Font = t.Font.Size >= 13 ? Theme.NumberSmall : (t.Font.Bold ? Theme.BodyStrong : Theme.Body);
             t.BackColor = t.ReadOnly ? Theme.Paper : Theme.Surface;
 
+            // Tô nền tím rất nhạt cho ô đang gõ => biết ngay con trỏ đang ở đâu
+            t.Enter -= TextBox_Enter; t.Enter += TextBox_Enter;
+            t.Leave -= TextBox_Leave; t.Leave += TextBox_Leave;
+
             // Ô tìm kiếm dùng Color.Gray làm dấu hiệu "đang hiện placeholder" => giữ nguyên
             Color fc = t.ForeColor;
             bool oTrangThai = (t.Name ?? "").Contains("TrangThai"); // ô trạng thái tô màu bằng code
             if (fc != Color.Gray && !(oTrangThai && fc == Color.White))
                 t.ForeColor = Theme.Text;
+        }
+
+        private static void TextBox_Enter(object sender, EventArgs e)
+        {
+            var t = (TextBox)sender;
+            if (!t.ReadOnly && t.Enabled) t.BackColor = Theme.InkFocus;
+        }
+
+        private static void TextBox_Leave(object sender, EventArgs e)
+        {
+            var t = (TextBox)sender;
+            if (!t.ReadOnly && t.BackColor == Theme.InkFocus) t.BackColor = Theme.Surface;
         }
 
         private static void StyleCombo(ComboBox c)
@@ -324,6 +360,16 @@ namespace DoAnWD.UI
             l.BackColor = Color.Transparent;
             float size = l.Font.Size;
 
+            // Nhãn trong ô số liệu: số lớn theo màu của ô
+            string parentName = l.Parent?.Name ?? "";
+            if (parentName.StartsWith("card"))
+            {
+                bool laSo = size >= 18;
+                l.Font = laSo ? Theme.Number : Theme.Section;
+                l.ForeColor = laSo ? CardColor(parentName) : Theme.Text;
+                return;
+            }
+
             if (l.Name == "lblTitle")
             {
                 l.Font = Theme.PageTitle;
@@ -348,8 +394,9 @@ namespace DoAnWD.UI
             }
             else if (l.Font.Bold)
             {
+                // Nhãn ô nhập: đậm, màu chữ chính (không dùng xám nhạt khó đọc)
                 l.Font = Theme.Label;
-                l.ForeColor = Theme.TextMuted;
+                l.ForeColor = Theme.Text;
             }
             else
             {
@@ -375,8 +422,9 @@ namespace DoAnWD.UI
 
             if (n.StartsWith("card"))
             {
-                // Ô số liệu: nền trắng, viền dòng kẻ, vạch mực tím bên trái
-                p.BackColor = Theme.Surface;
+                // Ô số liệu: mỗi loại một màu (gia sư tím, học viên xanh, lớp cam), nền nhạt cùng tông
+                Color accent = CardColor(n);
+                p.BackColor = Theme.Blend(accent, Color.White, 0.9f);
                 p.Paint += PaintCard;
                 return;
             }
@@ -406,13 +454,20 @@ namespace DoAnWD.UI
                 e.Graphics.DrawRectangle(pen, 0, 0, c.Width - 1, c.Height - 1);
         }
 
+        public static Color CardColor(string name)
+        {
+            string n = (name ?? "").ToLowerInvariant();
+            if (n.Contains("hv") || n.Contains("hocvien")) return Theme.Success;
+            if (n.Contains("lop")) return Theme.Warning;
+            return Theme.Ink;
+        }
+
         private static void PaintCard(object sender, PaintEventArgs e)
         {
             var c = (Control)sender;
-            using (var pen = new Pen(Theme.Rule))
-                e.Graphics.DrawRectangle(pen, 0, 0, c.Width - 1, c.Height - 1);
-            using (var b = new SolidBrush(Theme.Ink))
-                e.Graphics.FillRectangle(b, 0, 0, 3, c.Height);
+            Color accent = CardColor(c.Name);
+            using (var b = new SolidBrush(accent))
+                e.Graphics.FillRectangle(b, 0, 0, 5, c.Height);
         }
 
         // ------------------------------------------------------------------

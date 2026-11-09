@@ -99,6 +99,13 @@ namespace DoAnWD
             gbTrangThaiGS.SetBounds(le, gbTrangThaiGS.Top, half, gbTrangThaiGS.Height);
             gbTrangThaiLop.SetBounds(le + half + khe, gbTrangThaiLop.Top, w - half - khe, gbTrangThaiLop.Height);
             ChiaCot(gbTrangThaiGS, new[] { lblCountGSRanh, lblCountGSDangDay }, new[] { lblLabelGSRanh, lblLabelGSBan });
+            // Số theo màu trạng thái để nhìn là phân biệt được
+            lblCountGSRanh.ForeColor = DoAnWD.UI.Theme.Success;
+            lblCountGSDangDay.ForeColor = DoAnWD.UI.Theme.Ink;
+            lblCountChuaBatDau.ForeColor = DoAnWD.UI.Theme.Warning;
+            lblCountDangDienRa.ForeColor = DoAnWD.UI.Theme.Ink;
+            lblCountDaKetThuc.ForeColor = DoAnWD.UI.Theme.Neutral;
+            lblCountLopDangHoc.ForeColor = DoAnWD.UI.Theme.Success;
             ChiaCot(gbTrangThaiLop,
                 new[] { lblCountChuaBatDau, lblCountDangDienRa, lblCountDaKetThuc, lblCountLopDangHoc },
                 new[] { lblLabelChuaBatDau, lblLabelDangDienRa, lblLabelDaKetThuc, lblLabelLopDangHoc });

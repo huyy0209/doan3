@@ -94,7 +94,7 @@
             //
             this.lblAppName.AutoSize = true;
             this.lblAppName.BackColor = System.Drawing.Color.Transparent;
-            this.lblAppName.Font = new System.Drawing.Font("Segoe UI Semibold", 13F);
+            this.lblAppName.Font = new System.Drawing.Font("Segoe UI Semibold", 14F);
             this.lblAppName.ForeColor = System.Drawing.Color.White;
             this.lblAppName.Location = new System.Drawing.Point(62, 30);
             this.lblAppName.Name = "lblAppName";
@@ -104,7 +104,7 @@
             //
             this.lblAppSub.AutoSize = true;
             this.lblAppSub.BackColor = System.Drawing.Color.Transparent;
-            this.lblAppSub.Font = new System.Drawing.Font("Segoe UI", 8.5F);
+            this.lblAppSub.Font = new System.Drawing.Font("Segoe UI", 9.5F);
             this.lblAppSub.ForeColor = System.Drawing.Color.FromArgb(185, 180, 224);
             this.lblAppSub.Location = new System.Drawing.Point(63, 55);
             this.lblAppSub.Name = "lblAppSub";
@@ -129,7 +129,7 @@
             this.pnlIndicator.BackColor = System.Drawing.Color.FromArgb(200, 65, 75);
             this.pnlIndicator.Location = new System.Drawing.Point(0, 8);
             this.pnlIndicator.Name = "pnlIndicator";
-            this.pnlIndicator.Size = new System.Drawing.Size(4, 44);
+            this.pnlIndicator.Size = new System.Drawing.Size(4, 48);
             this.pnlIndicator.Visible = false;
             //
             // panelNavFooter
@@ -140,7 +140,7 @@
             this.panelNavFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panelNavFooter.Name = "panelNavFooter";
             this.panelNavFooter.Padding = new System.Windows.Forms.Padding(0, 0, 0, 12);
-            this.panelNavFooter.Size = new System.Drawing.Size(232, 100);
+            this.panelNavFooter.Size = new System.Drawing.Size(232, 112);
             this.panelNavFooter.TabIndex = 2;
             //
             // btnThongKe
@@ -209,7 +209,7 @@
             // lblTitle - ngày hôm nay
             //
             this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 12F);
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 13F);
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(35, 35, 58);
             this.lblTitle.Location = new System.Drawing.Point(26, 14);
             this.lblTitle.Name = "lblTitle";
@@ -218,7 +218,7 @@
             // lblSubtitle - ca hiện tại
             //
             this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(107, 111, 134);
             this.lblSubtitle.Location = new System.Drawing.Point(27, 42);
             this.lblSubtitle.Name = "lblSubtitle";
@@ -235,11 +235,11 @@
             // lblStatus - số lớp sắp bắt đầu
             //
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblStatus.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F);
+            this.lblStatus.Font = new System.Drawing.Font("Segoe UI Semibold", 10.5F);
             this.lblStatus.ForeColor = System.Drawing.Color.FromArgb(107, 111, 134);
-            this.lblStatus.Location = new System.Drawing.Point(890, 14);
+            this.lblStatus.Location = new System.Drawing.Point(890, 18);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(256, 24);
+            this.lblStatus.Size = new System.Drawing.Size(256, 40);
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             //
             // lblUpdated - giờ cập nhật gần nhất
@@ -248,6 +248,7 @@
             this.lblUpdated.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblUpdated.ForeColor = System.Drawing.Color.FromArgb(154, 157, 178);
             this.lblUpdated.Location = new System.Drawing.Point(890, 40);
+            this.lblUpdated.Visible = false;
             this.lblUpdated.Name = "lblUpdated";
             this.lblUpdated.Size = new System.Drawing.Size(256, 20);
             this.lblUpdated.TextAlign = System.Drawing.ContentAlignment.MiddleRight;

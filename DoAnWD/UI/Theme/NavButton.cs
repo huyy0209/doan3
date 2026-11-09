@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -23,7 +23,7 @@ namespace DoAnWD.UI
             FlatStyle = FlatStyle.Flat;
             FlatAppearance.BorderSize = 0;
             Cursor = Cursors.Hand;
-            Height = 44;
+            Height = 48;
             Dock = DockStyle.Top;
             BackColor = Theme.InkDark;
         }
@@ -34,6 +34,9 @@ namespace DoAnWD.UI
             get { return _active; }
             set { _active = value; Invalidate(); }
         }
+
+        [DefaultValue(Glyph.None)]
+        public Glyph Glyph { get; set; } = Glyph.None;
 
         /// <summary>Dòng chữ nhỏ bên phải (ví dụ số lớp), để trống nếu không cần</summary>
         [DefaultValue("")]
@@ -52,9 +55,11 @@ namespace DoAnWD.UI
                        : Theme.InkDark;
             g.Clear(back);
 
-            var textRect = new Rectangle(28, 0, Width - 40, Height);
-            TextRenderer.DrawText(g, Text, _active ? Theme.NavActive : Theme.Nav, textRect,
-                _active ? Color.White : Theme.InkMuted,
+            Color fore = _active ? Color.White : _hover ? Color.White : Theme.InkMuted;
+            Icons.Draw(g, Glyph, new RectangleF(26, (Height - 18) / 2f, 18, 18), _active ? Theme.Hex("#F2A7AD") : fore);
+
+            var textRect = new Rectangle(56, 0, Width - 68, Height);
+            TextRenderer.DrawText(g, Text, _active ? Theme.NavActive : Theme.Nav, textRect, fore,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine);
 
             if (!string.IsNullOrEmpty(Badge))

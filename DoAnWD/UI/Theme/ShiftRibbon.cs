@@ -103,18 +103,15 @@ namespace DoAnWD.UI
                 var inner = Rectangle.Round(new RectangleF(r.X + 10, r.Y + 4, r.Width - 20, r.Height - 8));
                 int n;
                 bool coLop = _soLop.TryGetValue(ca, out n) && n > 0;
-                int textW = inner.Width - (coLop ? 22 : 0); // chừa chỗ cho số lớp bên phải
-                var top = new Rectangle(inner.X, inner.Y, textW, inner.Height / 2);
-                var bottom = new Rectangle(inner.X, inner.Y + inner.Height / 2, textW, inner.Height / 2);
+                var top = new Rectangle(inner.X, inner.Y, inner.Width, inner.Height / 2);
+                var bottom = new Rectangle(inner.X, inner.Y + inner.Height / 2, inner.Width, inner.Height / 2);
 
                 TextRenderer.DrawText(g, Theme.ShiftShortName(ca), Theme.SmallStrong, top, fore,
                     TextFormatFlags.Left | TextFormatFlags.Bottom | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
-                TextRenderer.DrawText(g, $"{bd}h–{kt}h", Theme.Small, bottom, foreMuted,
-                    TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.SingleLine);
-
-                if (coLop)
-                    TextRenderer.DrawText(g, n.ToString(), Theme.Section, inner, fore,
-                        TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+                // Dòng 2: giờ học, kèm số lớp hôm nay nếu có
+                TextRenderer.DrawText(g, coLop ? $"{bd}h–{kt}h, {n} lớp" : $"{bd}h–{kt}h", Theme.Small, bottom,
+                    coLop ? fore : foreMuted,
+                    TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
             }
         }
 

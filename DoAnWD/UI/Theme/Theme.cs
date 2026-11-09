@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -23,7 +23,9 @@ namespace DoAnWD.UI
         public static readonly Color InkHover = Hex("#3E3388");
         public static readonly Color InkDark = Hex("#2A2360");    // sidebar
         public static readonly Color InkDarker = Hex("#211B4D");
-        public static readonly Color InkSoft = Hex("#ECEAF7");    // nền đang chọn
+        public static readonly Color InkSoft = Hex("#ECEAF7");    // nền nhạt
+        public static readonly Color InkSelect = Hex("#DEDAF4");  // dòng đang chọn trong bảng
+        public static readonly Color InkFocus = Hex("#F4F2FC");   // ô nhập đang gõ
         public static readonly Color InkMuted = Hex("#B9B4E0");   // chữ phụ trên nền tím
 
         public static readonly Color Margin = Hex("#C8414B");     // lề đỏ
@@ -47,25 +49,25 @@ namespace DoAnWD.UI
         public const string FamilySemibold = "Segoe UI Semibold";
         public const string FamilyLight = "Segoe UI Light";
 
-        public static readonly Font Body = new Font(Family, 9.75F);
-        public static readonly Font BodyStrong = new Font(FamilySemibold, 9.75F);
-        public static readonly Font Small = new Font(Family, 8.5F);
-        public static readonly Font SmallStrong = new Font(FamilySemibold, 8.5F);
-        public static readonly Font Label = new Font(FamilySemibold, 9F);
-        public static readonly Font Section = new Font(FamilySemibold, 11F);
-        public static readonly Font PageTitle = new Font(FamilySemibold, 17F);
-        public static readonly Font Number = new Font(FamilyLight, 28F);
-        public static readonly Font NumberSmall = new Font(FamilyLight, 20F);
-        public static readonly Font Button = new Font(FamilySemibold, 9.75F);
-        public static readonly Font Nav = new Font(Family, 10.5F);
-        public static readonly Font NavActive = new Font(FamilySemibold, 10.5F);
+        public static readonly Font Body = new Font(Family, 10.5F);
+        public static readonly Font BodyStrong = new Font(FamilySemibold, 10.5F);
+        public static readonly Font Small = new Font(Family, 9F);
+        public static readonly Font SmallStrong = new Font(FamilySemibold, 9F);
+        public static readonly Font Label = new Font(FamilySemibold, 9.75F);
+        public static readonly Font Section = new Font(FamilySemibold, 12F);
+        public static readonly Font PageTitle = new Font(FamilySemibold, 19F);
+        public static readonly Font Number = new Font(FamilySemibold, 26F);
+        public static readonly Font NumberSmall = new Font(FamilySemibold, 18F);
+        public static readonly Font Button = new Font(FamilySemibold, 10.5F);
+        public static readonly Font Nav = new Font(Family, 11F);
+        public static readonly Font NavActive = new Font(FamilySemibold, 11F);
 
         // ------------------------------------------------------------------
         // KÍCH THƯỚC
         // ------------------------------------------------------------------
         public const int Radius = 6;
-        public const int RowHeight = 36;
-        public const int HeaderHeight = 40;
+        public const int RowHeight = 40;
+        public const int HeaderHeight = 42;
 
         // ------------------------------------------------------------------
         // MÀU THEO CA HỌC: từ nắng sáng đến đêm

@@ -184,7 +184,7 @@ namespace DoAnWD
                 foreach (var lop in lichHoc)
                     lstLichGiaSu.Items.Add(lop);
 
-                lblTitleLichGS.Text = $"Đang có {lichHoc.Count} lớp. Chọn ca chưa bị gạch trong danh sách ca học.";
+                lblTitleLichGS.Text = $"Đang dạy {lichHoc.Count} lớp";
                 lblTitleLichGS.ForeColor = Theme.TextMuted;
             }
             catch (Exception ex)

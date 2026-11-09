@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -36,6 +36,10 @@ namespace DoAnWD.UI
             Font = Theme.Button;
         }
 
+        /// <summary>Icon vẽ bên trái chữ (giúp nhận ra nút nhanh hơn)</summary>
+        [DefaultValue(Glyph.None)]
+        public Glyph Glyph { get; set; } = Glyph.None;
+
         [DefaultValue(ButtonKind.Primary)]
         public ButtonKind Kind
         {
@@ -56,15 +60,16 @@ namespace DoAnWD.UI
             switch (_kind)
             {
                 case ButtonKind.Secondary:
-                    back = _pressed ? Theme.InkSoft : _hover ? Theme.PaperAlt : Theme.Surface;
-                    fore = Theme.Text;
-                    border = _hover ? Theme.RuleStrong : Theme.Rule;
+                    // Nền tím nhạt, chữ mực tím: vẫn nổi trên nền trắng nhưng kém nút chính
+                    back = _pressed ? Theme.InkSelect : _hover ? Theme.Blend(Theme.InkSoft, Theme.InkSelect, 0.6f) : Theme.InkSoft;
+                    fore = Theme.InkHover;
+                    border = Color.Empty;
                     break;
                 case ButtonKind.Danger:
-                    back = _pressed ? Theme.Blend(Theme.MarginSoft, Theme.Margin, 0.15f)
-                         : _hover ? Theme.MarginSoft : Theme.Surface;
-                    fore = Theme.Margin;
-                    border = _hover ? Theme.Margin : Theme.Blend(Theme.Margin, Color.White, 0.6f);
+                    back = _pressed ? Theme.Blend(Theme.Margin, Color.Black, 0.15f)
+                         : _hover ? Theme.Margin : Theme.MarginSoft;
+                    fore = _hover || _pressed ? Color.White : Theme.Margin;
+                    border = Color.Empty;
                     break;
                 case ButtonKind.Ghost:
                     back = _pressed ? Theme.InkSoft : _hover ? Theme.Blend(Theme.InkSoft, Color.White, 0.4f) : Color.Empty;
@@ -113,9 +118,24 @@ namespace DoAnWD.UI
                     g.DrawPath(p, path);
             }
 
-            TextRenderer.DrawText(g, Text, Font, ClientRectangle, fore,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter |
-                TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+            // Icon + chữ căn giữa như một khối. Nút đang ở chế độ "Lưu" luôn dùng dấu tích.
+            Glyph glyph = Text.StartsWith("Lưu") ? Glyph.Check : Glyph;
+            const int iconSize = 16, gap = 7;
+            var textSize = TextRenderer.MeasureText(g, Text, Font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+            bool coIcon = glyph != Glyph.None && textSize.Width + iconSize + gap + 16 <= Width;
+            int total = textSize.Width + (coIcon ? iconSize + gap : 0);
+            int x = Math.Max(6, (Width - total) / 2);
+
+            if (coIcon)
+            {
+                Icons.Draw(g, glyph, new RectangleF(x, (Height - iconSize) / 2f, iconSize, iconSize), fore);
+                x += iconSize + gap;
+            }
+
+            var textRect = new Rectangle(x, 0, Width - x - 4, Height);
+            TextRenderer.DrawText(g, Text, Font, textRect, fore,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
+                TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
         }
     }
 }

@@ -123,6 +123,14 @@ namespace DoAnWD
 
         private void InitializeShell()
         {
+            btnThongKe.Glyph = Glyph.Chart;
+            btnGhepLop.Glyph = Glyph.Link;
+            btnCalendar.Glyph = Glyph.Calendar;
+            btnGiaSu.Glyph = Glyph.User;
+            btnHocVien.Glyph = Glyph.Users;
+            btnRefresh.Glyph = Glyph.Refresh;
+            btnExit.Glyph = Glyph.Exit;
+
             ThemeManager.EnableDoubleBuffer(panelHost);
             ThemeManager.EnableDoubleBuffer(panelSidebar);
 
@@ -169,8 +177,6 @@ namespace DoAnWD
             var now = DateTime.Now;
             lblTitle.Text = $"{TenThu[(int)now.DayOfWeek]}, {now:dd/MM/yyyy}";
 
-            string ca = ShiftRibbon.CaHienTai(now);
-            lblSubtitle.Text = ca != null ? $"Đang trong ca {ca}" : "Ngoài giờ học";
 
             try
             {
@@ -190,7 +196,7 @@ namespace DoAnWD
                 System.Diagnostics.Debug.WriteLine($"[HEADER] {ex.Message}");
             }
 
-            lblUpdated.Text = $"Cập nhật lúc {lastUpdateTime:HH:mm}";
+            lblSubtitle.Text = $"Cập nhật lúc {lastUpdateTime:HH:mm}";
         }
 
         private void RefreshActiveFormIfNeeded()
@@ -351,6 +357,9 @@ namespace DoAnWD
 
         private void LoadChildForm(Form frm)
         {
+            // Chụp trang cũ để làm hiệu ứng chuyển trang
+            var anhTrangCu = activeChild != null ? PageTransition.Snapshot(panelHost) : null;
+
             panelHost.SuspendLayout();
             try
             {
@@ -377,6 +386,8 @@ namespace DoAnWD
             {
                 panelHost.ResumeLayout(true);
             }
+
+            PageTransition.Run(panelHost, anhTrangCu, frm);
         }
 
         /// <summary>
