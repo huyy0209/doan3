@@ -74,6 +74,23 @@ namespace DoAnWD.Common
                 Toi,
                 ToiMuon
             };
+
+            /// <summary>
+            /// Lấy giờ bắt đầu / kết thúc từ tên ca, ví dụ "Tối (18h-20h)" => (18, 20).
+            /// Trả về false nếu tên ca không đúng định dạng.
+            /// </summary>
+            public static bool TryGetGio(string caHoc, out int gioBatDau, out int gioKetThuc)
+            {
+                gioBatDau = gioKetThuc = 0;
+                if (string.IsNullOrEmpty(caHoc)) return false;
+
+                var m = System.Text.RegularExpressions.Regex.Match(caHoc, @"\((\d{1,2})h-(\d{1,2})h\)");
+                if (!m.Success) return false;
+
+                gioBatDau = int.Parse(m.Groups[1].Value);
+                gioKetThuc = int.Parse(m.Groups[2].Value);
+                return true;
+            }
         }
 
         /// <summary>

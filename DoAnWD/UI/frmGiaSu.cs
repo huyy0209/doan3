@@ -26,11 +26,15 @@ namespace DoAnWD
             _bs = new BindingSource();
             Load += FrmGiaSu_Load;
             FormClosed += FrmGiaSu_FormClosed;
+            dgv.DataBindingComplete += (s, e) => ToMauTrangThai();
         }
 
         private void FrmGiaSu_Load(object sender, EventArgs e)
         {
             cboTrangThai.SelectedIndex = 0;
+            new ToolTip().SetToolTip(cboTrangThai,
+                "Rảnh / Bận / Đang dạy được tính tự động theo lịch dạy.\n" +
+                "Chọn \"Tạm nghỉ\" để gia sư ngừng nhận lớp mới.");
             LoadData();
             LockInputs(true);
         }
@@ -48,7 +52,7 @@ namespace DoAnWD
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{Constants.Messages.LoiKhiThem}{ex.Message}",
+                MessageBox.Show($"Lỗi khi tải danh sách gia sư: {ex.GetBaseException().Message}",
                     Constants.Messages.ErrorTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -67,6 +71,25 @@ namespace DoAnWD
 
                 if (dgv.Columns.Contains("LopHocs"))
                     dgv.Columns["LopHocs"].Visible = false;
+            }
+        }
+
+        /// <summary>
+        /// Tô màu dòng theo trạng thái (chạy lại mỗi khi grid bind dữ liệu, kể cả khi tìm kiếm)
+        /// </summary>
+        private void ToMauTrangThai()
+        {
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                var gs = row.DataBoundItem as GiaSu;
+                if (gs == null) continue;
+
+                if (gs.TrangThai == Constants.GiaSuStatus.TamNghi)
+                    row.DefaultCellStyle.ForeColor = Constants.Colors.Gray;
+                else if (gs.TrangThai == Constants.GiaSuStatus.DangDay)
+                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveOrange;
+                else if (gs.TrangThai == Constants.GiaSuStatus.Ban)
+                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveBlue;
             }
         }
 

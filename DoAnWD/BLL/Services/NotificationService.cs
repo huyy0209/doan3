@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Media;
 using DoAnWD.Common;
@@ -13,17 +14,35 @@ namespace DoAnWD.BLL.Services
     /// </summary>
     public class NotificationService : IDisposable
     {
-        private readonly GiaSuContextDB _context;
-        private readonly LopHocRepository _lopHocRepo;
-
-        // Danh sách các lớp đã thông báo (tránh spam)
-        private HashSet<int> _notifiedLopIds;
+        // Danh sách các lớp đã thông báo (tránh spam) - sống suốt phiên làm việc.
+        // Mỗi lần truy vấn dùng DbContext mới để luôn đọc dữ liệu mới nhất
+        // (lớp vừa hủy / vừa thêm ở form khác).
+        private readonly HashSet<int> _notifiedLopIds;
 
         public NotificationService()
         {
-            _context = new GiaSuContextDB();
-            _lopHocRepo = new LopHocRepository(_context);
             _notifiedLopIds = new HashSet<int>();
+        }
+
+        /// <summary>
+        /// Lấy lớp "Chưa bắt đầu" có giờ bắt đầu trong [now, now + hours], kèm gia sư + học viên
+        /// </summary>
+        private static List<LopHoc> QueryLopSapBatDau(int hours)
+        {
+            var now = DateTime.Now;
+            var thresholdTime = now.AddHours(hours);
+
+            using (var db = new GiaSuContextDB())
+            {
+                return db.LopHocs
+                    .Include(l => l.GiaSu)
+                    .Include(l => l.HocVien)
+                    .Where(l => l.TrangThai == Constants.LopHocStatus.ChuaBatDau &&
+                                l.ThoiGianBatDau >= now &&
+                                l.ThoiGianBatDau <= thresholdTime)
+                    .OrderBy(l => l.ThoiGianBatDau)
+                    .ToList();
+            }
         }
 
         /// <summary>
@@ -34,16 +53,8 @@ namespace DoAnWD.BLL.Services
         {
             try
             {
-                var now = DateTime.Now;
-                var thresholdTime = now.AddHours(hoursBeforeStart);
-
-                var upcomingClasses = _lopHocRepo.GetAll()
-                    .Where(l => l.ThoiGianBatDau.HasValue &&
-                                l.ThoiGianBatDau.Value >= now &&
-                                l.ThoiGianBatDau.Value <= thresholdTime &&
-                                l.TrangThai == Constants.LopHocStatus.ChuaBatDau &&
-                                !_notifiedLopIds.Contains(l.MaLop)) // Chưa thông báo
-                    .OrderBy(l => l.ThoiGianBatDau)
+                var upcomingClasses = QueryLopSapBatDau(hoursBeforeStart)
+                    .Where(l => !_notifiedLopIds.Contains(l.MaLop)) // Chưa thông báo
                     .Take(5) // Tối đa 5 thông báo/lần
                     .ToList();
 
@@ -102,14 +113,7 @@ namespace DoAnWD.BLL.Services
         {
             try
             {
-                var now = DateTime.Now;
-                var thresholdTime = now.AddHours(hours);
-
-                return _lopHocRepo.GetAll()
-                    .Count(l => l.ThoiGianBatDau.HasValue &&
-                                l.ThoiGianBatDau.Value >= now &&
-                                l.ThoiGianBatDau.Value <= thresholdTime &&
-                                l.TrangThai == Constants.LopHocStatus.ChuaBatDau);
+                return QueryLopSapBatDau(hours).Count;
             }
             catch
             {
@@ -119,7 +123,7 @@ namespace DoAnWD.BLL.Services
 
         public void Dispose()
         {
-            _context?.Dispose();
+            _notifiedLopIds.Clear();
         }
     }
 }

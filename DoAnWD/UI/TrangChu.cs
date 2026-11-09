@@ -16,8 +16,11 @@ namespace DoAnWD
 
         // ✨ CÁC THÀNH PHẦN MỚI CHO AUTO-UPDATE
         private Timer autoUpdateTimer;
-        private LopHocService _lopHocService;
         private DateTime lastUpdateTime;
+
+        // Thanh trạng thái góc phải + nút menu đang chọn
+        private Label lblStatus;
+        private Button activeMenuButton;
 
         // ✨ NOTIFICATION SYSTEM
         private Timer notificationTimer;
@@ -28,9 +31,9 @@ namespace DoAnWD
         {
             InitializeComponent();
 
-            // ✨ Khởi tạo service và timer
-            _lopHocService = new LopHocService();
+            // NotificationService giữ danh sách lớp đã báo => sống suốt vòng đời form
             _notificationService = new NotificationService();
+            InitializeStatusLabel();
 
             InitializeAutoUpdateTimer();
             InitializeNotificationTimer();
@@ -59,8 +62,9 @@ namespace DoAnWD
         {
             try
             {
-                int updatedCount = _lopHocService.AutoUpdateStatus();
+                int updatedCount = ChayCapNhatTrangThai();
                 lastUpdateTime = DateTime.Now;
+                CapNhatThanhTrangThai();
 
                 if (updatedCount > 0)
                 {
@@ -78,6 +82,50 @@ namespace DoAnWD
             {
                 System.Diagnostics.Debug.WriteLine($"[TIMER ERROR] {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái lớp/gia sư bằng DbContext MỚI mỗi lần,
+        /// tránh ghi đè dữ liệu cũ (ví dụ lớp vừa bị hủy ở form khác).
+        /// </summary>
+        private static int ChayCapNhatTrangThai()
+        {
+            using (var service = new LopHocService())
+            {
+                return service.AutoUpdateStatus();
+            }
+        }
+
+        // ===================================================================
+        // THANH TRẠNG THÁI
+        // ===================================================================
+
+        private void InitializeStatusLabel()
+        {
+            lblStatus = new Label
+            {
+                AutoSize = false,
+                Width = 520,
+                Height = 40,
+                TextAlign = System.Drawing.ContentAlignment.MiddleRight,
+                Font = new System.Drawing.Font("Segoe UI", 10F),
+                ForeColor = Constants.Colors.Gray,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            lblStatus.Location = new System.Drawing.Point(panelTop.Width - lblStatus.Width - 20, 20);
+            panelTop.Controls.Add(lblStatus);
+        }
+
+        private void CapNhatThanhTrangThai()
+        {
+            if (lblStatus == null) return;
+
+            int sapBatDau = _notificationService.GetUpcomingClassCount(24);
+            lblStatus.Text = $"🔄 Cập nhật lúc {lastUpdateTime:HH:mm}   |   " +
+                             (sapBatDau > 0
+                                 ? $"🔔 {sapBatDau} lớp bắt đầu trong 24 giờ tới"
+                                 : "✅ Không có lớp sắp bắt đầu");
+            lblStatus.ForeColor = sapBatDau > 0 ? Constants.Colors.Orange : Constants.Colors.Gray;
         }
 
         private void RefreshActiveFormIfNeeded()
@@ -122,6 +170,7 @@ namespace DoAnWD
         {
             lastNotificationCheck = DateTime.Now;
             CheckAndShowNotifications();
+            CapNhatThanhTrangThai();
         }
 
         private void CheckAndShowNotifications()
@@ -186,8 +235,21 @@ namespace DoAnWD
 
         private void TrangChu_Load(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"[APP] Trang chủ đã load. Auto-update mỗi {Constants.Timer.AutoUpdateInterval / 1000} giây.");
+            // Đồng bộ trạng thái ngay khi mở app (không đợi timer 60 giây)
+            try
+            {
+                ChayCapNhatTrangThai();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[APP] Lỗi cập nhật ban đầu: {ex.Message}");
+            }
+
+            lastUpdateTime = DateTime.Now;
+            CapNhatThanhTrangThai();
+
+            // Mở màn hình Thống kê làm dashboard mặc định
+            btnThongKe_Click(btnThongKe, EventArgs.Empty);
         }
 
         private void TrangChu_FormClosing(object sender, FormClosingEventArgs e)
@@ -208,12 +270,6 @@ namespace DoAnWD
             }
 
             // ✅ Dispose services
-            if (_lopHocService != null)
-            {
-                _lopHocService.Dispose();
-                System.Diagnostics.Debug.WriteLine("[SERVICE] LopHocService đã dispose.");
-            }
-
             if (_notificationService != null)
             {
                 _notificationService.Dispose();
@@ -230,6 +286,7 @@ namespace DoAnWD
             if (activeChild != null)
             {
                 activeChild.Close();
+                activeChild.Dispose();
                 panelHost.Controls.Clear();
                 activeChild = null;
             }
@@ -242,28 +299,48 @@ namespace DoAnWD
             frm.Show();
         }
 
+        /// <summary>
+        /// Tô sáng nút menu đang mở và hiển thị tên màn hình trên tiêu đề
+        /// </summary>
+        private void ChonMenu(Button btn, string tenManHinh)
+        {
+            if (activeMenuButton != null)
+                activeMenuButton.BackColor = panelSidebar.BackColor;
+
+            activeMenuButton = btn;
+            if (btn != null)
+                btn.BackColor = Constants.Colors.Blue;
+
+            lblTitle.Text = "QUẢN LÝ GIA SƯ  ›  " + tenManHinh;
+        }
+
         private void btnGiaSu_Click(object sender, EventArgs e)
         {
+            ChonMenu(btnGiaSu, "Gia sư");
             LoadChildForm(new frmGiaSu());
         }
 
         private void btnHocVien_Click(object sender, EventArgs e)
         {
+            ChonMenu(btnHocVien, "Học viên");
             LoadChildForm(new frmHocVien());
         }
 
         private void btnGhepLop_Click(object sender, EventArgs e)
         {
+            ChonMenu(btnGhepLop, "Ghép lớp");
             LoadChildForm(new frmGhepLop());
         }
 
         private void btnThongKe_Click(object sender, EventArgs e)
         {
+            ChonMenu(btnThongKe, "Thống kê");
             LoadChildForm(new frmThongKe());
         }
 
         private void btnCalendar_Click(object sender, EventArgs e)
         {
+            ChonMenu(btnCalendar, "Lịch học");
             LoadChildForm(new frmCalendarView());
         }
 
@@ -273,7 +350,9 @@ namespace DoAnWD
             {
                 try
                 {
-                    int count = _lopHocService.AutoUpdateStatus();
+                    int count = ChayCapNhatTrangThai();
+                    lastUpdateTime = DateTime.Now;
+                    CapNhatThanhTrangThai();
                     System.Diagnostics.Debug.WriteLine($"[MANUAL REFRESH] Cập nhật {count} lớp học.");
                 }
                 catch (Exception ex)

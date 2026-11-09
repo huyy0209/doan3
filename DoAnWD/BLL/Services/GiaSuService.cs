@@ -208,6 +208,14 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
+        /// Số lớp đang hoạt động (chưa bắt đầu / đang diễn ra) của một gia sư
+        /// </summary>
+        public int CountActiveLopHoc(int maGS)
+        {
+            return _giaSuRepo.CountActiveLopHoc(maGS);
+        }
+
+        /// <summary>
         /// Đếm gia sư tạm nghỉ
         /// </summary>
         public int CountTamNghi()

@@ -17,6 +17,7 @@ namespace DoAnWD
         private ThongKeService _service;
         private LopHocService _lopHocService;
         private Timer _refreshTimer;
+        private Label lblDoanhThu;
 
         public frmThongKe()
         {
@@ -30,6 +31,7 @@ namespace DoAnWD
 
         private void FrmThongKe_Load(object sender, EventArgs e)
         {
+            InitializeDoanhThuLabel();
             RefreshAll();
             InitializeAutoRefresh();
         }
@@ -75,10 +77,38 @@ namespace DoAnWD
         // ✨ LOAD TẤT CẢ DỮ LIỆU
         // ===================================================================
 
+        /// <summary>
+        /// Thêm dòng doanh thu vào thẻ "Tổng lớp học" (bên phải con số)
+        /// </summary>
+        private void InitializeDoanhThuLabel()
+        {
+            var card = lblCountLop.Parent;
+            lblCountLop.Width = 150;
+
+            lblDoanhThu = new Label
+            {
+                AutoSize = false,
+                Location = new Point(170, 48),
+                Size = new Size(card.Width - 185, 62),
+                Font = new Font("Segoe UI", 9.5F),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleRight
+            };
+            card.Controls.Add(lblDoanhThu);
+            lblDoanhThu.BringToFront();
+        }
+
         private void RefreshAll()
         {
             try
             {
+                // DbContext mới mỗi lần làm mới => số liệu luôn khớp CSDL
+                _service?.Dispose();
+                _lopHocService?.Dispose();
+                _service = new ThongKeService();
+                _lopHocService = new LopHocService();
+
                 LoadStatistics();
                 LoadGiaSuList();
 
@@ -113,6 +143,15 @@ namespace DoAnWD
                 lblCountGSRanh.Text = stats.GiaSuRanh.ToString();
                 lblCountGSDangDay.Text = stats.GiaSuDangDay.ToString();
                 lblCountLopDangHoc.Text = stats.LopDangHoc.ToString();
+
+                if (lblDoanhThu != null)
+                {
+                    var vi = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+                    lblDoanhThu.Text =
+                        $"💰 Học phí lớp đang hoạt động: {stats.DoanhThuDangHoatDong.ToString("N0", vi)} đ\n" +
+                        $"📅 Khai giảng tháng {DateTime.Now:MM/yyyy}: {stats.DoanhThuThangNay.ToString("N0", vi)} đ\n" +
+                        $"🚫 Lớp đã hủy: {stats.LopDaHuy}";
+                }
 
                 // ✨ THÊM: Thống kê theo trạng thái mới
                 int chuaBatDau = _lopHocService.CountByStatus(Constants.LopHocStatus.ChuaBatDau);

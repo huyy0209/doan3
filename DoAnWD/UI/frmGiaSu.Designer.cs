@@ -225,7 +225,7 @@
             "Rảnh",
             "Bận",
             "Đang dạy",
-            "Sẵn sàng"});
+            "Tạm nghỉ"});
             this.cboTrangThai.Location = new System.Drawing.Point(15, 142);
             this.cboTrangThai.Name = "cboTrangThai";
             this.cboTrangThai.Size = new System.Drawing.Size(350, 25);

@@ -32,15 +32,45 @@ namespace DoAnWD
             LoadGiaSuList();
         }
 
+        /// <summary>
+        /// Tạo lại service (DbContext mới) để không đọc dữ liệu cũ đã cache
+        /// sau khi form khác (dialog ghép lớp, timer) thay đổi CSDL.
+        /// </summary>
+        private void TaoLaiServices()
+        {
+            _giaSuService?.Dispose();
+            _lopHocService?.Dispose();
+            _giaSuService = new GiaSuService();
+            _lopHocService = new LopHocService();
+        }
+
         private void LoadGiaSuList()
         {
             try
             {
+                int? maGSDangChon = null;
+                if (dgvGiaSu.CurrentRow != null && dgvGiaSu.Columns.Contains("MaGS"))
+                    maGSDangChon = Convert.ToInt32(dgvGiaSu.CurrentRow.Cells["MaGS"].Value);
+
+                TaoLaiServices();
                 var giaSuData = _giaSuService.GetWithLopCount();
                 dgvGiaSu.DataSource = giaSuData;
 
                 ConfigureGiaSuColumns();
                 ApplyRowColors();
+
+                // Giữ lại gia sư đang chọn sau khi tải lại
+                if (maGSDangChon.HasValue)
+                {
+                    foreach (DataGridViewRow row in dgvGiaSu.Rows)
+                    {
+                        if (Convert.ToInt32(row.Cells["MaGS"].Value) == maGSDangChon.Value)
+                        {
+                            dgvGiaSu.CurrentCell = row.Cells["HoTen"];
+                            break;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -86,6 +116,11 @@ namespace DoAnWD
                 {
                     row.DefaultCellStyle.BackColor = Constants.Colors.ActiveGreen;
                 }
+                else if (trangThai == Constants.GiaSuStatus.TamNghi)
+                {
+                    row.DefaultCellStyle.BackColor = Constants.Colors.InactiveGray;
+                    row.DefaultCellStyle.ForeColor = Constants.Colors.Gray;
+                }
             }
         }
 
@@ -121,17 +156,15 @@ namespace DoAnWD
                     txtTrangThai.Text = giaSu.TrangThai ?? Constants.GiaSuStatus.Ranh;
 
                     // ✅ SỬA: Color code hỗ trợ cả trạng thái mới
-                    if (giaSu.TrangThai == Constants.GiaSuStatus.DangDay ||
-                        giaSu.TrangThai == Constants.GiaSuStatus.Ban)
-                    {
+                    if (giaSu.TrangThai == Constants.GiaSuStatus.DangDay)
                         txtTrangThai.BackColor = Constants.Colors.Red;
-                        txtTrangThai.ForeColor = Color.White;
-                    }
+                    else if (giaSu.TrangThai == Constants.GiaSuStatus.Ban)
+                        txtTrangThai.BackColor = Constants.Colors.Orange;
+                    else if (giaSu.TrangThai == Constants.GiaSuStatus.TamNghi)
+                        txtTrangThai.BackColor = Constants.Colors.Gray;
                     else
-                    {
                         txtTrangThai.BackColor = Constants.Colors.Green;
-                        txtTrangThai.ForeColor = Color.White;
-                    }
+                    txtTrangThai.ForeColor = Color.White;
                 }
             }
             catch (Exception ex)
@@ -153,13 +186,7 @@ namespace DoAnWD
                 ConfigureLopHocColumns();
                 ApplyLopHocRowColors();
 
-                // ✅ SỬA: Đếm lớp active bao gồm cả trạng thái mới
-                var activeLopCount = ((System.Collections.IEnumerable)lopHocData)
-                    .Cast<dynamic>()
-                    .Count(l => l.TrangThai == Constants.LopHocStatus.DangHoc ||
-                                l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                                l.TrangThai == Constants.LopHocStatus.ChuaBatDau);
-                txtSoLop.Text = activeLopCount.ToString();
+                txtSoLop.Text = _giaSuService.CountActiveLopHoc(maGS).ToString();
             }
             catch (Exception ex)
             {
@@ -178,6 +205,12 @@ namespace DoAnWD
                 dgvLopHoc.Columns["MaLop"].Width = 70;
                 dgvLopHoc.Columns["HocVien"].HeaderText = "Học Viên";
                 dgvLopHoc.Columns["MonHoc"].HeaderText = "Môn Học";
+                dgvLopHoc.Columns["BatDau"].HeaderText = "Bắt Đầu";
+                dgvLopHoc.Columns["BatDau"].DefaultCellStyle.Format = Constants.Format.DateFormat;
+                dgvLopHoc.Columns["BatDau"].Width = 90;
+                dgvLopHoc.Columns["KetThuc"].HeaderText = "Kết Thúc";
+                dgvLopHoc.Columns["KetThuc"].DefaultCellStyle.Format = Constants.Format.DateFormat;
+                dgvLopHoc.Columns["KetThuc"].Width = 90;
                 dgvLopHoc.Columns["HocPhi"].HeaderText = "Học Phí";
                 dgvLopHoc.Columns["HocPhi"].DefaultCellStyle.Format = "N0";
                 dgvLopHoc.Columns["HocPhi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -214,19 +247,22 @@ namespace DoAnWD
                 {
                     row.DefaultCellStyle.BackColor = Constants.Colors.LightGray;
                 }
+                else if (trangThai == Constants.LopHocStatus.DaHuy)
+                {
+                    row.DefaultCellStyle.BackColor = Color.FromArgb(253, 237, 236);
+                    row.DefaultCellStyle.ForeColor = Constants.Colors.Red;
+                    row.DefaultCellStyle.Font = new Font(dgvLopHoc.Font, FontStyle.Strikeout);
+                }
             }
         }
 
         private void btnGhepLop_Click(object sender, EventArgs e)
         {
-            var dialog = new frmChucNangGhepLop();
-            if (dialog.ShowDialog() == DialogResult.OK)
+            using (var dialog = new frmChucNangGhepLop())
             {
-                LoadGiaSuList();
-                MessageBox.Show(Constants.Messages.GhepLopThanhCong,
-                    Constants.Messages.SuccessTitle,
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                // Dialog đã báo thành công chi tiết - chỉ cần tải lại danh sách
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                    LoadGiaSuList();
             }
         }
 
@@ -246,24 +282,54 @@ namespace DoAnWD
                 int maLop = Convert.ToInt32(dgvLopHoc.CurrentRow.Cells["MaLop"].Value);
                 string hocVien = dgvLopHoc.CurrentRow.Cells["HocVien"].Value?.ToString() ?? "";
                 string monHoc = dgvLopHoc.CurrentRow.Cells["MonHoc"].Value?.ToString() ?? "";
+                string trangThai = dgvLopHoc.CurrentRow.Cells["TrangThai"].Value?.ToString() ?? "";
 
-                var result = MessageBox.Show(
-                    $"Bạn có chắc chắn muốn xóa lớp học?\n\nHọc viên: {hocVien}\nMôn: {monHoc}",
-                    Constants.Messages.ConfirmTitle,
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                bool coTheHuy = Constants.LopHocStatus.LaHoatDong(trangThai);
+                DialogResult result;
+
+                if (coTheHuy)
+                {
+                    // Lớp còn hoạt động: ưu tiên HỦY (giữ lịch sử) thay vì xóa hẳn
+                    result = MessageBox.Show(
+                        $"Lớp {maLop} - {monHoc} (học viên: {hocVien})\n\n" +
+                        "• Yes: HỦY lớp (giữ lại lịch sử, giải phóng lịch gia sư/học viên)\n" +
+                        "• No: XÓA HẲN lớp khỏi hệ thống\n" +
+                        "• Cancel: không làm gì",
+                        Constants.Messages.ConfirmTitle,
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question);
+                }
+                else
+                {
+                    result = MessageBox.Show(
+                        $"Xóa hẳn lớp {maLop} - {monHoc} (học viên: {hocVien})?",
+                        Constants.Messages.ConfirmTitle,
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes ? DialogResult.No : DialogResult.Cancel;
+                }
+
+                if (result == DialogResult.Cancel)
+                    return;
 
                 if (result == DialogResult.Yes)
                 {
-                    _lopHocService.Delete(maLop);
-
-                    MessageBox.Show(Constants.Messages.XoaThanhCong,
-                        Constants.Messages.SuccessTitle,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-
-                    LoadGiaSuList();
+                    _lopHocService.HuyLop(maLop);
+                    MessageBox.Show("Đã hủy lớp.", Constants.Messages.SuccessTitle,
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else
+                {
+                    _lopHocService.Delete(maLop);
+                    MessageBox.Show(Constants.Messages.XoaThanhCong, Constants.Messages.SuccessTitle,
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                LoadGiaSuList();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, Constants.Messages.WarningTitle,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
@@ -277,10 +343,6 @@ namespace DoAnWD
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadGiaSuList();
-            MessageBox.Show(Constants.Messages.LamMoiThanhCong,
-                Constants.Messages.InfoTitle,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
         }
 
         private void FrmGhepLop_FormClosed(object sender, FormClosedEventArgs e)

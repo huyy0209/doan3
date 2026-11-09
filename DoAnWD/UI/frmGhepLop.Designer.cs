@@ -498,9 +498,9 @@
             this.btnXoaLop.ForeColor = System.Drawing.Color.White;
             this.btnXoaLop.Location = new System.Drawing.Point(200, 20);
             this.btnXoaLop.Name = "btnXoaLop";
-            this.btnXoaLop.Size = new System.Drawing.Size(140, 45);
+            this.btnXoaLop.Size = new System.Drawing.Size(160, 45);
             this.btnXoaLop.TabIndex = 1;
-            this.btnXoaLop.Text = "🗑️ Xóa Lớp";
+            this.btnXoaLop.Text = "🗑️ Hủy/Xóa Lớp";
             this.btnXoaLop.UseVisualStyleBackColor = false;
             this.btnXoaLop.Click += new System.EventHandler(this.btnXoaLop_Click);
 
@@ -513,7 +513,7 @@
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.btnRefresh.ForeColor = System.Drawing.Color.White;
-            this.btnRefresh.Location = new System.Drawing.Point(355, 20);
+            this.btnRefresh.Location = new System.Drawing.Point(375, 20);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(140, 45);
             this.btnRefresh.TabIndex = 2;
