@@ -70,8 +70,8 @@ namespace DoAnWD
         private void InitializeAutoRefresh()
         {
             _refreshTimer = new Timer();
-            _refreshTimer.Interval = 30000; // 30 giây
-            _refreshTimer.Tick += (s, ev) => RefreshAll();
+            _refreshTimer.Interval = 120000; // 2 phút: số liệu tổng quan không cần cập nhật dày hơn
+            _refreshTimer.Tick += (s, ev) => { if (Visible) RefreshAll(); };
             _refreshTimer.Start();
         }
 
@@ -448,8 +448,8 @@ namespace DoAnWD
         {
             try
             {
-                var thongKeCa = _lopHocService.GetAll()
-                    .Where(l => l.DangHoatDong && !string.IsNullOrEmpty(l.CaHoc))
+                var thongKeCa = _lopHocService.GetLopConHoatDong()
+                    .Where(l => !string.IsNullOrEmpty(l.CaHoc))
                     .GroupBy(l => l.CaHoc)
                     .Select(g => new
                     {
@@ -599,7 +599,7 @@ namespace DoAnWD
         {
             try
             {
-                var lopSapKetThuc = _lopHocService.GetAll()
+                var lopSapKetThuc = _lopHocService.GetLopConHoatDong()
                     .Where(l => l.TrangThai == Constants.LopHocStatus.DangDienRa &&
                                 l.ThoiGianKetThuc.HasValue &&
                                 l.ThoiGianKetThuc.Value >= DateTime.Now &&

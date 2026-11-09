@@ -30,6 +30,21 @@ namespace DoAnWD
             btnXoaLop.Left = 15;
             btnRefresh.Left = btnXoaLop.Right + 12;
 
+            // Mặc định chỉ hiện lớp còn học => danh sách ngắn, tải nhanh
+            chkTatCaLop = new CheckBox
+            {
+                Text = "Hiện cả lớp đã kết thúc / đã hủy", AutoSize = true,
+                Font = DoAnWD.UI.Theme.Body, ForeColor = DoAnWD.UI.Theme.TextMuted,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            chkTatCaLop.Location = new Point(panelLopHocHeader.Width - 290, 12);
+            panelLopHocHeader.Controls.Add(chkTatCaLop);
+            chkTatCaLop.CheckedChanged += (s, e) =>
+            {
+                if (dgvGiaSu.CurrentRow != null)
+                    LoadLopHocByGiaSu(Convert.ToInt32(dgvGiaSu.CurrentRow.Cells["MaGS"].Value));
+            };
+
             // Ô chi tiết co theo bề ngang khung
             foreach (var tb in new Control[] { txtHoTen, txtChuyenMon })
                 tb.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -48,6 +63,8 @@ namespace DoAnWD
         /// Tạo lại service (DbContext mới) để không đọc dữ liệu cũ đã cache
         /// sau khi form khác (dialog ghép lớp, timer) thay đổi CSDL.
         /// </summary>
+        private CheckBox chkTatCaLop;
+
         private void TaoLaiServices()
         {
             _giaSuService?.Dispose();
@@ -176,7 +193,7 @@ namespace DoAnWD
         {
             try
             {
-                var lopHocData = _lopHocService.GetByGiaSu(maGS);
+                var lopHocData = _lopHocService.GetByGiaSu(maGS, chiConHoatDong: chkTatCaLop == null || !chkTatCaLop.Checked);
                 dgvLopHoc.DataSource = lopHocData;
 
                 ConfigureLopHocColumns();

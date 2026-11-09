@@ -16,11 +16,27 @@ namespace DoAnWD.DAL.Repositories
         }
 
         /// <summary>
+        /// Lớp kèm gia sư + học viên trong MỘT câu truy vấn
+        /// (trước đây mỗi lần đọc l.GiaSu / l.HocVien lại gọi thêm 1 truy vấn - lỗi N+1)
+        /// </summary>
+        public IQueryable<LopHoc> QueryDayDu()
+        {
+            return _dbSet.Include(l => l.GiaSu).Include(l => l.HocVien);
+        }
+
+        public override IEnumerable<LopHoc> GetAll()
+        {
+            return QueryDayDu().ToList();
+        }
+
+        /// <summary>
         /// Lấy lớp đang học của gia sư (với thông tin học viên)
         /// </summary>
-        public IEnumerable<object> GetLopHocByGiaSu(int maGS)
+        public IEnumerable<object> GetLopHocByGiaSu(int maGS, bool chiConHoatDong = false)
         {
+            var hoatDong = Constants.LopHocStatus.HoatDong;
             return _dbSet
+                .Where(l => !chiConHoatDong || hoatDong.Contains(l.TrangThai))
                 .Include(l => l.HocVien)
                 .Where(l => l.MaGS == maGS)
                 .OrderByDescending(l => l.ThoiGianBatDau)

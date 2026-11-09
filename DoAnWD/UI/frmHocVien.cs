@@ -31,6 +31,7 @@ namespace DoAnWD
         private ComboBox cboTinhTrang, cboTrinhDoLoc;
         private DataGridView dgv;
         private Label lblDem;
+        private Pager pager;
 
         private Label lblTieuDeForm, lblLop;
         private TextBox txtHoTen, txtSDT, txtDiaChi, txtPhuHuynh, txtSDTPH, txtTruongLop, txtGhiChu;
@@ -81,11 +82,15 @@ namespace DoAnWD
             btnXuat = Ui.Button("Xuất CSV", ButtonKind.Ghost, Glyph.None, 110);
             btnXuat.Click += (s, e) => XuatCsv();
 
-            var chanDs = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
+            pager = new Pager { PageSize = 50 };
+            pager.PageChanged += (s, e) => ApDungLoc(null, false);
+            var chanDs = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true };
             chanDs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             chanDs.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            chanDs.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             chanDs.Controls.Add(lblDem, 0, 0);
-            chanDs.Controls.Add(btnXuat, 1, 0);
+            chanDs.Controls.Add(pager, 1, 0);
+            chanDs.Controls.Add(btnXuat, 2, 0);
 
             var secDs = Ui.Section("Danh sách học viên");
             var stackDs = Ui.Stack(false, loc, dgv, chanDs);
@@ -188,11 +193,8 @@ namespace DoAnWD
             try
             {
                 using (var hvs = new HocVienService()) _hocViens = hvs.GetAll().ToList();
-                using (var ls = new LopHocService())
-                {
-                    _lops = ls.GetAll().ToList();
-                    foreach (var l in _lops) { var _ = l.GiaSu?.HoTen; } // nạp tên gia sư trước khi đóng kết nối
-                }
+                // GetAll đã kèm gia sư + học viên trong một truy vấn
+                using (var ls = new LopHocService()) _lops = ls.GetAll().ToList();
 
                 string tdChon = cboTrinhDoLoc.SelectedIndex > 0 ? cboTrinhDoLoc.SelectedItem as string : null;
                 cboTrinhDoLoc.Items.Clear();
@@ -213,9 +215,10 @@ namespace DoAnWD
 
         private IEnumerable<LopHoc> LopDangHoc(int maHV) => _lops.Where(l => l.MaHV == maHV && l.DangHoatDong);
 
-        private void ApDungLoc(int? chonMaHV = null)
+        private void ApDungLoc(int? chonMaHV = null, bool veTrangDau = true)
         {
             if (cboTrinhDoLoc.Items.Count == 0) return;
+            if (veTrangDau) pager.Reset();
             string tt = cboTinhTrang.SelectedItem as string;
             string td = cboTrinhDoLoc.SelectedIndex > 0 ? cboTrinhDoLoc.SelectedItem as string : null;
 
@@ -248,9 +251,10 @@ namespace DoAnWD
                 .ToList();
 
             int? giu = chonMaHV ?? _maDangSua;
-            dgv.DataSource = ds;
+            int tong = ds.Count;
+            dgv.DataSource = pager.Cat(ds);   // chỉ đưa 1 trang vào lưới
             DatCot();
-            lblDem.Text = $"{ds.Count} / {_hocViens.Count} học viên";
+            lblDem.Text = $"{tong} / {_hocViens.Count} học viên";
 
             if (giu.HasValue)
             {

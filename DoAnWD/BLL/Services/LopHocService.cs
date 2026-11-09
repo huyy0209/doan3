@@ -45,9 +45,34 @@ namespace DoAnWD.BLL.Services
         /// <summary>
         /// Lấy lớp học theo gia sư
         /// </summary>
-        public IEnumerable<object> GetByGiaSu(int maGS)
+        public IEnumerable<object> GetByGiaSu(int maGS, bool chiConHoatDong = false)
         {
-            return _lopHocRepo.GetLopHocByGiaSu(maGS);
+            return _lopHocRepo.GetLopHocByGiaSu(maGS, chiConHoatDong);
+        }
+
+        /// <summary>
+        /// Lớp còn chiếm lịch (chưa bắt đầu / đang diễn ra), lọc ngay trong SQL
+        /// </summary>
+        public List<LopHoc> GetLopConHoatDong(int? maGS = null)
+        {
+            var hoatDong = Constants.LopHocStatus.HoatDong;
+            var now = DateTime.Now;
+            var q = _lopHocRepo.QueryDayDu()
+                .Where(l => hoatDong.Contains(l.TrangThai) && (l.ThoiGianKetThuc == null || l.ThoiGianKetThuc >= now));
+            if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
+            return q.ToList();
+        }
+
+        /// <summary>
+        /// Lớp (chưa hủy) có ít nhất một buổi trong khoảng [tu, den], lọc trong SQL
+        /// </summary>
+        public List<LopHoc> GetLopTrongKhoang(DateTime tu, DateTime den, int? maGS = null)
+        {
+            var huy = Constants.LopHocStatus.DaHuy;
+            var q = _lopHocRepo.QueryDayDu()
+                .Where(l => l.TrangThai != huy && l.ThoiGianBatDau <= den && l.ThoiGianKetThuc >= tu);
+            if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
+            return q.ToList();
         }
 
         /// <summary>
@@ -197,7 +222,9 @@ namespace DoAnWD.BLL.Services
         /// <returns>Số lớp đã thay đổi trạng thái</returns>
         public int AutoUpdateStatus()
         {
-            var allClasses = _lopHocRepo.GetAll().ToList();
+            // Chỉ lớp còn có thể đổi trạng thái theo thời gian (bỏ lớp đã kết thúc / đã hủy)
+            var hoatDong = Constants.LopHocStatus.HoatDong;
+            var allClasses = _lopHocRepo.Find(l => hoatDong.Contains(l.TrangThai)).ToList();
             var giaSuCanDongBo = new HashSet<int>();
             int updatedCount = 0;
 
@@ -232,7 +259,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public IEnumerable<LopHoc> GetActiveLopHoc()
         {
-            return _lopHocRepo.GetAll()
+            return GetLopConHoatDong()
                 .Where(l => l.TrangThaiTheoThoiGian == Constants.LopHocStatus.DangDienRa)
                 .ToList();
         }
@@ -245,11 +272,9 @@ namespace DoAnWD.BLL.Services
             var now = DateTime.Now;
             var future = now.AddDays(soNgay);
 
-            return _lopHocRepo.GetAll()
-                .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
-                            l.ThoiGianBatDau.HasValue &&
-                            l.ThoiGianBatDau.Value >= now &&
-                            l.ThoiGianBatDau.Value <= future)
+            var huy = Constants.LopHocStatus.DaHuy;
+            return _lopHocRepo.QueryDayDu()
+                .Where(l => l.TrangThai != huy && l.ThoiGianBatDau >= now && l.ThoiGianBatDau <= future)
                 .ToList();
         }
 
@@ -259,16 +284,17 @@ namespace DoAnWD.BLL.Services
         public Dictionary<string, int> GetSoLopHomNayTheoCa(int? maGS = null)
         {
             var homNay = DateTime.Now.Date;
+            var ngayMai = homNay.AddDays(1);
+            var huy = Constants.LopHocStatus.DaHuy;
 
-            return _lopHocRepo.GetAll()
-                .Where(l => !maGS.HasValue || l.MaGS == maGS.Value)
-                .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
-                            !string.IsNullOrEmpty(l.CaHoc) &&
-                            l.ThoiGianBatDau.HasValue && l.ThoiGianKetThuc.HasValue &&
-                            l.ThoiGianBatDau.Value.Date <= homNay &&
-                            l.ThoiGianKetThuc.Value.Date >= homNay)
-                .GroupBy(l => l.CaHoc)
-                .ToDictionary(g => g.Key, g => g.Count());
+            // Đếm ngay trong SQL, chỉ trả về 6 dòng (ca, số lớp)
+            var q = _context.LopHocs.Where(l => l.TrangThai != huy && l.CaHoc != null &&
+                                                l.ThoiGianBatDau < ngayMai && l.ThoiGianKetThuc >= homNay);
+            if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
+            return q.GroupBy(l => l.CaHoc)
+                    .Select(g => new { Ca = g.Key, SoLop = g.Count() })
+                    .ToList()
+                    .ToDictionary(x => x.Ca, x => x.SoLop);
         }
 
         /// <summary>
@@ -276,9 +302,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public IEnumerable<LopHoc> GetLopHocByCa(string caHoc)
         {
-            return _lopHocRepo.GetAll()
-                .Where(l => l.CaHoc == caHoc && l.DangHoatDong)
-                .ToList();
+            return GetLopConHoatDong().Where(l => l.CaHoc == caHoc).ToList();
         }
 
         // ===================================================================

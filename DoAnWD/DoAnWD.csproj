@@ -152,6 +152,9 @@
     <Compile Include="UI\Theme\ThemeManager.cs" />
     <Compile Include="UI\Theme\Icons.cs" />
     <Compile Include="UI\Theme\Ui.cs" />
+    <Compile Include="UI\Theme\Pager.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Theme\ScoreChart.cs">
       <SubType>Component</SubType>
     </Compile>

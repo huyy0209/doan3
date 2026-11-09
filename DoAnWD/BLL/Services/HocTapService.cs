@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -78,15 +78,14 @@ namespace DoAnWD.BLL.Services
             var dSau = d.AddDays(1);
             using (var db = new GiaSuContextDB())
             {
-                var lops = db.LopHocs
+                var huy = Constants.LopHocStatus.DaHuy;
+                var q = db.LopHocs
                     .Include(l => l.GiaSu)
                     .Include(l => l.HocVien)
-                    .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
-                                l.ThoiGianBatDau < dSau && l.ThoiGianKetThuc >= d)
-                    .ToList();
-
-                if (!string.IsNullOrEmpty(caHoc)) lops = lops.Where(l => l.CaHoc == caHoc).ToList();
-                if (maGS.HasValue) lops = lops.Where(l => l.MaGS == maGS.Value).ToList();
+                    .Where(l => l.TrangThai != huy && l.ThoiGianBatDau < dSau && l.ThoiGianKetThuc >= d);
+                if (!string.IsNullOrEmpty(caHoc)) q = q.Where(l => l.CaHoc == caHoc);
+                if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
+                var lops = q.ToList();
 
                 var maLops = lops.Select(l => l.MaLop).ToList();
                 var buoi = db.BuoiHocs
@@ -162,12 +161,12 @@ namespace DoAnWD.BLL.Services
         {
             using (var db = new GiaSuContextDB())
             {
-                var lops = db.LopHocs
+                var q = db.LopHocs
                     .Include(l => l.GiaSu)
                     .Include(l => l.BuoiHocs)
-                    .Where(l => l.MaHV == maHV)
-                    .ToList();
-                if (maGS.HasValue) lops = lops.Where(l => l.MaGS == maGS.Value).ToList();
+                    .Where(l => l.MaHV == maHV);
+                if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
+                var lops = q.ToList();
 
                 return lops
                     .OrderByDescending(l => l.ThoiGianBatDau)

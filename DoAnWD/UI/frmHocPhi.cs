@@ -25,6 +25,7 @@ namespace DoAnWD
         private TextBox txtTim;
         private ComboBox cboTinhTrang;
         private DataGridView dgv, dgvLichSu;
+        private Pager pager;
         private Label lblLopChon;
         private TextBox txtSoTien, txtGhiChu;
         private DateTimePicker dtpNgay;
@@ -73,9 +74,9 @@ namespace DoAnWD
             // ---- Danh sách công nợ ----
             txtTim = Ui.Input("Tìm học viên, SĐT, môn, gia sư...");
             txtTim.TextChanged += (s, e) => ApDungLoc();
-            cboTinhTrang = Ui.Combo(false, 150);
-            cboTinhTrang.Items.AddRange(new object[] { "Tất cả", HocPhiService.ConNo, HocPhiService.ChuaDong, HocPhiService.DaDu });
-            cboTinhTrang.SelectedIndex = 0;
+            cboTinhTrang = Ui.Combo(false, 230);
+            cboTinhTrang.Items.AddRange(new object[] { "Tất cả", CanThu, HocPhiService.ConNo, HocPhiService.ChuaDong, HocPhiService.DaDu });
+            cboTinhTrang.SelectedIndex = 1; // mặc định chỉ hiện lớp còn phải thu => ít dòng hơn
             cboTinhTrang.SelectedIndexChanged += (s, e) => ApDungLoc();
             var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
             loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -88,9 +89,16 @@ namespace DoAnWD
             dgv.SelectionChanged += (s, e) => HienLopChon();
             var btnXuat = Ui.Button("Xuất CSV", ButtonKind.Ghost, Glyph.None, 110);
             btnXuat.Click += (s, e) => XuatCsv();
+            pager = new Pager { PageSize = 50 };
+            pager.PageChanged += (s, e) => ApDungLoc(null, false);
+            var chan = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
+            chan.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            chan.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            chan.Controls.Add(pager, 0, 0);
+            chan.Controls.Add(btnXuat, 1, 0);
 
             var secDs = Ui.Section("Công nợ theo lớp");
-            var st = Ui.Stack(false, loc, dgv, btnXuat);
+            var st = Ui.Stack(false, loc, dgv, chan);
             st.RowStyles[1] = new RowStyle(SizeType.Percent, 100);
             dgv.Dock = DockStyle.Fill;
             secDs.Controls.Add(st);
@@ -188,15 +196,18 @@ namespace DoAnWD
             }
         }
 
-        private void ApDungLoc(int? chonMaLop = null)
+        private const string CanThu = "Cần thu (còn nợ + chưa đóng)";
+
+        private void ApDungLoc(int? chonMaLop = null, bool veTrangDau = true)
         {
+            if (veTrangDau) pager.Reset();
             string tt = cboTinhTrang.SelectedIndex > 0 ? cboTinhTrang.SelectedItem as string : null;
             var ds = _congNo
-                .Where(c => tt == null || c.TinhTrang == tt)
+                .Where(c => tt == null || (tt == CanThu ? c.TinhTrang != HocPhiService.DaDu : c.TinhTrang == tt))
                 .Where(c => TimKiem.Khop(txtTim.Text, c.HocVien, c.SDTLienHe, c.MonHoc, c.GiaSu))
                 .Select(c => new { c.MaLop, c.HocVien, SDT = c.SDTLienHe, c.MonHoc, c.GiaSu, c.HocPhi, DaDong = c.DaDong, ConNo = c.ConNo, c.TinhTrang })
                 .ToList();
-            dgv.DataSource = ds;
+            dgv.DataSource = pager.Cat(ds);
             if (dgv.Columns.Count > 0)
             {
                 dgv.Columns["MaLop"].Visible = false;

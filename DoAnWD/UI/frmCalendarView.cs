@@ -94,15 +94,8 @@ namespace DoAnWD
                 var cuoiThang = dauThang.AddMonths(1).AddDays(-1);
 
                 // Lớp có ít nhất một buổi trong tháng (bỏ lớp đã hủy)
-                var lopHocs = _lopHocService.GetAll()
-                    .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
-                                l.ThoiGianBatDau.HasValue && l.ThoiGianKetThuc.HasValue &&
-                                l.ThoiGianBatDau.Value.Date <= cuoiThang &&
-                                l.ThoiGianKetThuc.Value.Date >= dauThang)
-                    .ToList();
-
-                if (_selectedGiaSuId.HasValue)
-                    lopHocs = lopHocs.Where(l => l.MaGS == _selectedGiaSuId.Value).ToList();
+                // Lọc theo tháng + gia sư ngay trong SQL
+                var lopHocs = _lopHocService.GetLopTrongKhoang(dauThang, cuoiThang.AddDays(1).AddTicks(-1), _selectedGiaSuId);
 
                 // Một lớp học mỗi ngày trong khoảng [bắt đầu, kết thúc]
                 // => hiện ở MỌI ngày đó (trước đây chỉ hiện ở ngày bắt đầu)

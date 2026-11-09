@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -29,30 +29,37 @@ namespace DoAnWD.BLL.Services
         {
             using (var db = new GiaSuContextDB())
             {
-                var lops = db.LopHocs
-                    .Include(l => l.HocVien)
-                    .Include(l => l.GiaSu)
-                    .Include(l => l.ThanhToans)
+                var huy = Constants.LopHocStatus.DaHuy;
+
+                // Một câu SQL: chỉ lấy đúng các cột cần + tổng đã đóng (không nạp từng lần đóng)
+                var dong = db.LopHocs
+                    .Select(l => new
+                    {
+                        l.MaLop, l.MonHoc, l.HocPhi, l.TrangThai, l.ThoiGianBatDau, l.ThoiGianKetThuc,
+                        HocVien = l.HocVien.HoTen, l.HocVien.SDT, l.HocVien.SDTPhuHuynh,
+                        GiaSu = l.GiaSu.HoTen,
+                        DaDong = l.ThanhToans.Sum(t => (decimal?)t.SoTien) ?? 0
+                    })
+                    .Where(x => !(x.TrangThai == huy && x.DaDong == 0))
                     .ToList();
 
-                return lops
-                    .Where(l => !(l.TrangThai == Constants.LopHocStatus.DaHuy && !l.ThanhToans.Any()))
-                    .Select(l =>
+                return dong
+                    .Select(x =>
                     {
-                        decimal hp = l.HocPhi ?? 0;
-                        decimal da = l.ThanhToans.Sum(t => t.SoTien);
+                        decimal hp = x.HocPhi ?? 0;
+                        var lopTam = new LopHoc { TrangThai = x.TrangThai, ThoiGianBatDau = x.ThoiGianBatDau, ThoiGianKetThuc = x.ThoiGianKetThuc };
                         return new CongNoLop
                         {
-                            MaLop = l.MaLop,
-                            HocVien = l.HocVien?.HoTen,
-                            SDTLienHe = l.HocVien?.SDTLienHe,
-                            MonHoc = l.MonHoc,
-                            GiaSu = l.GiaSu?.HoTen,
+                            MaLop = x.MaLop,
+                            HocVien = x.HocVien,
+                            SDTLienHe = string.IsNullOrWhiteSpace(x.SDTPhuHuynh) ? x.SDT : x.SDTPhuHuynh,
+                            MonHoc = x.MonHoc,
+                            GiaSu = x.GiaSu,
                             HocPhi = hp,
-                            DaDong = da,
-                            ConNo = Math.Max(0, hp - da),
-                            TinhTrang = TinhTrang(hp, da),
-                            TrangThaiLop = l.TrangThaiTheoThoiGian
+                            DaDong = x.DaDong,
+                            ConNo = Math.Max(0, hp - x.DaDong),
+                            TinhTrang = TinhTrang(hp, x.DaDong),
+                            TrangThaiLop = lopTam.TrangThaiTheoThoiGian
                         };
                     })
                     .OrderByDescending(c => c.ConNo)

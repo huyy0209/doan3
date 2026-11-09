@@ -445,7 +445,8 @@ namespace DoAnWD
             if (kq == null) { dgvBuoi.DataSource = null; chart.SetData(new KeyValuePair<DateTime, decimal>[0]); return; }
 
             chart.SetData(kq.Buoi.Where(b => b.Diem.HasValue).Select(b => new KeyValuePair<DateTime, decimal>(b.NgayHoc, b.Diem.Value)));
-            dgvBuoi.DataSource = kq.Buoi.Select(b => new
+            // Chỉ hiện 30 buổi gần nhất cho gọn (phiếu báo vẫn có đủ)
+            dgvBuoi.DataSource = kq.Buoi.Take(30).Select(b => new
             {
                 NgayHoc = b.NgayHoc, DiemDanh = b.DiemDanh, Diem = b.Diem?.ToString("0.##") ?? "", b.NhanXet
             }).ToList();

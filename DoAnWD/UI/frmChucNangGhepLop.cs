@@ -205,7 +205,7 @@ namespace DoAnWD
             {
                 using (var hv = new HocVienService()) _hocViens = hv.GetAll().OrderBy(h => h.HoTen).ToList();
                 using (var gs = new GiaSuService()) _giaSus = gs.GetForGhepLop().ToList();
-                _lopHoatDong = _lopHocService.GetAll().Where(l => l.DangHoatDong).ToList();
+                _lopHoatDong = _lopHocService.GetLopConHoatDong();
 
                 cboMon.Items.Clear();
                 cboMon.Items.Add("Tất cả môn");
