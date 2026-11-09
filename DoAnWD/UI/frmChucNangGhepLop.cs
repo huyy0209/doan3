@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
 
 namespace DoAnWD
 {
@@ -32,6 +33,7 @@ namespace DoAnWD
         public frmChucNangGhepLop()
         {
             InitializeComponent();
+            ThemeManager.Apply(this);
             _hocVienService = new HocVienService();
             _giaSuService = new GiaSuService();
             _lopHocService = new LopHocService();
@@ -51,7 +53,14 @@ namespace DoAnWD
 
             // Custom draw cho ComboBox ca học
             cboCaHoc.DrawMode = DrawMode.OwnerDrawFixed;
+            cboCaHoc.ItemHeight = 22;
             cboCaHoc.DrawItem += CboCaHoc_DrawItem;
+
+            // Lịch dạy của gia sư: mỗi dòng một lớp, chấm màu theo ca
+            lstLichGiaSu.DrawMode = DrawMode.OwnerDrawFixed;
+            lstLichGiaSu.ItemHeight = 22;
+            lstLichGiaSu.Font = Theme.Body;
+            lstLichGiaSu.DrawItem += LstLichGiaSu_DrawItem;
 
             // Học phí: cho phép gõ "1.500.000" / "1,500,000"; tự định dạng khi rời ô
             txtHocPhi.Leave += (s, e) =>
@@ -93,9 +102,9 @@ namespace DoAnWD
                 if (cboHocVien.Items.Count == 0 || cboGiaSu.Items.Count == 0)
                 {
                     lblWarningCaHoc.Text = cboHocVien.Items.Count == 0
-                        ? "⚠️ Chưa có học viên - hãy thêm học viên trước."
-                        : "⚠️ Không có gia sư nào nhận lớp (tất cả đang tạm nghỉ).";
-                    lblWarningCaHoc.ForeColor = Color.Red;
+                        ? "Chưa có học viên. Thêm học viên trước khi ghép lớp."
+                        : "Không có gia sư nào nhận lớp: tất cả đang tạm nghỉ.";
+                    lblWarningCaHoc.ForeColor = Theme.Margin;
                     lblWarningCaHoc.Visible = true;
                     DatTrangThaiNutGhep(false);
                 }
@@ -134,8 +143,8 @@ namespace DoAnWD
             {
                 txtSDT_GS.Text = selected.SDT ?? "";
                 txtChuyenMon_GS.Text = selected.ChuyenMon ?? "";
-                txtChuyenMon_GS.BackColor = Constants.Colors.ActiveOrange;
-                txtChuyenMon_GS.ForeColor = Constants.Colors.Orange;
+                txtChuyenMon_GS.BackColor = Theme.InkSoft;
+                txtChuyenMon_GS.ForeColor = Theme.Ink;
 
                 HienThiLichGiaSu(selected.MaGS);
             }
@@ -166,35 +175,22 @@ namespace DoAnWD
 
                 if (lichHoc.Count == 0)
                 {
-                    lstLichGiaSu.Items.Add("✅ Gia sư hiện đang rảnh - chưa có lớp nào!");
-                    lstLichGiaSu.ForeColor = Color.Green;
-                    lblTitleLichGS.Text = "Gia sư rảnh - có thể ghép lớp bất kỳ ca nào";
-                    lblTitleLichGS.ForeColor = Color.Green;
+                    lstLichGiaSu.Items.Add("Chưa có lớp nào. Có thể ghép ở bất kỳ ca nào.");
+                    lblTitleLichGS.Text = "Gia sư đang rảnh";
+                    lblTitleLichGS.ForeColor = Theme.Success;
                     return;
                 }
 
-                lstLichGiaSu.Items.Add($"📚 Đang có {lichHoc.Count} lớp:");
-                lstLichGiaSu.Items.Add(new string('─', 65));
-
                 foreach (var lop in lichHoc)
-                {
-                    string trangThai = lop.TrangThaiTheoThoiGian;
-                    string icon = trangThai == Constants.LopHocStatus.DangDienRa ? "🟢" : "🔵";
+                    lstLichGiaSu.Items.Add(lop);
 
-                    lstLichGiaSu.Items.Add(
-                        $"{icon} {lop.CaHoc,-20} | {lop.MonHoc,-10} | " +
-                        $"{lop.ThoiGianBatDau:dd/MM/yyyy} - {lop.ThoiGianKetThuc:dd/MM/yyyy} | [{trangThai}]");
-                }
-
-                lstLichGiaSu.ForeColor = Constants.Colors.DarkGray;
-                lblTitleLichGS.Text = $"Gia sư có {lichHoc.Count} lớp - chọn ca còn trống (màu xanh)";
-                lblTitleLichGS.ForeColor = Color.OrangeRed;
+                lblTitleLichGS.Text = $"Đang có {lichHoc.Count} lớp. Chọn ca chưa bị gạch trong danh sách ca học.";
+                lblTitleLichGS.ForeColor = Theme.TextMuted;
             }
             catch (Exception ex)
             {
                 lstLichGiaSu.Items.Clear();
-                lstLichGiaSu.Items.Add($"❌ Lỗi khi load lịch: {ex.Message}");
-                lstLichGiaSu.ForeColor = Color.Red;
+                lstLichGiaSu.Items.Add($"Không đọc được lịch dạy: {ex.Message}");
             }
         }
 
@@ -266,15 +262,15 @@ namespace DoAnWD
 
                 if (loi != null)
                 {
-                    lblWarningCaHoc.Text = "⚠️ " + loi;
-                    lblWarningCaHoc.ForeColor = Color.Red;
+                    lblWarningCaHoc.Text = loi;
+                    lblWarningCaHoc.ForeColor = Theme.Margin;
                     DatTrangThaiNutGhep(false);
                 }
                 else
                 {
                     int soNgay = (ketThuc.Date - batDau.Date).Days + 1;
-                    lblWarningCaHoc.Text = $"✅ Ca học khả dụng - {soNgay} ngày, {batDau:HH:mm}-{ketThuc:HH:mm}";
-                    lblWarningCaHoc.ForeColor = Color.Green;
+                    lblWarningCaHoc.Text = $"Ca còn trống: {soNgay} ngày, {batDau:HH:mm}–{ketThuc:HH:mm} mỗi ngày";
+                    lblWarningCaHoc.ForeColor = Theme.Success;
                     DatTrangThaiNutGhep(true);
                 }
                 lblWarningCaHoc.Visible = true;
@@ -288,11 +284,10 @@ namespace DoAnWD
         private void DatTrangThaiNutGhep(bool choPhep)
         {
             btnGhepLop.Enabled = choPhep;
-            btnGhepLop.BackColor = choPhep ? Constants.Colors.Green : Constants.Colors.Gray;
         }
 
         /// <summary>
-        /// Vẽ ca học: đỏ gạch ngang = đã bận, xanh = còn trống
+        /// Vẽ ca học: chấm màu theo ca; ca đã có lớp thì chữ mờ, gạch ngang, ghi chú "đã có lớp"
         /// </summary>
         private void CboCaHoc_DrawItem(object sender, DrawItemEventArgs e)
         {
@@ -301,23 +296,61 @@ namespace DoAnWD
             string caHoc = cboCaHoc.Items[e.Index].ToString();
             bool isBusy = _caDaBan.Contains(caHoc);
             bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+            bool inEditBox = (e.State & DrawItemState.ComboBoxEdit) == DrawItemState.ComboBoxEdit;
 
-            Color backgroundColor = isBusy ? Color.FromArgb(255, 220, 220) : Constants.Colors.ActiveGreen;
-            Color textColor = isBusy ? Color.FromArgb(192, 57, 43) : Color.FromArgb(39, 174, 96);
-            if (isSelected)
-                backgroundColor = ControlPaint.Dark(backgroundColor, 0.05f);
+            var g = e.Graphics;
+            using (var bg = new SolidBrush(isSelected && !inEditBox ? Theme.InkSoft : Theme.Surface))
+                g.FillRectangle(bg, e.Bounds);
 
-            using (var bgBrush = new SolidBrush(backgroundColor))
-                e.Graphics.FillRectangle(bgBrush, e.Bounds);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var dot = new SolidBrush(isBusy ? Theme.Rule : Theme.ShiftColor(caHoc)))
+                g.FillEllipse(dot, e.Bounds.Left + 6, e.Bounds.Top + e.Bounds.Height / 2f - 4, 8, 8);
 
-            using (var textBrush = new SolidBrush(textColor))
-            using (var font = new Font(e.Font, isBusy ? FontStyle.Strikeout : FontStyle.Regular))
+            var textRect = new Rectangle(e.Bounds.Left + 20, e.Bounds.Top, e.Bounds.Width - 24, e.Bounds.Height);
+            var font = isBusy ? new Font(Theme.Body, FontStyle.Strikeout) : Theme.Body;
+            TextRenderer.DrawText(g, caHoc, font, textRect, isBusy ? Theme.TextFaint : Theme.Text,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+            if (isBusy)
             {
-                string prefix = isBusy ? "❌ " : "✅ ";
-                e.Graphics.DrawString(prefix + caHoc, font, textBrush, e.Bounds.Left + 2, e.Bounds.Top + 2);
+                font.Dispose();
+                TextRenderer.DrawText(g, "đã có lớp", Theme.Small, textRect, Theme.Margin,
+                    TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+            }
+        }
+
+        /// <summary>
+        /// Một dòng lịch dạy: chấm màu ca, tên ca, môn, khoảng ngày, trạng thái
+        /// </summary>
+        private void LstLichGiaSu_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            var g = e.Graphics;
+            using (var bg = new SolidBrush(Theme.Surface)) g.FillRectangle(bg, e.Bounds);
+
+            var item = lstLichGiaSu.Items[e.Index];
+            var lop = item as LopHoc;
+            var b = e.Bounds;
+
+            if (lop == null)
+            {
+                TextRenderer.DrawText(g, item.ToString(), Theme.Body, b, Theme.TextMuted,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+                return;
             }
 
-            e.DrawFocusRectangle();
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var dot = new SolidBrush(Theme.ShiftColor(lop.CaHoc)))
+                g.FillEllipse(dot, b.Left + 2, b.Top + b.Height / 2f - 4, 8, 8);
+
+            var flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis;
+            TextRenderer.DrawText(g, lop.CaHoc, Theme.BodyStrong, new Rectangle(b.Left + 16, b.Top, 170, b.Height), Theme.Text, flags);
+            TextRenderer.DrawText(g, lop.MonHoc, Theme.Body, new Rectangle(b.Left + 190, b.Top, 130, b.Height), Theme.Text, flags);
+            TextRenderer.DrawText(g, $"{lop.ThoiGianBatDau:dd/MM} – {lop.ThoiGianKetThuc:dd/MM/yyyy}", Theme.Body,
+                new Rectangle(b.Left + 325, b.Top, 190, b.Height), Theme.TextMuted, flags);
+
+            string tt = lop.TrangThaiTheoThoiGian;
+            TextRenderer.DrawText(g, tt, Theme.SmallStrong, new Rectangle(b.Left + 520, b.Top, b.Width - 520, b.Height),
+                Theme.StatusColor(tt), flags);
         }
 
         // ===================================================================

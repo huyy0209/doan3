@@ -26,7 +26,7 @@ namespace DoAnWD
 
             // Setup form properties
             this.ShowInTaskbar = false;
-            this.Size = new Size(400, 120);
+            this.Size = new Size(380, 116);
 
             // Position ở góc phải màn hình
             var screen = Screen.PrimaryScreen.WorkingArea;
@@ -48,92 +48,82 @@ namespace DoAnWD
             this.FormClosed += FrmNotificationToast_FormClosed;
         }
 
+        /// <summary>
+        /// Toast nền trắng, vạch màu của ca học bên trái, chữ mực tím
+        /// </summary>
         private void CreateControls()
         {
-            // Panel chính
+            FormBorderStyle = FormBorderStyle.None;
+            BackColor = DoAnWD.UI.Theme.Rule; // viền 1px
+            Padding = new Padding(1);
+            Size = new Size(380, 116);
+
+            Color shift = DoAnWD.UI.Theme.ShiftColor(_lopHoc?.CaHoc);
+
             var panelMain = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(52, 152, 219),
-                Padding = new Padding(15)
+                BackColor = DoAnWD.UI.Theme.Surface
             };
-
-            // Icon
-            var lblIcon = new Label
+            panelMain.Paint += (s, e) =>
             {
-                Text = "🔔",
-                Font = new Font("Segoe UI", 24F),
-                ForeColor = Color.White,
-                AutoSize = false,
-                Size = new Size(50, 50),
-                Location = new Point(15, 15),
-                TextAlign = ContentAlignment.MiddleCenter
+                using (var b = new SolidBrush(shift))
+                    e.Graphics.FillRectangle(b, 0, 0, 4, panelMain.Height);
             };
 
-            // Title
             var lblTitle = new Label
             {
-                Text = "⏰ LỚP SẮP BẮT ĐẦU!",
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                ForeColor = Color.White,
+                Text = "Lớp sắp bắt đầu",
+                Font = DoAnWD.UI.Theme.Section,
+                ForeColor = DoAnWD.UI.Theme.Ink,
                 AutoSize = false,
-                Size = new Size(300, 25),
-                Location = new Point(75, 15)
+                Size = new Size(300, 24),
+                Location = new Point(18, 12)
             };
 
-            // Content
             lblContent = new Label
             {
-                Font = new Font("Segoe UI", 9F),
-                ForeColor = Color.White,
+                Font = DoAnWD.UI.Theme.Body,
+                ForeColor = DoAnWD.UI.Theme.Text,
                 AutoSize = false,
-                Size = new Size(300, 60),
-                Location = new Point(75, 40)
+                Size = new Size(340, 46),
+                Location = new Point(18, 38)
             };
 
-            // Close button
             var btnClose = new Button
             {
-                Text = "✕",
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
+                Text = "×",
+                Font = new Font("Segoe UI", 13F),
+                ForeColor = DoAnWD.UI.Theme.TextMuted,
+                BackColor = DoAnWD.UI.Theme.Surface,
                 FlatStyle = FlatStyle.Flat,
                 Size = new Size(30, 30),
-                Location = new Point(360, 10),
-                Cursor = Cursors.Hand
+                Location = new Point(342, 6),
+                Cursor = Cursors.Hand,
+                TabStop = false
             };
             btnClose.FlatAppearance.BorderSize = 0;
+            btnClose.FlatAppearance.MouseOverBackColor = DoAnWD.UI.Theme.NeutralSoft;
             btnClose.Click += (s, e) => CloseToast();
 
-            // Snooze button
-            var btnSnooze = new Button
+            var btnDetail = new DoAnWD.UI.ThemedButton
             {
-                Text = "⏰ Nhắc sau 15p",
-                Font = new Font("Segoe UI", 8F),
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(41, 128, 185),
-                FlatStyle = FlatStyle.Flat,
-                Size = new Size(130, 25),
-                Location = new Point(240, 85),
-                Cursor = Cursors.Hand
+                Text = "Xem chi tiết",
+                Kind = DoAnWD.UI.ButtonKind.Ghost,
+                Size = new Size(110, 26),
+                Location = new Point(250, 82)
             };
-            btnSnooze.FlatAppearance.BorderSize = 0;
-            btnSnooze.Click += BtnSnooze_Click;
+            btnDetail.Click += (s, e) => ShowDetails();
 
-            // Add controls
-            panelMain.Controls.Add(lblIcon);
             panelMain.Controls.Add(lblTitle);
             panelMain.Controls.Add(lblContent);
             panelMain.Controls.Add(btnClose);
-            panelMain.Controls.Add(btnSnooze);
+            panelMain.Controls.Add(btnDetail);
             this.Controls.Add(panelMain);
 
-            // Click để xem chi tiết
-            this.Cursor = Cursors.Hand;
-            this.Click += (s, e) => ShowDetails();
+            // Bấm vào thân thông báo để xem chi tiết
+            panelMain.Cursor = Cursors.Hand;
             panelMain.Click += (s, e) => ShowDetails();
-            lblIcon.Click += (s, e) => ShowDetails();
             lblTitle.Click += (s, e) => ShowDetails();
             lblContent.Click += (s, e) => ShowDetails();
         }
@@ -148,12 +138,10 @@ namespace DoAnWD
                 var hocVien = _lopHoc.HocVien?.HoTen ?? "N/A";
                 var batDau = _lopHoc.ThoiGianBatDau?.ToString("dd/MM/yyyy HH:mm") ?? "";
                 var caHoc = _lopHoc.CaHoc ?? "";
-                var soGioConLai = _lopHoc.SoNgayConLai;
 
                 lblContent.Text =
-                    $"📚 Môn: {_lopHoc.MonHoc}\n" +
-                    $"👨‍🏫 GS: {giaSu} | 👨‍🎓 HV: {hocVien}\n" +
-                    $"🕐 {caHoc} - {batDau} (còn {soGioConLai} ngày)";
+                    $"{_lopHoc.MonHoc}, {caHoc}, bắt đầu {batDau}\n" +
+                    $"Gia sư {giaSu}, học viên {hocVien}";
             }
             catch (Exception ex)
             {
@@ -167,9 +155,9 @@ namespace DoAnWD
             _slideInTimer.Interval = 10;
             _slideInTimer.Tick += (s, e) =>
             {
-                if (this.Top > _targetY)
+                if (this.Top > _targetY + 1)
                 {
-                    this.Top -= 5;
+                    this.Top -= Math.Max(1, (this.Top - _targetY) / 5); // chậm dần khi tới nơi
                 }
                 else
                 {
@@ -203,30 +191,19 @@ namespace DoAnWD
             slideOutTimer.Start();
         }
 
-        private void BtnSnooze_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Sẽ nhắc lại sau 15 phút!",
-                Constants.Messages.InfoTitle,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-            CloseToast();
-        }
-
         private void ShowDetails()
         {
             if (_lopHoc == null) return;
 
             var details =
-                $"📋 CHI TIẾT LỚP HỌC\n" +
-                $"━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                $"📚 Môn học: {_lopHoc.MonHoc}\n" +
-                $"👨‍🏫 Gia sư: {_lopHoc.GiaSu?.HoTen ?? "N/A"}\n" +
-                $"👨‍🎓 Học viên: {_lopHoc.HocVien?.HoTen ?? "N/A"}\n" +
-                $"🕐 Ca học: {_lopHoc.CaHoc}\n" +
-                $"📅 Bắt đầu: {_lopHoc.ThoiGianBatDau?.ToString("dd/MM/yyyy HH:mm")}\n" +
-                $"📅 Kết thúc: {_lopHoc.ThoiGianKetThuc?.ToString("dd/MM/yyyy HH:mm")}\n" +
-                $"💰 Học phí: {_lopHoc.HocPhi:N0} VNĐ\n" +
-                $"📊 Trạng thái: {_lopHoc.TrangThai}";
+                $"Môn học: {_lopHoc.MonHoc}\n" +
+                $"Gia sư: {_lopHoc.GiaSu?.HoTen ?? "?"}\n" +
+                $"Học viên: {_lopHoc.HocVien?.HoTen ?? "?"}\n" +
+                $"Ca học: {_lopHoc.CaHoc}\n" +
+                $"Bắt đầu: {_lopHoc.ThoiGianBatDau?.ToString("dd/MM/yyyy HH:mm")}\n" +
+                $"Kết thúc: {_lopHoc.ThoiGianKetThuc?.ToString("dd/MM/yyyy HH:mm")}\n" +
+                $"Học phí: {_lopHoc.HocPhi:N0} đ\n" +
+                $"Trạng thái: {_lopHoc.TrangThai}";
 
             MessageBox.Show(details,
                 "Chi tiết lớp học",

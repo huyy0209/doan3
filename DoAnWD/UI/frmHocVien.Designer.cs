@@ -21,10 +21,10 @@
 
         // Panel buttons
         private System.Windows.Forms.Panel panelButtons;
-        private System.Windows.Forms.Button btnThem;
-        private System.Windows.Forms.Button btnSua;
-        private System.Windows.Forms.Button btnXoa;
-        private System.Windows.Forms.Button btnHuy;
+        private DoAnWD.UI.ThemedButton btnThem;
+        private DoAnWD.UI.ThemedButton btnSua;
+        private DoAnWD.UI.ThemedButton btnXoa;
+        private DoAnWD.UI.ThemedButton btnHuy;
 
         // Panel tìm kiếm
         private System.Windows.Forms.Panel panelSearch;
@@ -57,10 +57,10 @@
             this.lblDiaChi = new System.Windows.Forms.Label();
             this.txtDiaChi = new System.Windows.Forms.TextBox();
             this.panelButtons = new System.Windows.Forms.Panel();
-            this.btnThem = new System.Windows.Forms.Button();
-            this.btnSua = new System.Windows.Forms.Button();
-            this.btnXoa = new System.Windows.Forms.Button();
-            this.btnHuy = new System.Windows.Forms.Button();
+            this.btnThem = new DoAnWD.UI.ThemedButton();
+            this.btnSua = new DoAnWD.UI.ThemedButton();
+            this.btnXoa = new DoAnWD.UI.ThemedButton();
+            this.btnHuy = new DoAnWD.UI.ThemedButton();
             this.panelSearch = new System.Windows.Forms.Panel();
             this.lblTimKiem = new System.Windows.Forms.Label();
             this.txtTimKiem = new System.Windows.Forms.TextBox();
@@ -93,7 +93,7 @@
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(300, 32);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "👨‍🎓 QUẢN LÝ HỌC VIÊN";
+            this.lblTitle.Text = "Học viên";
 
             // 
             // panelInfo
@@ -109,7 +109,7 @@
             this.panelInfo.Controls.Add(this.txtDiaChi);
             this.panelInfo.Location = new System.Drawing.Point(20, 80);
             this.panelInfo.Name = "panelInfo";
-            this.panelInfo.Size = new System.Drawing.Size(380, 230);
+            this.panelInfo.Size = new System.Drawing.Size(380, 190);
             this.panelInfo.TabIndex = 1;
 
             // 
@@ -121,7 +121,7 @@
             this.lblMaHV.Name = "lblMaHV";
             this.lblMaHV.Size = new System.Drawing.Size(170, 20);
             this.lblMaHV.TabIndex = 0;
-            this.lblMaHV.Text = "Mã Học Viên:";
+            this.lblMaHV.Text = "Mã học viên:";
 
             // 
             // txtMaHV
@@ -144,7 +144,7 @@
             this.lblHoTen.Name = "lblHoTen";
             this.lblHoTen.Size = new System.Drawing.Size(170, 20);
             this.lblHoTen.TabIndex = 2;
-            this.lblHoTen.Text = "Họ Tên: *";
+            this.lblHoTen.Text = "Họ tên: *";
 
             // 
             // txtHoTen
@@ -165,7 +165,7 @@
             this.lblSDT.Name = "lblSDT";
             this.lblSDT.Size = new System.Drawing.Size(170, 20);
             this.lblSDT.TabIndex = 4;
-            this.lblSDT.Text = "Số Điện Thoại: *";
+            this.lblSDT.Text = "Số điện thoại: *";
 
             // 
             // txtSDT
@@ -186,7 +186,7 @@
             this.lblDiaChi.Name = "lblDiaChi";
             this.lblDiaChi.Size = new System.Drawing.Size(170, 20);
             this.lblDiaChi.TabIndex = 6;
-            this.lblDiaChi.Text = "Địa Chỉ: *";
+            this.lblDiaChi.Text = "Địa chỉ: *";
 
             // 
             // txtDiaChi
@@ -207,7 +207,7 @@
             this.panelButtons.Controls.Add(this.btnSua);
             this.panelButtons.Controls.Add(this.btnXoa);
             this.panelButtons.Controls.Add(this.btnHuy);
-            this.panelButtons.Location = new System.Drawing.Point(20, 325);
+            this.panelButtons.Location = new System.Drawing.Point(20, 286);
             this.panelButtons.Name = "panelButtons";
             this.panelButtons.Size = new System.Drawing.Size(380, 60);
             this.panelButtons.TabIndex = 2;
@@ -224,7 +224,7 @@
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(85, 35);
             this.btnThem.TabIndex = 0;
-            this.btnThem.Text = "➕ Thêm";
+            this.btnThem.Text = "Thêm";
             this.btnThem.UseVisualStyleBackColor = false;
             this.btnThem.Click += new System.EventHandler(this.btnThem_Click);
             this.btnThem.MouseEnter += new System.EventHandler(this.btn_MouseEnter);
@@ -242,7 +242,7 @@
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(85, 35);
             this.btnSua.TabIndex = 1;
-            this.btnSua.Text = "✏️ Sửa";
+            this.btnSua.Text = "Sửa";
             this.btnSua.UseVisualStyleBackColor = false;
             this.btnSua.Click += new System.EventHandler(this.btnSua_Click);
             this.btnSua.MouseEnter += new System.EventHandler(this.btn_MouseEnter);
@@ -260,7 +260,7 @@
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(85, 35);
             this.btnXoa.TabIndex = 2;
-            this.btnXoa.Text = "🗑️ Xóa";
+            this.btnXoa.Text = "Xóa";
             this.btnXoa.UseVisualStyleBackColor = false;
             this.btnXoa.Click += new System.EventHandler(this.btnXoa_Click);
             this.btnXoa.MouseEnter += new System.EventHandler(this.btn_MouseEnter);
@@ -278,7 +278,7 @@
             this.btnHuy.Name = "btnHuy";
             this.btnHuy.Size = new System.Drawing.Size(85, 35);
             this.btnHuy.TabIndex = 3;
-            this.btnHuy.Text = "❌ Hủy";
+            this.btnHuy.Text = "Hủy";
             this.btnHuy.UseVisualStyleBackColor = false;
             this.btnHuy.Visible = false;
             this.btnHuy.Click += new System.EventHandler(this.btnHuy_Click);
@@ -289,6 +289,7 @@
             this.panelSearch.BackColor = System.Drawing.Color.White;
             this.panelSearch.Controls.Add(this.lblTimKiem);
             this.panelSearch.Controls.Add(this.txtTimKiem);
+            this.panelSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.panelSearch.Location = new System.Drawing.Point(420, 80);
             this.panelSearch.Name = "panelSearch";
             this.panelSearch.Size = new System.Drawing.Size(760, 60);
@@ -303,7 +304,7 @@
             this.lblTimKiem.Name = "lblTimKiem";
             this.lblTimKiem.Size = new System.Drawing.Size(100, 20);
             this.lblTimKiem.TabIndex = 0;
-            this.lblTimKiem.Text = "🔍 Tìm Kiếm:";
+            this.lblTimKiem.Text = "Tìm kiếm:";
 
             // 
             // txtTimKiem
@@ -311,6 +312,7 @@
             this.txtTimKiem.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtTimKiem.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.txtTimKiem.ForeColor = System.Drawing.Color.Gray;
+            this.txtTimKiem.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.txtTimKiem.Location = new System.Drawing.Point(120, 10);
             this.txtTimKiem.Name = "txtTimKiem";
             this.txtTimKiem.Size = new System.Drawing.Size(625, 27);
@@ -330,6 +332,7 @@
             this.dgv.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgv.ColumnHeadersHeight = 40;
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.dgv.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.dgv.Location = new System.Drawing.Point(420, 155);
             this.dgv.Name = "dgv";
             this.dgv.ReadOnly = true;

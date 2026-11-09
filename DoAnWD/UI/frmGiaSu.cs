@@ -64,10 +64,10 @@ namespace DoAnWD
             if (dgv.Columns.Count > 0)
             {
                 dgv.Columns["MaGS"].HeaderText = "Mã GS";
-                dgv.Columns["HoTen"].HeaderText = "Họ Tên";
+                dgv.Columns["HoTen"].HeaderText = "Họ tên";
                 dgv.Columns["SDT"].HeaderText = "Số ĐT";
-                dgv.Columns["ChuyenMon"].HeaderText = "Chuyên Môn";
-                dgv.Columns["TrangThai"].HeaderText = "Trạng Thái";
+                dgv.Columns["ChuyenMon"].HeaderText = "Chuyên môn";
+                dgv.Columns["TrangThai"].HeaderText = "Trạng thái";
 
                 if (dgv.Columns.Contains("LopHocs"))
                     dgv.Columns["LopHocs"].Visible = false;
@@ -82,14 +82,8 @@ namespace DoAnWD
             foreach (DataGridViewRow row in dgv.Rows)
             {
                 var gs = row.DataBoundItem as GiaSu;
-                if (gs == null) continue;
-
-                if (gs.TrangThai == Constants.GiaSuStatus.TamNghi)
-                    row.DefaultCellStyle.ForeColor = Constants.Colors.Gray;
-                else if (gs.TrangThai == Constants.GiaSuStatus.DangDay)
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveOrange;
-                else if (gs.TrangThai == Constants.GiaSuStatus.Ban)
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveBlue;
+                if (gs != null && gs.TrangThai == Constants.GiaSuStatus.TamNghi)
+                    row.DefaultCellStyle.ForeColor = DoAnWD.UI.Theme.TextFaint;
             }
         }
 
@@ -125,7 +119,7 @@ namespace DoAnWD
             isAdding = true;
             ClearInputs();
             LockInputs(false);
-            btnThem.Text = "💾 Lưu";
+            btnThem.Text = "Lưu";
             btnSua.Enabled = false;
             btnXoa.Enabled = false;
             btnHuy.Visible = true;
@@ -201,7 +195,7 @@ namespace DoAnWD
             isEditing = true;
             LockInputs(false);
             txtMaGS.ReadOnly = true;
-            btnSua.Text = "💾 Lưu";
+            btnSua.Text = "Lưu";
             btnThem.Enabled = false;
             btnXoa.Enabled = false;
             btnHuy.Visible = true;
@@ -330,7 +324,7 @@ namespace DoAnWD
             if (txtTimKiem.Text == "Nhập tên, số điện thoại hoặc chuyên môn...")
             {
                 txtTimKiem.Text = "";
-                txtTimKiem.ForeColor = Color.Black;
+                txtTimKiem.ForeColor = DoAnWD.UI.Theme.Text;
             }
         }
 
@@ -379,8 +373,8 @@ namespace DoAnWD
         private void ResetFormState()
         {
             LockInputs(true);
-            btnThem.Text = "➕ Thêm";
-            btnSua.Text = "✏️ Sửa";
+            btnThem.Text = "Thêm";
+            btnSua.Text = "Sửa";
             btnThem.Enabled = true;
             btnSua.Enabled = true;
             btnXoa.Enabled = true;

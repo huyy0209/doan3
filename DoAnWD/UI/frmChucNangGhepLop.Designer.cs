@@ -7,9 +7,9 @@
         private System.Windows.Forms.Panel panelContent;
         private System.Windows.Forms.Panel panelButtons;
         private System.Windows.Forms.Label lblTitle;
-        private System.Windows.Forms.GroupBox gbHocVien;
-        private System.Windows.Forms.GroupBox gbGiaSu;
-        private System.Windows.Forms.GroupBox gbThongTinLop;
+        private DoAnWD.UI.SectionBox gbHocVien;
+        private DoAnWD.UI.SectionBox gbGiaSu;
+        private DoAnWD.UI.SectionBox gbThongTinLop;
         private System.Windows.Forms.ComboBox cboHocVien;
         private System.Windows.Forms.ComboBox cboGiaSu;
         private System.Windows.Forms.TextBox txtHocPhi;
@@ -18,8 +18,8 @@
         private System.Windows.Forms.Label lblGiaSu;
         private System.Windows.Forms.Label lblHocPhi;
         private System.Windows.Forms.Label lblTrangThai;
-        private System.Windows.Forms.Button btnGhepLop;
-        private System.Windows.Forms.Button btnHuy;
+        private DoAnWD.UI.ThemedButton btnGhepLop;
+        private DoAnWD.UI.ThemedButton btnHuy;
         private System.Windows.Forms.Label lblSDT_HV;
         private System.Windows.Forms.Label lblDiaChi_HV;
         private System.Windows.Forms.Label lblSDT_GS;
@@ -36,7 +36,7 @@
         private System.Windows.Forms.ComboBox cboCaHoc;
 
         // ✨ CÁC CONTROLS MỚI CHO LỊCH GIA SƯ
-        private System.Windows.Forms.GroupBox gbLichGiaSu;
+        private DoAnWD.UI.SectionBox gbLichGiaSu;
         private System.Windows.Forms.ListBox lstLichGiaSu;
         private System.Windows.Forms.Label lblTitleLichGS;
         private System.Windows.Forms.Label lblWarningCaHoc;
@@ -55,21 +55,21 @@
             this.panelTop = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.panelContent = new System.Windows.Forms.Panel();
-            this.gbHocVien = new System.Windows.Forms.GroupBox();
+            this.gbHocVien = new DoAnWD.UI.SectionBox();
             this.lblHocVien = new System.Windows.Forms.Label();
             this.cboHocVien = new System.Windows.Forms.ComboBox();
             this.lblSDT_HV = new System.Windows.Forms.Label();
             this.txtSDT_HV = new System.Windows.Forms.TextBox();
             this.lblDiaChi_HV = new System.Windows.Forms.Label();
             this.txtDiaChi_HV = new System.Windows.Forms.TextBox();
-            this.gbGiaSu = new System.Windows.Forms.GroupBox();
+            this.gbGiaSu = new DoAnWD.UI.SectionBox();
             this.lblGiaSu = new System.Windows.Forms.Label();
             this.cboGiaSu = new System.Windows.Forms.ComboBox();
             this.lblSDT_GS = new System.Windows.Forms.Label();
             this.txtSDT_GS = new System.Windows.Forms.TextBox();
             this.lblChuyenMon_GS = new System.Windows.Forms.Label();
             this.txtChuyenMon_GS = new System.Windows.Forms.TextBox();
-            this.gbThongTinLop = new System.Windows.Forms.GroupBox();
+            this.gbThongTinLop = new DoAnWD.UI.SectionBox();
             this.lblHocPhi = new System.Windows.Forms.Label();
             this.txtHocPhi = new System.Windows.Forms.TextBox();
             this.lblTrangThai = new System.Windows.Forms.Label();
@@ -81,12 +81,12 @@
             this.lblThoiGianKetThuc = new System.Windows.Forms.Label();
             this.dtpKetThuc = new System.Windows.Forms.DateTimePicker();
             this.lblWarningCaHoc = new System.Windows.Forms.Label();
-            this.gbLichGiaSu = new System.Windows.Forms.GroupBox();
+            this.gbLichGiaSu = new DoAnWD.UI.SectionBox();
             this.lblTitleLichGS = new System.Windows.Forms.Label();
             this.lstLichGiaSu = new System.Windows.Forms.ListBox();
             this.panelButtons = new System.Windows.Forms.Panel();
-            this.btnGhepLop = new System.Windows.Forms.Button();
-            this.btnHuy = new System.Windows.Forms.Button();
+            this.btnGhepLop = new DoAnWD.UI.ThemedButton();
+            this.btnHuy = new DoAnWD.UI.ThemedButton();
             this.panelTop.SuspendLayout();
             this.panelContent.SuspendLayout();
             this.gbHocVien.SuspendLayout();
@@ -115,7 +115,7 @@
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(300, 30);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "➕ GHÉP LỚP MỚI (Option 2)";
+            this.lblTitle.Text = "Ghép lớp mới";
             // 
             // panelContent
             // 
@@ -128,7 +128,7 @@
             this.panelContent.Location = new System.Drawing.Point(0, 60);
             this.panelContent.Name = "panelContent";
             this.panelContent.Padding = new System.Windows.Forms.Padding(15);
-            this.panelContent.Size = new System.Drawing.Size(800, 570);
+            this.panelContent.Size = new System.Drawing.Size(800, 620);
             this.panelContent.TabIndex = 1;
             // 
             // gbHocVien
@@ -148,7 +148,7 @@
             this.gbHocVien.Size = new System.Drawing.Size(360, 180);
             this.gbHocVien.TabIndex = 0;
             this.gbHocVien.TabStop = false;
-            this.gbHocVien.Text = "👨‍🎓 Chọn Học Viên";
+            this.gbHocVien.Text = "Chọn học viên";
             // 
             // lblHocVien
             // 
@@ -158,7 +158,7 @@
             this.lblHocVien.Name = "lblHocVien";
             this.lblHocVien.Size = new System.Drawing.Size(63, 17);
             this.lblHocVien.TabIndex = 0;
-            this.lblHocVien.Text = "Học Viên:";
+            this.lblHocVien.Text = "Học viên:";
             // 
             // cboHocVien
             // 
@@ -179,7 +179,7 @@
             this.lblSDT_HV.Name = "lblSDT_HV";
             this.lblSDT_HV.Size = new System.Drawing.Size(92, 17);
             this.lblSDT_HV.TabIndex = 2;
-            this.lblSDT_HV.Text = "Số Điện Thoại:";
+            this.lblSDT_HV.Text = "Số điện thoại:";
             // 
             // txtSDT_HV
             // 
@@ -200,7 +200,7 @@
             this.lblDiaChi_HV.Name = "lblDiaChi_HV";
             this.lblDiaChi_HV.Size = new System.Drawing.Size(52, 17);
             this.lblDiaChi_HV.TabIndex = 3;
-            this.lblDiaChi_HV.Text = "Địa Chỉ:";
+            this.lblDiaChi_HV.Text = "Địa chỉ:";
             // 
             // txtDiaChi_HV
             // 
@@ -231,7 +231,7 @@
             this.gbGiaSu.Size = new System.Drawing.Size(380, 180);
             this.gbGiaSu.TabIndex = 1;
             this.gbGiaSu.TabStop = false;
-            this.gbGiaSu.Text = "👨‍🏫 Chọn Gia Sư";
+            this.gbGiaSu.Text = "Chọn gia sư";
             // 
             // lblGiaSu
             // 
@@ -241,7 +241,7 @@
             this.lblGiaSu.Name = "lblGiaSu";
             this.lblGiaSu.Size = new System.Drawing.Size(49, 17);
             this.lblGiaSu.TabIndex = 0;
-            this.lblGiaSu.Text = "Gia Sư:";
+            this.lblGiaSu.Text = "Gia sư:";
             // 
             // cboGiaSu
             // 
@@ -262,7 +262,7 @@
             this.lblSDT_GS.Name = "lblSDT_GS";
             this.lblSDT_GS.Size = new System.Drawing.Size(92, 17);
             this.lblSDT_GS.TabIndex = 2;
-            this.lblSDT_GS.Text = "Số Điện Thoại:";
+            this.lblSDT_GS.Text = "Số điện thoại:";
             // 
             // txtSDT_GS
             // 
@@ -284,7 +284,7 @@
             this.lblChuyenMon_GS.Name = "lblChuyenMon_GS";
             this.lblChuyenMon_GS.Size = new System.Drawing.Size(113, 17);
             this.lblChuyenMon_GS.TabIndex = 3;
-            this.lblChuyenMon_GS.Text = "📚 Chuyên Môn:";
+            this.lblChuyenMon_GS.Text = "Chuyên môn:";
             // 
             // txtChuyenMon_GS
             // 
@@ -321,7 +321,7 @@
             this.gbThongTinLop.Size = new System.Drawing.Size(760, 200);
             this.gbThongTinLop.TabIndex = 2;
             this.gbThongTinLop.TabStop = false;
-            this.gbThongTinLop.Text = "💰 Thông Tin Lớp Học & Ca Học";
+            this.gbThongTinLop.Text = "Lớp học và ca học";
             // 
             // lblHocPhi
             // 
@@ -331,7 +331,7 @@
             this.lblHocPhi.Name = "lblHocPhi";
             this.lblHocPhi.Size = new System.Drawing.Size(94, 17);
             this.lblHocPhi.TabIndex = 0;
-            this.lblHocPhi.Text = "Học Phí (VNĐ):";
+            this.lblHocPhi.Text = "Học phí (VNĐ):";
             // 
             // txtHocPhi
             // 
@@ -350,7 +350,7 @@
             this.lblTrangThai.Name = "lblTrangThai";
             this.lblTrangThai.Size = new System.Drawing.Size(72, 17);
             this.lblTrangThai.TabIndex = 2;
-            this.lblTrangThai.Text = "Trạng Thái:";
+            this.lblTrangThai.Text = "Trạng thái:";
             // 
             // cboTrangThai
             // 
@@ -370,7 +370,7 @@
             this.lblCaHoc.Name = "lblCaHoc";
             this.lblCaHoc.Size = new System.Drawing.Size(75, 17);
             this.lblCaHoc.TabIndex = 4;
-            this.lblCaHoc.Text = "⏰ Ca Học:";
+            this.lblCaHoc.Text = "Ca học:";
             // 
             // cboCaHoc
             // 
@@ -384,11 +384,11 @@
             // 
             // lblWarningCaHoc
             // 
-            this.lblWarningCaHoc.AutoSize = true;
+            this.lblWarningCaHoc.AutoSize = false;
             this.lblWarningCaHoc.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblWarningCaHoc.Location = new System.Drawing.Point(360, 85);
+            this.lblWarningCaHoc.Location = new System.Drawing.Point(360, 78);
             this.lblWarningCaHoc.Name = "lblWarningCaHoc";
-            this.lblWarningCaHoc.Size = new System.Drawing.Size(0, 15);
+            this.lblWarningCaHoc.Size = new System.Drawing.Size(385, 40);
             this.lblWarningCaHoc.TabIndex = 6;
             this.lblWarningCaHoc.Visible = false;
             // 
@@ -400,7 +400,7 @@
             this.lblThoiGianBatDau.Name = "lblThoiGianBatDau";
             this.lblThoiGianBatDau.Size = new System.Drawing.Size(78, 17);
             this.lblThoiGianBatDau.TabIndex = 7;
-            this.lblThoiGianBatDau.Text = "📅 Bắt Đầu:";
+            this.lblThoiGianBatDau.Text = "Bắt đầu:";
             // 
             // dtpBatDau
             // 
@@ -420,7 +420,7 @@
             this.lblThoiGianKetThuc.Name = "lblThoiGianKetThuc";
             this.lblThoiGianKetThuc.Size = new System.Drawing.Size(83, 17);
             this.lblThoiGianKetThuc.TabIndex = 9;
-            this.lblThoiGianKetThuc.Text = "🏁 Kết Thúc:";
+            this.lblThoiGianKetThuc.Text = "Kết thúc:";
             // 
             // dtpKetThuc
             // 
@@ -441,19 +441,19 @@
             this.gbLichGiaSu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(126)))), ((int)(((byte)(34)))));
             this.gbLichGiaSu.Location = new System.Drawing.Point(20, 430);
             this.gbLichGiaSu.Name = "gbLichGiaSu";
-            this.gbLichGiaSu.Size = new System.Drawing.Size(760, 120);
+            this.gbLichGiaSu.Size = new System.Drawing.Size(760, 180);
             this.gbLichGiaSu.TabIndex = 3;
             this.gbLichGiaSu.TabStop = false;
-            this.gbLichGiaSu.Text = "📅 Lịch Dạy Của Gia Sư";
+            this.gbLichGiaSu.Text = "Lịch dạy của gia sư";
             // 
             // lblTitleLichGS
             // 
             this.lblTitleLichGS.AutoSize = true;
             this.lblTitleLichGS.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Italic);
             this.lblTitleLichGS.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.lblTitleLichGS.Location = new System.Drawing.Point(15, 22);
+            this.lblTitleLichGS.Location = new System.Drawing.Point(15, 34);
             this.lblTitleLichGS.Name = "lblTitleLichGS";
-            this.lblTitleLichGS.Size = new System.Drawing.Size(250, 15);
+            this.lblTitleLichGS.Size = new System.Drawing.Size(730, 18);
             this.lblTitleLichGS.TabIndex = 0;
             this.lblTitleLichGS.Text = "Chọn gia sư để xem lịch dạy hiện tại...";
             // 
@@ -465,9 +465,9 @@
             this.lstLichGiaSu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
             this.lstLichGiaSu.FormattingEnabled = true;
             this.lstLichGiaSu.ItemHeight = 14;
-            this.lstLichGiaSu.Location = new System.Drawing.Point(15, 42);
+            this.lstLichGiaSu.Location = new System.Drawing.Point(15, 56);
             this.lstLichGiaSu.Name = "lstLichGiaSu";
-            this.lstLichGiaSu.Size = new System.Drawing.Size(730, 58);
+            this.lstLichGiaSu.Size = new System.Drawing.Size(730, 110);
             this.lstLichGiaSu.TabIndex = 1;
             // 
             // panelButtons
@@ -494,7 +494,7 @@
             this.btnGhepLop.Name = "btnGhepLop";
             this.btnGhepLop.Size = new System.Drawing.Size(150, 50);
             this.btnGhepLop.TabIndex = 0;
-            this.btnGhepLop.Text = "✅ Ghép Lớp";
+            this.btnGhepLop.Text = "Ghép lớp";
             this.btnGhepLop.UseVisualStyleBackColor = false;
             this.btnGhepLop.Click += new System.EventHandler(this.btnGhepLop_Click);
             // 
@@ -510,7 +510,7 @@
             this.btnHuy.Name = "btnHuy";
             this.btnHuy.Size = new System.Drawing.Size(150, 50);
             this.btnHuy.TabIndex = 1;
-            this.btnHuy.Text = "❌ Hủy";
+            this.btnHuy.Text = "Hủy";
             this.btnHuy.UseVisualStyleBackColor = false;
             this.btnHuy.Click += new System.EventHandler(this.btnHuy_Click);
             // 
@@ -518,7 +518,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 710);
+            this.ClientSize = new System.Drawing.Size(800, 760);
             this.Controls.Add(this.panelContent);
             this.Controls.Add(this.panelButtons);
             this.Controls.Add(this.panelTop);

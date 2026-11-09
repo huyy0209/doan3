@@ -21,6 +21,10 @@ namespace DoAnWD
         public frmGhepLop()
         {
             InitializeComponent();
+
+            // Ô chi tiết co theo bề ngang khung
+            foreach (var tb in new Control[] { txtHoTen, txtChuyenMon })
+                tb.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _giaSuService = new GiaSuService();
             _lopHocService = new LopHocService();
             Load += FrmGhepLop_Load;
@@ -87,40 +91,26 @@ namespace DoAnWD
             {
                 dgvGiaSu.Columns["MaGS"].HeaderText = "Mã";
                 dgvGiaSu.Columns["MaGS"].Width = 50;
-                dgvGiaSu.Columns["HoTen"].HeaderText = "Họ Tên";
-                dgvGiaSu.Columns["ChuyenMon"].HeaderText = "Chuyên Môn";
-                dgvGiaSu.Columns["TrangThai"].HeaderText = "Trạng Thái";
+                dgvGiaSu.Columns["HoTen"].HeaderText = "Họ tên";
+                dgvGiaSu.Columns["ChuyenMon"].HeaderText = "Chuyên môn";
+                dgvGiaSu.Columns["TrangThai"].HeaderText = "Trạng thái";
                 dgvGiaSu.Columns["TrangThai"].Width = 100;
-                dgvGiaSu.Columns["SoLop"].HeaderText = "Số Lớp";
+                dgvGiaSu.Columns["SoLop"].HeaderText = "Số lớp";
                 dgvGiaSu.Columns["SoLop"].Width = 70;
                 dgvGiaSu.Columns["SoLop"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                dgvGiaSu.Columns["SoLop"].DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                dgvGiaSu.Columns["SoLop"].DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
                 dgvGiaSu.Columns["SoLop"].DefaultCellStyle.ForeColor = Constants.Colors.Orange;
             }
         }
 
         private void ApplyRowColors()
         {
+            // Trạng thái hiển thị bằng nhãn màu trong cột "Trạng thái" (ThemeManager);
+            // chỉ làm mờ dòng của gia sư tạm nghỉ.
             foreach (DataGridViewRow row in dgvGiaSu.Rows)
             {
-                var trangThai = row.Cells["TrangThai"].Value?.ToString();
-
-                // ✅ SỬA: Hỗ trợ cả trạng thái mới và cũ
-                if (trangThai == Constants.GiaSuStatus.DangDay ||
-                    trangThai == Constants.GiaSuStatus.Ban)
-                {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveOrange;
-                }
-                else if (trangThai == Constants.GiaSuStatus.Ranh ||
-                         trangThai == Constants.GiaSuStatus.SanSang)
-                {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveGreen;
-                }
-                else if (trangThai == Constants.GiaSuStatus.TamNghi)
-                {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.InactiveGray;
-                    row.DefaultCellStyle.ForeColor = Constants.Colors.Gray;
-                }
+                if (row.Cells["TrangThai"].Value?.ToString() == Constants.GiaSuStatus.TamNghi)
+                    row.DefaultCellStyle.ForeColor = DoAnWD.UI.Theme.TextFaint;
             }
         }
 
@@ -156,14 +146,7 @@ namespace DoAnWD
                     txtTrangThai.Text = giaSu.TrangThai ?? Constants.GiaSuStatus.Ranh;
 
                     // ✅ SỬA: Color code hỗ trợ cả trạng thái mới
-                    if (giaSu.TrangThai == Constants.GiaSuStatus.DangDay)
-                        txtTrangThai.BackColor = Constants.Colors.Red;
-                    else if (giaSu.TrangThai == Constants.GiaSuStatus.Ban)
-                        txtTrangThai.BackColor = Constants.Colors.Orange;
-                    else if (giaSu.TrangThai == Constants.GiaSuStatus.TamNghi)
-                        txtTrangThai.BackColor = Constants.Colors.Gray;
-                    else
-                        txtTrangThai.BackColor = Constants.Colors.Green;
+                    txtTrangThai.BackColor = DoAnWD.UI.Theme.StatusColor(txtTrangThai.Text);
                     txtTrangThai.ForeColor = Color.White;
                 }
             }
@@ -201,26 +184,26 @@ namespace DoAnWD
         {
             if (dgvLopHoc.Columns.Count > 0)
             {
-                dgvLopHoc.Columns["MaLop"].HeaderText = "Mã Lớp";
+                dgvLopHoc.Columns["MaLop"].HeaderText = "Mã lớp";
                 dgvLopHoc.Columns["MaLop"].Width = 70;
-                dgvLopHoc.Columns["HocVien"].HeaderText = "Học Viên";
-                dgvLopHoc.Columns["MonHoc"].HeaderText = "Môn Học";
-                dgvLopHoc.Columns["BatDau"].HeaderText = "Bắt Đầu";
+                dgvLopHoc.Columns["HocVien"].HeaderText = "Học viên";
+                dgvLopHoc.Columns["MonHoc"].HeaderText = "Môn học";
+                dgvLopHoc.Columns["BatDau"].HeaderText = "Bắt đầu";
                 dgvLopHoc.Columns["BatDau"].DefaultCellStyle.Format = Constants.Format.DateFormat;
                 dgvLopHoc.Columns["BatDau"].Width = 90;
-                dgvLopHoc.Columns["KetThuc"].HeaderText = "Kết Thúc";
+                dgvLopHoc.Columns["KetThuc"].HeaderText = "Kết thúc";
                 dgvLopHoc.Columns["KetThuc"].DefaultCellStyle.Format = Constants.Format.DateFormat;
                 dgvLopHoc.Columns["KetThuc"].Width = 90;
-                dgvLopHoc.Columns["HocPhi"].HeaderText = "Học Phí";
+                dgvLopHoc.Columns["HocPhi"].HeaderText = "Học phí";
                 dgvLopHoc.Columns["HocPhi"].DefaultCellStyle.Format = "N0";
                 dgvLopHoc.Columns["HocPhi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-                dgvLopHoc.Columns["TrangThai"].HeaderText = "Trạng Thái";
+                dgvLopHoc.Columns["TrangThai"].HeaderText = "Trạng thái";
                 dgvLopHoc.Columns["TrangThai"].Width = 110;
 
                 // ✅ THÊM: Hiển thị Ca học nếu có
                 if (dgvLopHoc.Columns.Contains("CaHoc"))
                 {
-                    dgvLopHoc.Columns["CaHoc"].HeaderText = "Ca Học";
+                    dgvLopHoc.Columns["CaHoc"].HeaderText = "Ca học";
                     dgvLopHoc.Columns["CaHoc"].Width = 120;
                 }
             }
@@ -228,30 +211,13 @@ namespace DoAnWD
 
         private void ApplyLopHocRowColors()
         {
+            // Trạng thái hiển thị bằng nhãn màu (ThemeManager); lớp đã hủy thì gạch ngang.
             foreach (DataGridViewRow row in dgvLopHoc.Rows)
             {
-                var trangThai = row.Cells["TrangThai"].Value?.ToString();
-
-                // ✅ SỬA: Hỗ trợ cả trạng thái mới
-                if (trangThai == Constants.LopHocStatus.DangHoc ||
-                    trangThai == Constants.LopHocStatus.DangDienRa)
+                if (row.Cells["TrangThai"].Value?.ToString() == Constants.LopHocStatus.DaHuy)
                 {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveGreen;
-                }
-                else if (trangThai == Constants.LopHocStatus.ChuaBatDau)
-                {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.ActiveOrange;
-                }
-                else if (trangThai == Constants.LopHocStatus.HoanThanh ||
-                         trangThai == Constants.LopHocStatus.DaKetThuc)
-                {
-                    row.DefaultCellStyle.BackColor = Constants.Colors.LightGray;
-                }
-                else if (trangThai == Constants.LopHocStatus.DaHuy)
-                {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(253, 237, 236);
-                    row.DefaultCellStyle.ForeColor = Constants.Colors.Red;
-                    row.DefaultCellStyle.Font = new Font(dgvLopHoc.Font, FontStyle.Strikeout);
+                    row.DefaultCellStyle.ForeColor = DoAnWD.UI.Theme.TextFaint;
+                    row.DefaultCellStyle.Font = new Font(DoAnWD.UI.Theme.Body, FontStyle.Strikeout);
                 }
             }
         }

@@ -7,7 +7,7 @@
         // Top Panel
         private System.Windows.Forms.Panel panelTop;
         private System.Windows.Forms.Label lblTitle;
-        private System.Windows.Forms.Button btnRefresh;
+        private DoAnWD.UI.ThemedButton btnRefresh;
 
         // TabControl for organizing sections
         private System.Windows.Forms.TabControl tabControl;
@@ -27,13 +27,13 @@
         private System.Windows.Forms.Label lblCardTitleLop;
         private System.Windows.Forms.Label lblCountLop;
 
-        private System.Windows.Forms.GroupBox gbTrangThaiGS;
+        private DoAnWD.UI.SectionBox gbTrangThaiGS;
         private System.Windows.Forms.Label lblLabelGSRanh;
         private System.Windows.Forms.Label lblCountGSRanh;
         private System.Windows.Forms.Label lblLabelGSBan;
         private System.Windows.Forms.Label lblCountGSDangDay;
 
-        private System.Windows.Forms.GroupBox gbTrangThaiLop;
+        private DoAnWD.UI.SectionBox gbTrangThaiLop;
         private System.Windows.Forms.Label lblLabelChuaBatDau;
         private System.Windows.Forms.Label lblCountChuaBatDau;
         private System.Windows.Forms.Label lblLabelDangDienRa;
@@ -44,9 +44,9 @@
         private System.Windows.Forms.Label lblCountLopDangHoc;
 
         // ===== TAB 2: GIA SƯ =====
-        private System.Windows.Forms.GroupBox gbDanhSachGS;
+        private DoAnWD.UI.SectionBox gbDanhSachGS;
         private System.Windows.Forms.DataGridView dgvGiaSu;
-        private System.Windows.Forms.GroupBox gbChiTietGS;
+        private DoAnWD.UI.SectionBox gbChiTietGS;
         private System.Windows.Forms.Label lblLabelMaGS;
         private System.Windows.Forms.TextBox txtMaGS;
         private System.Windows.Forms.Label lblLabelHoTen;
@@ -57,15 +57,15 @@
         private System.Windows.Forms.TextBox txtTrangThai;
         private System.Windows.Forms.Label lblLabelSoLop;
         private System.Windows.Forms.TextBox txtSoLop;
-        private System.Windows.Forms.GroupBox gbLopHocGS;
+        private DoAnWD.UI.SectionBox gbLopHocGS;
         private System.Windows.Forms.DataGridView dgvLopHoc;
 
         // ===== TAB 3: LỚP HỌC =====
-        private System.Windows.Forms.GroupBox gbThongKeCa;
+        private DoAnWD.UI.SectionBox gbThongKeCa;
         private System.Windows.Forms.DataGridView dgvThongKeCa;
-        private System.Windows.Forms.GroupBox gbSapBatDau;
+        private DoAnWD.UI.SectionBox gbSapBatDau;
         private System.Windows.Forms.DataGridView dgvSapBatDau;
-        private System.Windows.Forms.GroupBox gbSapKetThuc;
+        private DoAnWD.UI.SectionBox gbSapKetThuc;
         private System.Windows.Forms.DataGridView dgvSapKetThuc;
 
         protected override void Dispose(bool disposing)
@@ -90,7 +90,7 @@
 
             this.panelTop = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
-            this.btnRefresh = new System.Windows.Forms.Button();
+            this.btnRefresh = new DoAnWD.UI.ThemedButton();
 
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabTongQuan = new System.Windows.Forms.TabPage();
@@ -108,13 +108,13 @@
             this.lblCardTitleLop = new System.Windows.Forms.Label();
             this.lblCountLop = new System.Windows.Forms.Label();
 
-            this.gbTrangThaiGS = new System.Windows.Forms.GroupBox();
+            this.gbTrangThaiGS = new DoAnWD.UI.SectionBox();
             this.lblLabelGSRanh = new System.Windows.Forms.Label();
             this.lblCountGSRanh = new System.Windows.Forms.Label();
             this.lblLabelGSBan = new System.Windows.Forms.Label();
             this.lblCountGSDangDay = new System.Windows.Forms.Label();
 
-            this.gbTrangThaiLop = new System.Windows.Forms.GroupBox();
+            this.gbTrangThaiLop = new DoAnWD.UI.SectionBox();
             this.lblLabelChuaBatDau = new System.Windows.Forms.Label();
             this.lblCountChuaBatDau = new System.Windows.Forms.Label();
             this.lblLabelDangDienRa = new System.Windows.Forms.Label();
@@ -124,9 +124,9 @@
             this.lblLabelLopDangHoc = new System.Windows.Forms.Label();
             this.lblCountLopDangHoc = new System.Windows.Forms.Label();
 
-            this.gbDanhSachGS = new System.Windows.Forms.GroupBox();
+            this.gbDanhSachGS = new DoAnWD.UI.SectionBox();
             this.dgvGiaSu = new System.Windows.Forms.DataGridView();
-            this.gbChiTietGS = new System.Windows.Forms.GroupBox();
+            this.gbChiTietGS = new DoAnWD.UI.SectionBox();
             this.lblLabelMaGS = new System.Windows.Forms.Label();
             this.txtMaGS = new System.Windows.Forms.TextBox();
             this.lblLabelHoTen = new System.Windows.Forms.Label();
@@ -137,14 +137,14 @@
             this.txtTrangThai = new System.Windows.Forms.TextBox();
             this.lblLabelSoLop = new System.Windows.Forms.Label();
             this.txtSoLop = new System.Windows.Forms.TextBox();
-            this.gbLopHocGS = new System.Windows.Forms.GroupBox();
+            this.gbLopHocGS = new DoAnWD.UI.SectionBox();
             this.dgvLopHoc = new System.Windows.Forms.DataGridView();
 
-            this.gbThongKeCa = new System.Windows.Forms.GroupBox();
+            this.gbThongKeCa = new DoAnWD.UI.SectionBox();
             this.dgvThongKeCa = new System.Windows.Forms.DataGridView();
-            this.gbSapBatDau = new System.Windows.Forms.GroupBox();
+            this.gbSapBatDau = new DoAnWD.UI.SectionBox();
             this.dgvSapBatDau = new System.Windows.Forms.DataGridView();
-            this.gbSapKetThuc = new System.Windows.Forms.GroupBox();
+            this.gbSapKetThuc = new DoAnWD.UI.SectionBox();
             this.dgvSapKetThuc = new System.Windows.Forms.DataGridView();
 
             this.panelTop.SuspendLayout();
@@ -193,7 +193,7 @@
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(350, 37);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "📊 DASHBOARD THỐNG KÊ";
+            this.lblTitle.Text = "Tổng quan";
 
             // 
             // btnRefresh
@@ -205,11 +205,12 @@
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
             this.btnRefresh.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(152)))), ((int)(((byte)(219)))));
+            this.btnRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnRefresh.Location = new System.Drawing.Point(1240, 15);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(140, 40);
             this.btnRefresh.TabIndex = 1;
-            this.btnRefresh.Text = "🔄 Làm Mới";
+            this.btnRefresh.Text = "Làm mới";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
 
@@ -241,7 +242,7 @@
             this.tabTongQuan.Padding = new System.Windows.Forms.Padding(20);
             this.tabTongQuan.Size = new System.Drawing.Size(1392, 837);
             this.tabTongQuan.TabIndex = 0;
-            this.tabTongQuan.Text = "📊 Tổng Quan";
+            this.tabTongQuan.Text = "Tổng quan";
 
             // 
             // tabGiaSu
@@ -256,7 +257,7 @@
             this.tabGiaSu.Padding = new System.Windows.Forms.Padding(20);
             this.tabGiaSu.Size = new System.Drawing.Size(1392, 837);
             this.tabGiaSu.TabIndex = 1;
-            this.tabGiaSu.Text = "👨‍🏫 Gia Sư";
+            this.tabGiaSu.Text = "Gia sư";
 
             // 
             // tabLopHoc
@@ -271,7 +272,7 @@
             this.tabLopHoc.Padding = new System.Windows.Forms.Padding(20);
             this.tabLopHoc.Size = new System.Drawing.Size(1392, 837);
             this.tabLopHoc.TabIndex = 2;
-            this.tabLopHoc.Text = "📚 Lớp Học";
+            this.tabLopHoc.Text = "Lớp học";
 
             // 
             // panelCards
@@ -306,7 +307,7 @@
             this.lblCardTitleGS.Name = "lblCardTitleGS";
             this.lblCardTitleGS.Size = new System.Drawing.Size(400, 30);
             this.lblCardTitleGS.TabIndex = 0;
-            this.lblCardTitleGS.Text = "👨‍🏫 TỔNG GIA SƯ";
+            this.lblCardTitleGS.Text = "Gia sư";
 
             // 
             // lblCountGS
@@ -340,7 +341,7 @@
             this.lblCardTitleHV.Name = "lblCardTitleHV";
             this.lblCardTitleHV.Size = new System.Drawing.Size(400, 30);
             this.lblCardTitleHV.TabIndex = 0;
-            this.lblCardTitleHV.Text = "👨‍🎓 TỔNG HỌC VIÊN";
+            this.lblCardTitleHV.Text = "Học viên";
 
             // 
             // lblCountHV
@@ -374,7 +375,7 @@
             this.lblCardTitleLop.Name = "lblCardTitleLop";
             this.lblCardTitleLop.Size = new System.Drawing.Size(400, 30);
             this.lblCardTitleLop.TabIndex = 0;
-            this.lblCardTitleLop.Text = "📚 TỔNG LỚP HỌC";
+            this.lblCardTitleLop.Text = "Lớp học";
 
             // 
             // lblCountLop
@@ -403,7 +404,7 @@
             this.gbTrangThaiGS.Size = new System.Drawing.Size(650, 140);
             this.gbTrangThaiGS.TabIndex = 1;
             this.gbTrangThaiGS.TabStop = false;
-            this.gbTrangThaiGS.Text = "📊 Trạng Thái Gia Sư";
+            this.gbTrangThaiGS.Text = "Trạng thái gia sư";
 
             // 
             // lblLabelGSRanh
@@ -414,7 +415,7 @@
             this.lblLabelGSRanh.Name = "lblLabelGSRanh";
             this.lblLabelGSRanh.Size = new System.Drawing.Size(120, 30);
             this.lblLabelGSRanh.TabIndex = 0;
-            this.lblLabelGSRanh.Text = "✅ Rảnh:";
+            this.lblLabelGSRanh.Text = "Rảnh:";
             this.lblLabelGSRanh.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 
             // 
@@ -438,7 +439,7 @@
             this.lblLabelGSBan.Name = "lblLabelGSBan";
             this.lblLabelGSBan.Size = new System.Drawing.Size(120, 30);
             this.lblLabelGSBan.TabIndex = 2;
-            this.lblLabelGSBan.Text = "⛔ Bận:";
+            this.lblLabelGSBan.Text = "Đang có lớp:";
             this.lblLabelGSBan.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 
             // 
@@ -473,7 +474,7 @@
             this.gbTrangThaiLop.Size = new System.Drawing.Size(670, 140);
             this.gbTrangThaiLop.TabIndex = 2;
             this.gbTrangThaiLop.TabStop = false;
-            this.gbTrangThaiLop.Text = "📈 Trạng Thái Lớp Học";
+            this.gbTrangThaiLop.Text = "Trạng thái lớp học";
 
             // 
             // lblLabelChuaBatDau
@@ -484,7 +485,7 @@
             this.lblLabelChuaBatDau.Name = "lblLabelChuaBatDau";
             this.lblLabelChuaBatDau.Size = new System.Drawing.Size(130, 25);
             this.lblLabelChuaBatDau.TabIndex = 0;
-            this.lblLabelChuaBatDau.Text = "⏳ Chưa bắt đầu";
+            this.lblLabelChuaBatDau.Text = "Chưa bắt đầu";
             this.lblLabelChuaBatDau.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
             // 
@@ -508,7 +509,7 @@
             this.lblLabelDangDienRa.Name = "lblLabelDangDienRa";
             this.lblLabelDangDienRa.Size = new System.Drawing.Size(130, 25);
             this.lblLabelDangDienRa.TabIndex = 2;
-            this.lblLabelDangDienRa.Text = "▶️ Đang diễn ra";
+            this.lblLabelDangDienRa.Text = "Đang diễn ra";
             this.lblLabelDangDienRa.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
             // 
@@ -532,7 +533,7 @@
             this.lblLabelDaKetThuc.Name = "lblLabelDaKetThuc";
             this.lblLabelDaKetThuc.Size = new System.Drawing.Size(130, 25);
             this.lblLabelDaKetThuc.TabIndex = 4;
-            this.lblLabelDaKetThuc.Text = "🏁 Đã kết thúc";
+            this.lblLabelDaKetThuc.Text = "Đã kết thúc";
             this.lblLabelDaKetThuc.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
             // 
@@ -556,7 +557,7 @@
             this.lblLabelLopDangHoc.Name = "lblLabelLopDangHoc";
             this.lblLabelLopDangHoc.Size = new System.Drawing.Size(130, 25);
             this.lblLabelLopDangHoc.TabIndex = 6;
-            this.lblLabelLopDangHoc.Text = "📖 Đang học";
+            this.lblLabelLopDangHoc.Text = "Đang học";
             this.lblLabelLopDangHoc.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
             // 
@@ -586,7 +587,7 @@
             this.gbDanhSachGS.Size = new System.Drawing.Size(900, 380);
             this.gbDanhSachGS.TabIndex = 0;
             this.gbDanhSachGS.TabStop = false;
-            this.gbDanhSachGS.Text = "👨‍🏫 Danh Sách Gia Sư";
+            this.gbDanhSachGS.Text = "Danh sách gia sư";
 
             // 
             // dgvGiaSu
@@ -640,7 +641,7 @@
             this.gbChiTietGS.Size = new System.Drawing.Size(420, 380);
             this.gbChiTietGS.TabIndex = 1;
             this.gbChiTietGS.TabStop = false;
-            this.gbChiTietGS.Text = "📋 Chi Tiết Gia Sư";
+            this.gbChiTietGS.Text = "Chi tiết gia sư";
 
             // 
             // lblLabelMaGS
@@ -776,7 +777,7 @@
             this.gbLopHocGS.Size = new System.Drawing.Size(1340, 380);
             this.gbLopHocGS.TabIndex = 2;
             this.gbLopHocGS.TabStop = false;
-            this.gbLopHocGS.Text = "📚 Lớp Học Của Gia Sư";
+            this.gbLopHocGS.Text = "Lớp học của gia sư";
 
             // 
             // dgvLopHoc
@@ -821,7 +822,7 @@
             this.gbThongKeCa.Size = new System.Drawing.Size(880, 380);
             this.gbThongKeCa.TabIndex = 0;
             this.gbThongKeCa.TabStop = false;
-            this.gbThongKeCa.Text = "📊 Thống Kê Theo Ca Học";
+            this.gbThongKeCa.Text = "Thống kê theo ca học";
 
             // 
             // dgvThongKeCa
@@ -865,7 +866,7 @@
             this.gbSapBatDau.Size = new System.Drawing.Size(440, 380);
             this.gbSapBatDau.TabIndex = 1;
             this.gbSapBatDau.TabStop = false;
-            this.gbSapBatDau.Text = "⏳ Sắp Bắt Đầu (7 ngày)";
+            this.gbSapBatDau.Text = "Sắp bắt đầu (7 ngày)";
 
             // 
             // dgvSapBatDau
@@ -910,7 +911,7 @@
             this.gbSapKetThuc.Size = new System.Drawing.Size(1340, 380);
             this.gbSapKetThuc.TabIndex = 2;
             this.gbSapKetThuc.TabStop = false;
-            this.gbSapKetThuc.Text = "🏁 Sắp Kết Thúc (7 ngày)";
+            this.gbSapKetThuc.Text = "Sắp kết thúc (7 ngày)";
 
             // 
             // dgvSapKetThuc

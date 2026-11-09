@@ -32,6 +32,8 @@ namespace DoAnWD
         private void FrmThongKe_Load(object sender, EventArgs e)
         {
             InitializeDoanhThuLabel();
+            tabControl.SizeChanged += (s, ev) => SapXepBoCuc();
+            SapXepBoCuc();
             RefreshAll();
             InitializeAutoRefresh();
         }
@@ -78,6 +80,64 @@ namespace DoAnWD
         // ===================================================================
 
         /// <summary>
+        /// Co giãn các khối theo bề ngang cửa sổ (Designer đặt kích thước cố định 1400px,
+        /// màn hình 1366px sẽ bị cắt mất bên phải)
+        /// </summary>
+        private void SapXepBoCuc()
+        {
+            const int le = 20, khe = 16;
+            int w = Math.Max(900, tabControl.ClientSize.Width - 2 * le - 8);
+
+            // Tab Tổng quan: 3 ô số liệu + 2 khối trạng thái
+            panelCards.Width = w;
+            int cardW = (w - 2 * khe) / 3;
+            cardTongGS.SetBounds(0, 0, cardW, cardTongGS.Height);
+            cardTongHV.SetBounds(cardW + khe, 0, cardW, cardTongHV.Height);
+            cardTongLop.SetBounds(2 * (cardW + khe), 0, w - 2 * (cardW + khe), cardTongLop.Height);
+
+            int half = (w - khe) / 2;
+            gbTrangThaiGS.SetBounds(le, gbTrangThaiGS.Top, half, gbTrangThaiGS.Height);
+            gbTrangThaiLop.SetBounds(le + half + khe, gbTrangThaiLop.Top, w - half - khe, gbTrangThaiLop.Height);
+            ChiaCot(gbTrangThaiGS, new[] { lblCountGSRanh, lblCountGSDangDay }, new[] { lblLabelGSRanh, lblLabelGSBan });
+            ChiaCot(gbTrangThaiLop,
+                new[] { lblCountChuaBatDau, lblCountDangDienRa, lblCountDaKetThuc, lblCountLopDangHoc },
+                new[] { lblLabelChuaBatDau, lblLabelDangDienRa, lblLabelDaKetThuc, lblLabelLopDangHoc });
+
+            // Tab Gia sư: danh sách + chi tiết bên phải
+            int chiTietW = 420;
+            gbDanhSachGS.SetBounds(le, gbDanhSachGS.Top, w - chiTietW - khe, gbDanhSachGS.Height);
+            gbChiTietGS.SetBounds(le + w - chiTietW, gbChiTietGS.Top, chiTietW, gbChiTietGS.Height);
+            gbLopHocGS.SetBounds(le, gbLopHocGS.Top, w, gbLopHocGS.Height);
+
+            // Tab Lớp học
+            int sapW = 440;
+            gbThongKeCa.SetBounds(le, gbThongKeCa.Top, w - sapW - khe, gbThongKeCa.Height);
+            gbSapBatDau.SetBounds(le + w - sapW, gbSapBatDau.Top, sapW, gbSapBatDau.Height);
+            gbSapKetThuc.SetBounds(le, gbSapKetThuc.Top, w, gbSapKetThuc.Height);
+        }
+
+        /// <summary>
+        /// Chia đều các cặp (số, nhãn) thành cột trong một khối: số ở trên, nhãn ở dưới
+        /// </summary>
+        private static void ChiaCot(Control khoi, Label[] so, Label[] nhan)
+        {
+            int n = so.Length;
+            int colW = (khoi.Width - 32) / n;
+            for (int i = 0; i < n; i++)
+            {
+                int x = 16 + i * colW;
+                so[i].AutoSize = false;
+                so[i].TextAlign = ContentAlignment.MiddleLeft;
+                so[i].SetBounds(x, 38, colW - 8, 52);
+                nhan[i].AutoSize = false;
+                nhan[i].TextAlign = ContentAlignment.TopLeft;
+                nhan[i].Text = nhan[i].Text.TrimEnd(':');
+                nhan[i].ForeColor = DoAnWD.UI.Theme.TextMuted;
+                nhan[i].SetBounds(x + 2, 92, colW - 8, 24);
+            }
+        }
+
+        /// <summary>
         /// Thêm dòng doanh thu vào thẻ "Tổng lớp học" (bên phải con số)
         /// </summary>
         private void InitializeDoanhThuLabel()
@@ -90,10 +150,11 @@ namespace DoAnWD
                 AutoSize = false,
                 Location = new Point(170, 48),
                 Size = new Size(card.Width - 185, 62),
-                Font = new Font("Segoe UI", 9.5F),
-                ForeColor = Color.White,
+                Font = DoAnWD.UI.Theme.Small,
+                ForeColor = DoAnWD.UI.Theme.TextMuted,
                 BackColor = Color.Transparent,
-                TextAlign = ContentAlignment.MiddleRight
+                TextAlign = ContentAlignment.MiddleRight,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
             card.Controls.Add(lblDoanhThu);
             lblDoanhThu.BringToFront();
@@ -148,9 +209,9 @@ namespace DoAnWD
                 {
                     var vi = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
                     lblDoanhThu.Text =
-                        $"💰 Học phí lớp đang hoạt động: {stats.DoanhThuDangHoatDong.ToString("N0", vi)} đ\n" +
-                        $"📅 Khai giảng tháng {DateTime.Now:MM/yyyy}: {stats.DoanhThuThangNay.ToString("N0", vi)} đ\n" +
-                        $"🚫 Lớp đã hủy: {stats.LopDaHuy}";
+                        $"Học phí đang thu: {stats.DoanhThuDangHoatDong.ToString("N0", vi)} đ\n" +
+                        $"Tháng này: {stats.DoanhThuThangNay.ToString("N0", vi)} đ\n" +
+                        $"Đã hủy: {stats.LopDaHuy} lớp";
                 }
 
                 // ✨ THÊM: Thống kê theo trạng thái mới
@@ -209,42 +270,32 @@ namespace DoAnWD
 
             SetColumnProperty(dgvGiaSu, "HoTen", col =>
             {
-                col.HeaderText = "Họ Tên";
+                col.HeaderText = "Họ tên";
             });
 
             SetColumnProperty(dgvGiaSu, "ChuyenMon", col =>
             {
-                col.HeaderText = "Chuyên Môn";
+                col.HeaderText = "Chuyên môn";
             });
 
             SetColumnProperty(dgvGiaSu, "TrangThai", col =>
             {
-                col.HeaderText = "Trạng Thái";
+                col.HeaderText = "Trạng thái";
                 col.Width = 100;
             });
 
             SetColumnProperty(dgvGiaSu, "SoLop", col =>
             {
-                col.HeaderText = "Số Lớp";
+                col.HeaderText = "Số lớp";
                 col.Width = 70;
                 col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                col.DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                col.DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
             });
         }
 
         private void ApplyGiaSuRowColors()
         {
-            foreach (DataGridViewRow row in dgvGiaSu.Rows)
-            {
-                if (row.Cells["TrangThai"] != null && row.Cells["TrangThai"].Value != null)
-                {
-                    var trangThai = row.Cells["TrangThai"].Value.ToString();
-                    if (trangThai == Constants.GiaSuStatus.Ban)
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(255, 243, 224);
-                    else if (trangThai == Constants.GiaSuStatus.Ranh)
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(212, 239, 223);
-                }
-            }
+            // Trạng thái hiển thị bằng nhãn màu trong cột "Trạng thái" (ThemeManager)
         }
 
         // ===================================================================
@@ -285,14 +336,8 @@ namespace DoAnWD
                     txtChuyenMon.Text = giaSu.ChuyenMon ?? "";
                     txtTrangThai.Text = giaSu.TrangThai ?? Constants.GiaSuStatus.Ranh;
 
-                    if (giaSu.TrangThai == Constants.GiaSuStatus.Ban)
                     {
-                        txtTrangThai.BackColor = Constants.Colors.Red;
-                        txtTrangThai.ForeColor = Color.White;
-                    }
-                    else
-                    {
-                        txtTrangThai.BackColor = Constants.Colors.Green;
+                        txtTrangThai.BackColor = DoAnWD.UI.Theme.StatusColor(txtTrangThai.Text);
                         txtTrangThai.ForeColor = Color.White;
                     }
                 }
@@ -343,55 +388,43 @@ namespace DoAnWD
 
             SetColumnProperty(dgvLopHoc, "MaLop", col =>
             {
-                col.HeaderText = "Mã Lớp";
+                col.HeaderText = "Mã lớp";
                 col.Width = 60;
             });
 
             SetColumnProperty(dgvLopHoc, "HocVien", col =>
             {
-                col.HeaderText = "Học Viên";
+                col.HeaderText = "Học viên";
             });
 
             SetColumnProperty(dgvLopHoc, "MonHoc", col =>
             {
-                col.HeaderText = "Môn Học";
+                col.HeaderText = "Môn học";
             });
 
             SetColumnProperty(dgvLopHoc, "HocPhi", col =>
             {
-                col.HeaderText = "Học Phí";
+                col.HeaderText = "Học phí";
                 col.DefaultCellStyle.Format = "N0";
                 col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
             });
 
             SetColumnProperty(dgvLopHoc, "TrangThai", col =>
             {
-                col.HeaderText = "Trạng Thái";
+                col.HeaderText = "Trạng thái";
                 col.Width = 120;
             });
 
             SetColumnProperty(dgvLopHoc, "CaHoc", col =>
             {
-                col.HeaderText = "Ca Học";
+                col.HeaderText = "Ca học";
                 col.Width = 120;
             });
         }
 
         private void ApplyLopHocRowColors()
         {
-            foreach (DataGridViewRow row in dgvLopHoc.Rows)
-            {
-                if (row.Cells["TrangThai"] != null && row.Cells["TrangThai"].Value != null)
-                {
-                    var trangThai = row.Cells["TrangThai"].Value.ToString();
-                    if (trangThai == Constants.LopHocStatus.DangDienRa)
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(212, 239, 223);
-                    else if (trangThai == Constants.LopHocStatus.DaKetThuc)
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(236, 240, 241);
-                    else if (trangThai == Constants.LopHocStatus.ChuaBatDau)
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(255, 243, 224);
-                }
-            }
+            // Trạng thái hiển thị bằng nhãn màu trong cột "Trạng thái" (ThemeManager)
         }
 
         // ===================================================================
@@ -422,13 +455,13 @@ namespace DoAnWD
 
                 SetColumnProperty(dgvThongKeCa, "CaHoc", col =>
                 {
-                    col.HeaderText = "Ca Học";
+                    col.HeaderText = "Ca học";
                     col.Width = 150;
                 });
 
                 SetColumnProperty(dgvThongKeCa, "SoLop", col =>
                 {
-                    col.HeaderText = "Số Lớp";
+                    col.HeaderText = "Số lớp";
                     col.Width = 70;
                 });
 
@@ -440,7 +473,7 @@ namespace DoAnWD
 
                 SetColumnProperty(dgvThongKeCa, "TongHocPhi", col =>
                 {
-                    col.HeaderText = "Tổng Học Phí";
+                    col.HeaderText = "Tổng học phí";
                     col.DefaultCellStyle.Format = "N0";
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 });
@@ -520,7 +553,7 @@ namespace DoAnWD
 
                 SetColumnProperty(dgvSapBatDau, "HocPhi", col =>
                 {
-                    col.HeaderText = "Học Phí";
+                    col.HeaderText = "Học phí";
                     col.DefaultCellStyle.Format = "N0";
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 });
@@ -533,8 +566,8 @@ namespace DoAnWD
                         int soNgay = Convert.ToInt32(row.Cells["SoNgayConLai"].Value);
                         if (soNgay <= 1)
                         {
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 243, 224);
-                            row.DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                            row.DefaultCellStyle.BackColor = DoAnWD.UI.Theme.WarningSoft;
+                            row.DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
                         }
                     }
                 }
@@ -584,27 +617,27 @@ namespace DoAnWD
 
                 SetColumnProperty(dgvSapKetThuc, "GiaSu", col =>
                 {
-                    col.HeaderText = "Gia Sư";
+                    col.HeaderText = "Gia sư";
                 });
 
                 SetColumnProperty(dgvSapKetThuc, "HocVien", col =>
                 {
-                    col.HeaderText = "Học Viên";
+                    col.HeaderText = "Học viên";
                 });
 
                 SetColumnProperty(dgvSapKetThuc, "MonHoc", col =>
                 {
-                    col.HeaderText = "Môn Học";
+                    col.HeaderText = "Môn học";
                 });
 
                 SetColumnProperty(dgvSapKetThuc, "CaHoc", col =>
                 {
-                    col.HeaderText = "Ca Học";
+                    col.HeaderText = "Ca học";
                 });
 
                 SetColumnProperty(dgvSapKetThuc, "KetThuc", col =>
                 {
-                    col.HeaderText = "Kết Thúc";
+                    col.HeaderText = "Kết thúc";
                 });
 
                 SetColumnProperty(dgvSapKetThuc, "SoNgayConLai", col =>
@@ -621,8 +654,8 @@ namespace DoAnWD
                         int soNgay = Convert.ToInt32(row.Cells["SoNgayConLai"].Value);
                         if (soNgay <= 1)
                         {
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 243, 224);
-                            row.DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                            row.DefaultCellStyle.BackColor = DoAnWD.UI.Theme.WarningSoft;
+                            row.DefaultCellStyle.Font = DoAnWD.UI.Theme.BodyStrong;
                         }
                     }
                 }

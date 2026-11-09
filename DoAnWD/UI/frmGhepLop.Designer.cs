@@ -31,9 +31,9 @@
         private System.Windows.Forms.Panel panelLopHocHeader;
         private System.Windows.Forms.Label lblLopHocTitle;
         private System.Windows.Forms.Panel panelButtons;
-        private System.Windows.Forms.Button btnGhepLop;
-        private System.Windows.Forms.Button btnXoaLop;
-        private System.Windows.Forms.Button btnRefresh;
+        private DoAnWD.UI.ThemedButton btnGhepLop;
+        private DoAnWD.UI.ThemedButton btnXoaLop;
+        private DoAnWD.UI.ThemedButton btnRefresh;
 
         protected override void Dispose(bool disposing)
         {
@@ -75,9 +75,9 @@
             this.panelLopHocHeader = new System.Windows.Forms.Panel();
             this.lblLopHocTitle = new System.Windows.Forms.Label();
             this.panelButtons = new System.Windows.Forms.Panel();
-            this.btnGhepLop = new System.Windows.Forms.Button();
-            this.btnXoaLop = new System.Windows.Forms.Button();
-            this.btnRefresh = new System.Windows.Forms.Button();
+            this.btnGhepLop = new DoAnWD.UI.ThemedButton();
+            this.btnXoaLop = new DoAnWD.UI.ThemedButton();
+            this.btnRefresh = new DoAnWD.UI.ThemedButton();
 
             this.panelTop.SuspendLayout();
             this.panelMain.SuspendLayout();
@@ -116,7 +116,7 @@
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(400, 32);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "🏫 QUẢN LÝ LỚP HỌC THEO GIA SƯ";
+            this.lblTitle.Text = "Ghép lớp";
 
             // 
             // panelMain
@@ -227,7 +227,7 @@
             this.lblGiaSuTitle.Name = "lblGiaSuTitle";
             this.lblGiaSuTitle.Size = new System.Drawing.Size(186, 21);
             this.lblGiaSuTitle.TabIndex = 0;
-            this.lblGiaSuTitle.Text = "👨‍🏫 Danh Sách Gia Sư";
+            this.lblGiaSuTitle.Text = "Danh sách gia sư";
 
             // 
             // panelGiaSuDetails
@@ -260,7 +260,7 @@
             this.lblMaGS.Name = "lblMaGS";
             this.lblMaGS.Size = new System.Drawing.Size(72, 15);
             this.lblMaGS.TabIndex = 0;
-            this.lblMaGS.Text = "Mã Gia Sư:";
+            this.lblMaGS.Text = "Mã gia sư:";
 
             // 
             // txtMaGS
@@ -285,7 +285,7 @@
             this.lblHoTen.Name = "lblHoTen";
             this.lblHoTen.Size = new System.Drawing.Size(54, 15);
             this.lblHoTen.TabIndex = 2;
-            this.lblHoTen.Text = "Họ Tên:";
+            this.lblHoTen.Text = "Họ tên:";
 
             // 
             // txtHoTen
@@ -310,7 +310,7 @@
             this.lblChuyenMon.Name = "lblChuyenMon";
             this.lblChuyenMon.Size = new System.Drawing.Size(84, 15);
             this.lblChuyenMon.TabIndex = 4;
-            this.lblChuyenMon.Text = "Chuyên Môn:";
+            this.lblChuyenMon.Text = "Chuyên môn:";
 
             // 
             // txtChuyenMon
@@ -335,7 +335,7 @@
             this.lblTrangThai.Name = "lblTrangThai";
             this.lblTrangThai.Size = new System.Drawing.Size(72, 15);
             this.lblTrangThai.TabIndex = 6;
-            this.lblTrangThai.Text = "Trạng Thái:";
+            this.lblTrangThai.Text = "Trạng thái:";
 
             // 
             // txtTrangThai
@@ -361,7 +361,7 @@
             this.lblSoLop.Name = "lblSoLop";
             this.lblSoLop.Size = new System.Drawing.Size(101, 15);
             this.lblSoLop.TabIndex = 8;
-            this.lblSoLop.Text = "Số Lớp Đang Dạy:";
+            this.lblSoLop.Text = "Số lớp đang dạy:";
 
             // 
             // txtSoLop
@@ -454,7 +454,7 @@
             this.lblLopHocTitle.Name = "lblLopHocTitle";
             this.lblLopHocTitle.Size = new System.Drawing.Size(192, 21);
             this.lblLopHocTitle.TabIndex = 0;
-            this.lblLopHocTitle.Text = "📚 Danh Sách Lớp Học";
+            this.lblLopHocTitle.Text = "Danh sách lớp học";
 
             // 
             // panelButtons
@@ -483,7 +483,7 @@
             this.btnGhepLop.Name = "btnGhepLop";
             this.btnGhepLop.Size = new System.Drawing.Size(170, 45);
             this.btnGhepLop.TabIndex = 0;
-            this.btnGhepLop.Text = "➕ Ghép Lớp Mới";
+            this.btnGhepLop.Text = "Ghép lớp mới";
             this.btnGhepLop.UseVisualStyleBackColor = false;
             this.btnGhepLop.Click += new System.EventHandler(this.btnGhepLop_Click);
 
@@ -500,7 +500,7 @@
             this.btnXoaLop.Name = "btnXoaLop";
             this.btnXoaLop.Size = new System.Drawing.Size(160, 45);
             this.btnXoaLop.TabIndex = 1;
-            this.btnXoaLop.Text = "🗑️ Hủy/Xóa Lớp";
+            this.btnXoaLop.Text = "Hủy/Xóa lớp";
             this.btnXoaLop.UseVisualStyleBackColor = false;
             this.btnXoaLop.Click += new System.EventHandler(this.btnXoaLop_Click);
 
@@ -517,7 +517,7 @@
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(140, 45);
             this.btnRefresh.TabIndex = 2;
-            this.btnRefresh.Text = "🔄 Làm Mới";
+            this.btnRefresh.Text = "Làm mới";
             this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
 

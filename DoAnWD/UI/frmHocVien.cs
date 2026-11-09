@@ -58,9 +58,9 @@ namespace DoAnWD
             if (dgv.Columns.Count > 0)
             {
                 dgv.Columns["MaHV"].HeaderText = "Mã HV";
-                dgv.Columns["HoTen"].HeaderText = "Họ Tên";
+                dgv.Columns["HoTen"].HeaderText = "Họ tên";
                 dgv.Columns["SDT"].HeaderText = "Số ĐT";
-                dgv.Columns["DiaChi"].HeaderText = "Địa Chỉ";
+                dgv.Columns["DiaChi"].HeaderText = "Địa chỉ";
 
                 if (dgv.Columns.Contains("LopHocs"))
                     dgv.Columns["LopHocs"].Visible = false;
@@ -95,7 +95,7 @@ namespace DoAnWD
             isAdding = true;
             ClearInputs();
             LockInputs(false);
-            btnThem.Text = "💾 Lưu";
+            btnThem.Text = "Lưu";
             btnSua.Enabled = false;
             btnXoa.Enabled = false;
             btnHuy.Visible = true;
@@ -170,7 +170,7 @@ namespace DoAnWD
             isEditing = true;
             LockInputs(false);
             txtMaHV.ReadOnly = true;
-            btnSua.Text = "💾 Lưu";
+            btnSua.Text = "Lưu";
             btnThem.Enabled = false;
             btnXoa.Enabled = false;
             btnHuy.Visible = true;
@@ -298,7 +298,7 @@ namespace DoAnWD
             if (txtTimKiem.Text == "Nhập tên, số điện thoại hoặc địa chỉ...")
             {
                 txtTimKiem.Text = "";
-                txtTimKiem.ForeColor = Color.Black;
+                txtTimKiem.ForeColor = DoAnWD.UI.Theme.Text;
             }
         }
 
@@ -347,8 +347,8 @@ namespace DoAnWD
         private void ResetFormState()
         {
             LockInputs(true);
-            btnThem.Text = "➕ Thêm";
-            btnSua.Text = "✏️ Sửa";
+            btnThem.Text = "Thêm";
+            btnSua.Text = "Sửa";
             btnThem.Enabled = true;
             btnSua.Enabled = true;
             btnXoa.Enabled = true;

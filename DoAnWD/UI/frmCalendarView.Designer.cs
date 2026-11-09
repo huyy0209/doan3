@@ -7,12 +7,12 @@
         private System.Windows.Forms.Panel panelTop;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Panel panelNav;
-        private System.Windows.Forms.Button btnPrevMonth;
-        private System.Windows.Forms.Button btnToday;
-        private System.Windows.Forms.Button btnNextMonth;
+        private DoAnWD.UI.ThemedButton btnPrevMonth;
+        private DoAnWD.UI.ThemedButton btnToday;
+        private DoAnWD.UI.ThemedButton btnNextMonth;
         private System.Windows.Forms.Label lblMonth;
         private System.Windows.Forms.ComboBox cboGiaSu;
-        private System.Windows.Forms.Panel panelCalendar;
+        private DoAnWD.UI.MonthGrid monthGrid;
 
         protected override void Dispose(bool disposing)
         {
@@ -28,12 +28,12 @@
             this.panelTop = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.panelNav = new System.Windows.Forms.Panel();
-            this.btnPrevMonth = new System.Windows.Forms.Button();
-            this.btnToday = new System.Windows.Forms.Button();
-            this.btnNextMonth = new System.Windows.Forms.Button();
+            this.btnPrevMonth = new DoAnWD.UI.ThemedButton();
+            this.btnToday = new DoAnWD.UI.ThemedButton();
+            this.btnNextMonth = new DoAnWD.UI.ThemedButton();
             this.lblMonth = new System.Windows.Forms.Label();
             this.cboGiaSu = new System.Windows.Forms.ComboBox();
-            this.panelCalendar = new System.Windows.Forms.Panel();
+            this.monthGrid = new DoAnWD.UI.MonthGrid();
             this.panelTop.SuspendLayout();
             this.panelNav.SuspendLayout();
             this.SuspendLayout();
@@ -59,7 +59,7 @@
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(250, 32);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "📅 LỊCH HỌC THÁNG";
+            this.lblTitle.Text = "Lịch học";
 
             // 
             // panelNav
@@ -83,11 +83,11 @@
             this.btnPrevMonth.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPrevMonth.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnPrevMonth.ForeColor = System.Drawing.Color.White;
-            this.btnPrevMonth.Location = new System.Drawing.Point(20, 15);
+            this.btnPrevMonth.Location = new System.Drawing.Point(244, 14);
             this.btnPrevMonth.Name = "btnPrevMonth";
-            this.btnPrevMonth.Size = new System.Drawing.Size(100, 30);
+            this.btnPrevMonth.Size = new System.Drawing.Size(84, 32);
             this.btnPrevMonth.TabIndex = 0;
-            this.btnPrevMonth.Text = "◀ Trước";
+            this.btnPrevMonth.Text = "Trước";
             this.btnPrevMonth.UseVisualStyleBackColor = false;
             this.btnPrevMonth.Click += new System.EventHandler(this.btnPrevMonth_Click);
 
@@ -98,9 +98,9 @@
             this.btnToday.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnToday.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnToday.ForeColor = System.Drawing.Color.White;
-            this.btnToday.Location = new System.Drawing.Point(130, 15);
+            this.btnToday.Location = new System.Drawing.Point(332, 14);
             this.btnToday.Name = "btnToday";
-            this.btnToday.Size = new System.Drawing.Size(100, 30);
+            this.btnToday.Size = new System.Drawing.Size(96, 32);
             this.btnToday.TabIndex = 1;
             this.btnToday.Text = "Hôm nay";
             this.btnToday.UseVisualStyleBackColor = false;
@@ -113,11 +113,11 @@
             this.btnNextMonth.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnNextMonth.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnNextMonth.ForeColor = System.Drawing.Color.White;
-            this.btnNextMonth.Location = new System.Drawing.Point(240, 15);
+            this.btnNextMonth.Location = new System.Drawing.Point(432, 14);
             this.btnNextMonth.Name = "btnNextMonth";
-            this.btnNextMonth.Size = new System.Drawing.Size(100, 30);
+            this.btnNextMonth.Size = new System.Drawing.Size(84, 32);
             this.btnNextMonth.TabIndex = 2;
-            this.btnNextMonth.Text = "Sau ▶";
+            this.btnNextMonth.Text = "Sau";
             this.btnNextMonth.UseVisualStyleBackColor = false;
             this.btnNextMonth.Click += new System.EventHandler(this.btnNextMonth_Click);
 
@@ -126,9 +126,9 @@
             // 
             this.lblMonth.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
             this.lblMonth.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.lblMonth.Location = new System.Drawing.Point(360, 10);
+            this.lblMonth.Location = new System.Drawing.Point(16, 12);
             this.lblMonth.Name = "lblMonth";
-            this.lblMonth.Size = new System.Drawing.Size(250, 40);
+            this.lblMonth.Size = new System.Drawing.Size(220, 36);
             this.lblMonth.TabIndex = 3;
             this.lblMonth.Text = "January 2025";
             this.lblMonth.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -139,6 +139,7 @@
             this.cboGiaSu.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboGiaSu.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.cboGiaSu.FormattingEnabled = true;
+            this.cboGiaSu.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cboGiaSu.Location = new System.Drawing.Point(720, 17);
             this.cboGiaSu.Name = "cboGiaSu";
             this.cboGiaSu.Size = new System.Drawing.Size(260, 25);
@@ -146,14 +147,13 @@
             this.cboGiaSu.SelectedIndexChanged += new System.EventHandler(this.cboGiaSu_SelectedIndexChanged);
 
             // 
-            // panelCalendar
+            // monthGrid - lịch tháng tự vẽ, co giãn theo cửa sổ
             // 
-            this.panelCalendar.AutoScroll = true;
-            this.panelCalendar.BackColor = System.Drawing.Color.White;
-            this.panelCalendar.Location = new System.Drawing.Point(20, 140);
-            this.panelCalendar.Name = "panelCalendar";
-            this.panelCalendar.Size = new System.Drawing.Size(980, 600);
-            this.panelCalendar.TabIndex = 2;
+            this.monthGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            this.monthGrid.Location = new System.Drawing.Point(20, 128);
+            this.monthGrid.Name = "monthGrid";
+            this.monthGrid.Size = new System.Drawing.Size(960, 612);
+            this.monthGrid.TabIndex = 2;
 
             // 
             // frmCalendarView
@@ -162,7 +162,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
             this.ClientSize = new System.Drawing.Size(1000, 760);
-            this.Controls.Add(this.panelCalendar);
+            this.Controls.Add(this.monthGrid);
             this.Controls.Add(this.panelNav);
             this.Controls.Add(this.panelTop);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
