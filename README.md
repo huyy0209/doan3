@@ -86,6 +86,29 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 
 Trong hộp thoại **Ghép lớp**, danh sách ca tô **đỏ gạch ngang** những ca gia sư hoặc học viên đã bận trong khoảng ngày đã chọn, và nút Ghép lớp chỉ bật khi không có xung đột.
 
+## Giao diện
+
+Giao diện dựa trên hình ảnh **vở ô li**: nền giấy trắng xanh, màu chính là mực tím, có đường lề đỏ chạy dọc vùng nội dung. Mỗi ca học có một màu riêng theo thời điểm trong ngày, từ vàng nắng buổi sáng đến tím đêm, và màu này dùng thống nhất ở mọi nơi: dải ca, lịch, bảng, toast.
+
+| Thành phần | Mô tả |
+|---|---|
+| Thanh tiêu đề | Ngày hôm nay, ca đang diễn ra, **dải 6 ca học** (ca hiện tại tô đặc, kèm số lớp học hôm nay), số lớp bắt đầu trong 24 giờ |
+| Menu trái | Nền tím đậm; vạch đỏ chỉ mục đang mở và trượt theo khi chuyển màn hình (tắt nếu Windows tắt hiệu ứng) |
+| Bảng | Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang |
+| Lịch học | Control tự vẽ, co giãn theo cửa sổ; mỗi lớp hiện ở **mọi ngày** trong khoảng học (trước đây chỉ hiện ở ngày bắt đầu) |
+| Chống nháy | Double buffering cho bảng/panel, `WS_EX_COMPOSITED` cho cửa sổ chính |
+
+Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
+
+| File | Vai trò |
+|---|---|
+| `Theme.cs` | Token màu, font, màu theo ca và theo trạng thái |
+| `ThemeManager.cs` | Áp giao diện lên mọi control của một form lúc chạy (`ThemeManager.Apply(form)`) |
+| `ThemedButton.cs` | Nút bo góc: Primary / Secondary / Danger / Ghost |
+| `SectionBox.cs` | Thay GroupBox: khung mảnh, tiêu đề nằm trong khung |
+| `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
+| `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
+
 ## Lịch sử nâng cấp
 
 | Commit | Nội dung |
@@ -94,6 +117,7 @@ Trong hộp thoại **Ghép lớp**, danh sách ca tô **đỏ gạch ngang** nh
 | `fix: correct class-matching rules…` | Sửa luật trùng lịch theo ca (trước đây chặn cả khi khác ca), thêm kiểm tra trùng lịch học viên, đồng bộ trạng thái gia sư, sửa lỗi xóa được học viên có lớp sắp học, chặn trùng SĐT, thêm hủy lớp, thống kê doanh thu |
 | `feat(ui): upgrade…` | Nâng cấp hộp thoại ghép lớp, danh sách lớp, trang chủ, thống kê; dùng DbContext mới mỗi lần làm mới để tránh dữ liệu cũ |
 | `docs: add README` | Tài liệu này |
+| `feat(ui): redesign…` | Thiết kế lại toàn bộ giao diện theo chủ đề "vở ô li" |
 
 ## Dữ liệu mẫu
 
