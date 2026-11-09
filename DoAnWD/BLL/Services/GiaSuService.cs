@@ -141,6 +141,53 @@ namespace DoAnWD.BLL.Services
         /// <summary>
         /// Xóa gia sư (kiểm tra ràng buộc)
         /// </summary>
+        private static string Gon(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        /// <summary>
+        /// Thêm mới (maGS = null) hoặc cập nhật hồ sơ gia sư đầy đủ.
+        /// Trạng thái: chỉ "Tạm nghỉ" do người dùng chọn; Rảnh / Bận / Đang dạy tính theo lịch.
+        /// </summary>
+        public GiaSu LuuHoSo(int? maGS, HoSoGiaSu hs)
+        {
+            string loi = GiaSuValidator.KiemTraHoSo(hs);
+            if (loi != null) throw new ArgumentException(loi);
+            if (_giaSuRepo.ExistsSDT(hs.SDT, maGS))
+                throw new ArgumentException(Constants.Messages.SDTDaTonTai);
+
+            GiaSu gs;
+            if (maGS.HasValue)
+            {
+                gs = _giaSuRepo.GetById(maGS.Value);
+                if (gs == null) throw new InvalidOperationException("Không tìm thấy gia sư.");
+            }
+            else
+            {
+                gs = new GiaSu();
+                _giaSuRepo.Add(gs);
+            }
+
+            gs.HoTen = hs.HoTen.Trim();
+            gs.SDT = hs.SDT.Trim();
+            gs.ChuyenMon = hs.ChuyenMon.Trim();
+            gs.Email = Gon(hs.Email);
+            gs.HocVan = Gon(hs.HocVan);
+            gs.KinhNghiem = hs.KinhNghiem;
+            gs.GhiChu = Gon(hs.GhiChu);
+            bool moiCa = hs.CaNhanDay == null || hs.CaNhanDay.Count == 0 ||
+                         hs.CaNhanDay.Count == Constants.CaHoc.TatCaCaHoc.Length;
+            gs.CaNhanDay = moiCa ? null : string.Join(",", hs.CaNhanDay);
+
+            if (hs.TamNghi) gs.TrangThai = Constants.GiaSuStatus.TamNghi;
+            else
+            {
+                gs.TrangThai = Constants.GiaSuStatus.Ranh;
+                if (maGS.HasValue) _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
+            }
+
+            _giaSuRepo.SaveChanges();
+            return gs;
+        }
+
         public void Delete(int maGS)
         {
             var giaSu = _giaSuRepo.GetById(maGS);

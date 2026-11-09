@@ -131,7 +131,7 @@ namespace DoAnWD
             cboMon.SelectedIndexChanged += (s, e) => LocGiaSu();
             chkChiTrong = new CheckBox
             {
-                Text = "Chỉ hiện gia sư còn trống ca này", Checked = true, AutoSize = true,
+                Text = "Chỉ hiện gia sư nhận và còn trống ca này", Checked = true, AutoSize = true,
                 Font = Theme.Body, ForeColor = Theme.Text, Margin = new Padding(0, 4, 0, 6)
             };
             chkChiTrong.CheckedChanged += (s, e) => LocGiaSu();
@@ -279,8 +279,8 @@ namespace DoAnWD
             var ds = _giaSus
                 .Where(g => mon == null || g.ChuyenMon == mon)
                 .Where(g => TimKiem.Khop(tk, g.HoTen, g.SDT, g.ChuyenMon))
-                .Where(g => !chkChiTrong.Checked || ca == null || LopTrung(l => l.MaGS == g.MaGS, ca) == null)
-                .OrderBy(g => ca != null && LopTrung(l => l.MaGS == g.MaGS, ca) != null) // người trống lên trước
+                .Where(g => !chkChiTrong.Checked || ca == null || (g.NhanCa(ca) && LopTrung(l => l.MaGS == g.MaGS, ca) == null))
+                .OrderBy(g => ca != null && (!g.NhanCa(ca) || LopTrung(l => l.MaGS == g.MaGS, ca) != null)) // người trống lên trước
                 .ThenBy(g => _lopHoatDong.Count(l => l.MaGS == g.MaGS))               // ít lớp lên trước
                 .ThenBy(g => g.HoTen)
                 .ToList();
@@ -341,6 +341,7 @@ namespace DoAnWD
                 var trung = LopTrung(l => l.MaGS == gs.MaGS, ca);
                 if (trung != null) loi = $"{gs.HoTen} đã dạy {trung.HocVien?.HoTen} ca này đến {trung.ThoiGianKetThuc:dd/MM/yyyy}.";
             }
+            bool khongNhanCa = loi == null && ca != null && gs != null && !gs.NhanCa(ca);
             if (loi == null && dtpKetThuc.Value.Date <= dtpBatDau.Value.Date)
                 loi = "Ngày kết thúc phải sau ngày bắt đầu.";
             if (loi == null && !string.IsNullOrWhiteSpace(txtHocPhi.Text) && !coHocPhi)
@@ -350,6 +351,11 @@ namespace DoAnWD
             {
                 lblCanhBao.Text = loi;
                 lblCanhBao.ForeColor = Theme.Margin;
+            }
+            else if (khongNhanCa)
+            {
+                lblCanhBao.Text = $"Lưu ý: {gs.HoTen} chỉ nhận ca {gs.CaNhanDay.Replace(",", ", ")}. Vẫn ghép được nếu đã thống nhất.";
+                lblCanhBao.ForeColor = Theme.Warning;
             }
             else if (ca != null)
             {
@@ -453,7 +459,8 @@ namespace DoAnWD
             int tagW = 0;
             if (ca != null)
                 tagW = trung ? Ui.DrawTag(g, "Trùng ca", r, Theme.Margin, Theme.MarginSoft)
-                             : Ui.DrawTag(g, "Trống ca", r, Theme.Success, Theme.SuccessSoft);
+                     : !gs.NhanCa(ca) ? Ui.DrawTag(g, "Không nhận ca này", r, Theme.Neutral, Theme.NeutralSoft)
+                     : Ui.DrawTag(g, "Trống ca", r, Theme.Success, Theme.SuccessSoft);
 
             int soLop = _lopHoatDong.Count(l => l.MaGS == gs.MaGS);
             var line1 = new Rectangle(r.X, r.Y, r.Width - tagW, r.Height / 2);

@@ -75,6 +75,14 @@ namespace DoAnWD.Common
                 ToiMuon
             };
 
+            /// <summary>"Tối (18h-20h)" =&gt; "Tối"</summary>
+            public static string TenNgan(string caHoc)
+            {
+                if (string.IsNullOrEmpty(caHoc)) return "";
+                int i = caHoc.IndexOf(" (", System.StringComparison.Ordinal);
+                return i > 0 ? caHoc.Substring(0, i) : caHoc;
+            }
+
             /// <summary>
             /// Lấy giờ bắt đầu / kết thúc từ tên ca, ví dụ "Tối (18h-20h)" => (18, 20).
             /// Trả về false nếu tên ca không đúng định dạng.

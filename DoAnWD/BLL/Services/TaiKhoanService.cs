@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -100,6 +100,7 @@ namespace DoAnWD.BLL.Services
         public string TenDangNhap { get; set; }
         public string VaiTro { get; set; }
         public string GiaSu { get; set; }
+        public int? MaGS { get; set; }
         public string TrangThai { get; set; }
         public DateTime NgayTao { get; set; }
     }
@@ -197,6 +198,7 @@ namespace DoAnWD.BLL.Services
                         TenDangNhap = t.TenDangNhap,
                         VaiTro = Constants.VaiTro.TenHienThi(t.VaiTro),
                         GiaSu = t.GiaSu?.HoTen ?? "",
+                        MaGS = t.MaGS,
                         TrangThai = t.HoatDong ? "Hoạt động" : "Đã khóa",
                         NgayTao = t.NgayTao
                     }).ToList();

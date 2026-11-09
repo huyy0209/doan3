@@ -44,6 +44,8 @@ doan3/
    | 2 | `NangCap_v2.sql` | Có: hồ sơ học viên, điểm danh, học phí, tài khoản |
    | 3 | `DuLieuMau_ThemNhieu.sql` | Không: thêm 14 gia sư, 30 học viên, 46 lớp |
    | 4 | `DuLieuMau_DiemDanh_HocPhi.sql` | Không: điểm danh, điểm test, học phí mẫu |
+   | 5 | `NangCap_v3.sql` | Có: hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú) + chỉ mục tăng tốc |
+   | 6 | `DuLieuMau_v3.sql` | Không: điền hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
 
    Mọi script chạy lại nhiều lần được. Dùng dòng lệnh: `sqlcmd -S . -E -i Database\QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu bạn dùng SQL Express, đổi thành:
@@ -55,6 +57,8 @@ doan3/
 Nếu không kết nối được CSDL hoặc chưa chạy `NangCap_v2.sql`, ứng dụng báo rõ cần làm gì thay vì văng lỗi.
 
 **Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Vào **Đổi mật khẩu** ngay sau đó, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
+
+Nếu đã chạy `DuLieuMau_v3.sql`, mỗi gia sư có sẵn tài khoản `gs<mã gia sư>` / `123456` (ví dụ `gs3`) để thử vai trò Gia sư. Đây là mật khẩu mẫu, đổi hoặc khóa trước khi dùng thật.
 
 ## Nghiệp vụ chính
 
@@ -89,9 +93,17 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 | **Điểm danh & điểm** | Theo ngày + ca: có mặt / đi trễ / vắng, điểm bài test 15 phút (bỏ trống nếu không kiểm tra), nhận xét. Kết quả học viên: điểm TB, xếp loại, chuyên cần, biểu đồ điểm, **phiếu báo kết quả** cho phụ huynh | Quản lý, Gia sư (lớp của mình) |
 | **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
 | **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
-| **Gia sư** | Thêm/sửa/xóa, tìm kiếm, lọc theo môn + trạng thái, Tạm nghỉ | Quản lý |
+| **Gia sư** | Danh sách + hồ sơ: email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
 | **Học viên** | Hồ sơ: phụ huynh + SĐT, trường/lớp, trình độ, ghi chú; lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; phiếu báo; xuất CSV | Quản lý |
 | **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
+
+Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "chỉ hiện gia sư nhận và còn trống ca này") hoặc gắn nhãn "Không nhận ca này"; vẫn ghép được nếu đã thống nhất riêng.
+
+### Hiệu năng
+- Danh sách lớp luôn nạp kèm gia sư + học viên trong **một truy vấn** (không còn lỗi N+1).
+- Lịch học chỉ đọc lớp của tháng đang xem; header đếm số lớp theo ca ngay trong SQL; công nợ tính tổng bằng SQL.
+- Tự cập nhật trạng thái mỗi phút chỉ đọc các lớp còn hoạt động.
+- Bảng Học viên, Gia sư, Học phí phân trang 50 dòng; Học phí mặc định chỉ hiện lớp còn phải thu; Ghép lớp mặc định chỉ hiện lớp đang học.
 
 Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra "Đỗ Bảo Ngọc - 0981111111".
 
@@ -156,6 +168,8 @@ Các màn hình mới (`frmHocVien`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `f
 | `feat(db): student profile, attendance…` | CSDL v2: hồ sơ học viên, điểm danh + điểm test, học phí, tài khoản; các service + kiểm thử |
 | `feat(ui): searchable 3-step class matching…` | Ghép lớp 3 bước có tìm kiếm/lọc; trang Học viên mới; lọc gia sư |
 | `feat: attendance, fees, report card, login…` | Màn hình Điểm danh & điểm, Học phí, Tài khoản, đăng nhập + phân quyền |
+| `perf: load less data…` | Tối ưu truy vấn, phân trang, giảm dữ liệu hiển thị |
+| `feat: tutor profile…` | Trang Gia sư mới + hồ sơ, ca nhận dạy dùng khi ghép lớp, dữ liệu mẫu v3 |
 
 ## Dữ liệu mẫu
 
