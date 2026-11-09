@@ -6,14 +6,17 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
 
 namespace DoAnWD
 {
     /// <summary>
     /// ✨ Calendar View - Xem lịch học theo tháng
     /// </summary>
-    public partial class frmCalendarView : Form
+    public partial class frmCalendarView : Form, ILamMoi
     {
+        public void LamMoi() { LoadCalendar(); }
+
         private LopHocService _lopHocService;
         private GiaSuService _giaSuService;
         private DateTime _currentMonth;

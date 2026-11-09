@@ -16,8 +16,10 @@ namespace DoAnWD
     /// Học viên: danh sách có tìm kiếm + lọc bên trái, hồ sơ chi tiết bên phải.
     /// Chọn một dòng để xem/sửa; "Thêm học viên" để nhập người mới.
     /// </summary>
-    public partial class frmHocVien : Form, ITuGiaoDien
+    public partial class frmHocVien : Form, ITuGiaoDien, ILamMoi
     {
+        public void LamMoi() { NapDuLieu(_maDangSua); }
+
         private const string TatCa = "Tất cả";
         private const string DangHoc = "Đang học";
         private const string ChuaCoLop = "Chưa có lớp";
@@ -34,15 +36,14 @@ namespace DoAnWD
         private Pager pager;
 
         private Label lblTieuDeForm, lblLop;
-        private TextBox txtHoTen, txtSDT, txtDiaChi, txtPhuHuynh, txtSDTPH, txtTruongLop, txtGhiChu;
-        private ComboBox cboTrinhDo;
+        private HoSoHocVienEditor editor;
         private ThemedButton btnThemMoi, btnLuu, btnXoa, btnPhieuBao, btnXuat;
 
         public frmHocVien()
         {
             InitializeComponent();
             BuildUi();
-            Load += (s, e) => { NapDuLieu(); BatDauThemMoi(); };
+            Load += (s, e) => { NapDuLieu(); if (!_maDangSua.HasValue) ChuaChon(); };
         }
 
         // ===================================================================
@@ -100,55 +101,24 @@ namespace DoAnWD
 
             // ---- Hồ sơ ----
             lblTieuDeForm = new Label { Font = Theme.Section, ForeColor = Theme.Ink, AutoSize = true, Margin = new Padding(0, 0, 0, 4) };
-            txtHoTen = Ui.Input("Bắt buộc");
-            txtSDT = Ui.Input("Không bắt buộc nếu có SĐT phụ huynh");
-            txtPhuHuynh = Ui.Input("Ví dụ: Chị Mai (mẹ)");
-            txtSDTPH = Ui.Input("Ví dụ: 0909123456");
-            txtTruongLop = Ui.Input("Ví dụ: TH Lê Văn Tám, lớp 4");
-            txtDiaChi = Ui.Input();
-            cboTrinhDo = Ui.Combo(true);
-            cboTrinhDo.Items.AddRange(Constants.GoiY.TrinhDo);
-            txtGhiChu = Ui.Input();
-            txtGhiChu.Multiline = true;
-            txtGhiChu.Height = 64;
-            txtGhiChu.ScrollBars = ScrollBars.Vertical;
+            editor = new HoSoHocVienEditor();
             lblLop = Ui.Text("", true);
             lblLop.MaximumSize = new Size(420, 0);
 
             btnThemMoi = Ui.Button("Thêm học viên", ButtonKind.Secondary, Glyph.Plus);
-            btnThemMoi.Click += (s, e) => BatDauThemMoi();
-            btnLuu = Ui.Button("Lưu", ButtonKind.Primary, Glyph.Check, 110);
+            btnThemMoi.Click += (s, e) => MoCuaSoThem();
+            btnLuu = Ui.Button("Lưu thay đổi", ButtonKind.Primary, Glyph.Check, 150);
             btnLuu.Click += (s, e) => Luu();
             btnXoa = Ui.Button("Xóa", ButtonKind.Danger, Glyph.Trash, 96);
             btnXoa.Click += (s, e) => Xoa();
             btnPhieuBao = Ui.Button("Phiếu báo kết quả", ButtonKind.Ghost, Glyph.Chart);
             btnPhieuBao.Click += (s, e) => TaoPhieuBao();
 
-            var hai = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
-            hai.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            hai.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            Action<int, int, string, Control> o = (col, row, nhan, ctl) =>
-            {
-                var st = Ui.Stack(false, Ui.FieldLabel(nhan), ctl);
-                st.AutoSize = true;
-                st.Dock = DockStyle.Top;
-                st.Margin = new Padding(0, 0, col == 0 ? 10 : 0, 0);
-                hai.Controls.Add(st, col, row);
-            };
-            o(0, 0, "SĐT học viên", txtSDT);
-            o(1, 0, "Trình độ", cboTrinhDo);
-            o(0, 1, "Phụ huynh", txtPhuHuynh);
-            o(1, 1, "SĐT phụ huynh", txtSDTPH);
-
             var secHs = Ui.Section("Hồ sơ");
             secHs.Margin = new Padding(0);
             secHs.Controls.Add(Ui.Stack(false,
                 lblTieuDeForm,
-                Ui.FieldLabel("Họ tên *"), txtHoTen,
-                hai,
-                Ui.FieldLabel("Trường / lớp"), txtTruongLop,
-                Ui.FieldLabel("Địa chỉ"), txtDiaChi,
-                Ui.FieldLabel("Ghi chú"), txtGhiChu,
+                editor,
                 lblLop,
                 Ui.Row(btnLuu, btnXoa, btnPhieuBao)));
 
@@ -285,14 +255,8 @@ namespace DoAnWD
 
             _maDangSua = hv.MaHV;
             lblTieuDeForm.Text = hv.HoTen;
-            txtHoTen.Text = hv.HoTen;
-            txtSDT.Text = hv.SDT;
-            txtPhuHuynh.Text = hv.TenPhuHuynh;
-            txtSDTPH.Text = hv.SDTPhuHuynh;
-            txtTruongLop.Text = hv.TruongLop;
-            txtDiaChi.Text = hv.DiaChi;
-            cboTrinhDo.Text = hv.TrinhDo ?? "";
-            txtGhiChu.Text = hv.GhiChu;
+            editor.Enabled = true;
+            editor.Nap(hv);
 
             var lop = _lops.Where(l => l.MaHV == hv.MaHV).OrderByDescending(l => l.ThoiGianBatDau).ToList();
             lblLop.Text = lop.Count == 0
@@ -300,58 +264,68 @@ namespace DoAnWD
                 : "Các lớp: " + string.Join("; ", lop.Take(4).Select(l => $"{l.MonHoc} với {l.GiaSu?.HoTen} ({l.TrangThaiTheoThoiGian.ToLower()})"))
                   + (lop.Count > 4 ? $"; và {lop.Count - 4} lớp khác" : "");
 
-            btnXoa.Enabled = true;
+            btnLuu.Enabled = btnXoa.Enabled = true;
             btnPhieuBao.Enabled = lop.Count > 0;
-            btnLuu.Text = "Lưu thay đổi";
-            btnLuu.Width = 150;
         }
 
-        private void BatDauThemMoi()
+        /// <summary>Chưa chọn ai: khung hồ sơ để trống và khóa lại</summary>
+        private void ChuaChon()
         {
             _maDangSua = null;
             dgv.ClearSelection();
-            lblTieuDeForm.Text = "Học viên mới";
-            foreach (var t in new[] { txtHoTen, txtSDT, txtPhuHuynh, txtSDTPH, txtTruongLop, txtDiaChi, txtGhiChu }) t.Clear();
-            cboTrinhDo.Text = "";
-            lblLop.Text = "";
-            btnXoa.Enabled = false;
-            btnPhieuBao.Enabled = false;
-            btnLuu.Text = "Thêm";
-            btnLuu.Width = 110;
-            txtHoTen.Focus();
+            lblTieuDeForm.Text = "Chưa chọn học viên";
+            editor.XoaTrang();
+            editor.Enabled = false;
+            lblLop.Text = "Chọn một dòng ở danh sách để xem và sửa hồ sơ.\nBấm \"Thêm học viên\" để nhập người mới.";
+            btnLuu.Enabled = btnXoa.Enabled = btnPhieuBao.Enabled = false;
         }
 
-        private void Luu()
+        /// <summary>Bật cửa sổ nhập học viên mới; lưu xong thì chọn luôn người vừa thêm</summary>
+        private void MoCuaSoThem()
         {
-            var hs = new HoSoHocVien
+            var ed = new HoSoHocVienEditor();
+            HocVien moi = null;
+            using (var dlg = new dlgHoSo("Thêm học viên", "Chỉ cần họ tên và một số điện thoại liên hệ (của bé hoặc phụ huynh).",
+                       ed, () => LuuHoSo(null, ed, out moi), "Thêm"))
             {
-                HoTen = txtHoTen.Text, SDT = txtSDT.Text, DiaChi = txtDiaChi.Text,
-                TenPhuHuynh = txtPhuHuynh.Text, SDTPhuHuynh = txtSDTPH.Text,
-                TruongLop = txtTruongLop.Text, TrinhDo = cboTrinhDo.Text, GhiChu = txtGhiChu.Text
-            };
+                if (dlg.ShowDialog(FindForm()) != DialogResult.OK || moi == null) return;
+            }
+            txtTim.Clear();
+            cboTinhTrang.SelectedIndex = 0;
+            NapDuLieu(moi.MaHV);
+            HienHoSoDangChon();
+        }
+
+        /// <summary>Lưu qua service; lỗi nhập liệu thì báo và đưa con trỏ về đúng ô</summary>
+        private bool LuuHoSo(int? ma, HoSoHocVienEditor ed, out HocVien kq)
+        {
+            kq = null;
             try
             {
-                HocVien hv;
-                bool moi = !_maDangSua.HasValue;
-                using (var service = new HocVienService()) hv = service.LuuHoSo(_maDangSua, hs);
-                NapDuLieu(hv.MaHV);
-                _maDangSua = hv.MaHV;
-                HienHoSoDangChon();
-                MessageBox.Show(moi ? $"Đã thêm học viên {hv.HoTen}." : $"Đã lưu hồ sơ {hv.HoTen}.",
-                    Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var service = new HocVienService()) kq = service.LuuHoSo(ma, ed.Lay());
+                return true;
             }
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                if (ex.Message.Contains("Họ tên") || ex.Message.Contains("họ tên")) txtHoTen.Focus();
-                else if (ex.Message.Contains("phụ huynh")) txtSDTPH.Focus();
-                else if (ex.Message.Contains("điện thoại")) txtSDT.Focus();
+                ed.FocusTheoLoi(ex.Message);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Không lưu được: {ex.GetBaseException().Message}",
                     Constants.Messages.ErrorTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            return false;
+        }
+
+        private void Luu()
+        {
+            if (!_maDangSua.HasValue) return;
+            HocVien hv;
+            if (!LuuHoSo(_maDangSua, editor, out hv)) return;
+            NapDuLieu(hv.MaHV);
+            HienHoSoDangChon();
+            MessageBox.Show($"Đã lưu hồ sơ {hv.HoTen}.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void Xoa()
@@ -366,7 +340,7 @@ namespace DoAnWD
                 using (var service = new HocVienService()) service.Delete(_maDangSua.Value);
                 _maDangSua = null;
                 NapDuLieu();
-                BatDauThemMoi();
+                ChuaChon();
             }
             catch (InvalidOperationException ex)
             {

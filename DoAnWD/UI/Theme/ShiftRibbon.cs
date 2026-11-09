@@ -106,7 +106,7 @@ namespace DoAnWD.UI
                 var top = new Rectangle(inner.X, inner.Y, inner.Width, inner.Height / 2);
                 var bottom = new Rectangle(inner.X, inner.Y + inner.Height / 2, inner.Width, inner.Height / 2);
 
-                TextRenderer.DrawText(g, Theme.ShiftShortName(ca), Theme.SmallStrong, top, fore,
+                TextRenderer.DrawText(g, Constants.CaHoc.TenNgan(ca), Theme.SmallStrong, top, fore,
                     TextFormatFlags.Left | TextFormatFlags.Bottom | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
                 // Dòng 2: giờ học, kèm số lớp hôm nay nếu có
                 TextRenderer.DrawText(g, coLop ? $"{bd}h–{kt}h, {n} lớp" : $"{bd}h–{kt}h", Theme.Small, bottom,

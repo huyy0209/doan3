@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
 
 namespace DoAnWD
 {
@@ -12,8 +13,10 @@ namespace DoAnWD
     /// ✨ Form Thống Kê - CẬP NHẬT CHO OPTION 2
     /// Bổ sung: Thống kê ca học, lớp sắp bắt đầu/kết thúc, auto-refresh
     /// </summary>
-    public partial class frmThongKe : Form
+    public partial class frmThongKe : Form, ILamMoi
     {
+        public void LamMoi() { RefreshAll(); }
+
         private ThongKeService _service;
         private LopHocService _lopHocService;
         private Timer _refreshTimer;

@@ -30,58 +30,6 @@ namespace DoAnWD.BLL.Services
             return _hocVienRepo.GetById(id);
         }
 
-        /// <summary>
-        /// Thêm học viên mới (BỎ EMAIL)
-        /// </summary>
-        public void Add(string hoTen, string sdt, string diaChi)
-        {
-            // Validate
-            string errorMessage;
-            if (!HocVienValidator.Validate(hoTen, sdt, diaChi, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage);
-            }
-
-            // Create entity
-            var hocVien = new HocVien
-            {
-                HoTen = hoTen.Trim(),
-                SDT = sdt.Trim(),
-                DiaChi = string.IsNullOrWhiteSpace(diaChi) ? null : diaChi.Trim()
-            };
-
-            _hocVienRepo.Add(hocVien);
-            _hocVienRepo.SaveChanges();
-        }
-
-        /// <summary>
-        /// Cập nhật học viên (BỎ EMAIL)
-        /// </summary>
-        public void Update(int maHV, string hoTen, string sdt, string diaChi)
-        {
-            // Validate
-            string errorMessage;
-            if (!HocVienValidator.Validate(hoTen, sdt, diaChi, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage);
-            }
-
-            // Find entity
-            var hocVien = _hocVienRepo.GetById(maHV);
-            if (hocVien == null)
-            {
-                throw new Exception("Không tìm thấy học viên.");
-            }
-
-            // Update
-            hocVien.HoTen = hoTen.Trim();
-            hocVien.SDT = sdt.Trim();
-            hocVien.DiaChi = string.IsNullOrWhiteSpace(diaChi) ? null : diaChi.Trim();
-
-            _hocVienRepo.Update(hocVien);
-            _hocVienRepo.SaveChanges();
-        }
-
         private static string Gon(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
         /// <summary>

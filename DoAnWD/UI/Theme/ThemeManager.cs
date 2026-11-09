@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
@@ -15,6 +16,9 @@ namespace DoAnWD.UI
     /// ThemeManager.Apply sẽ bỏ qua để không ghi đè font/màu đã chọn.
     /// </summary>
     public interface ITuGiaoDien { }
+
+    /// <summary>Trang được giữ lại trong bộ nhớ: khi mở lại chỉ cần nạp lại dữ liệu</summary>
+    public interface ILamMoi { void LamMoi(); }
 
     public static class ThemeManager
     {
@@ -165,8 +169,16 @@ namespace DoAnWD.UI
             cell.BackColor = Theme.Surface;
             cell.ForeColor = Theme.Text;
             cell.Font = Theme.Body;
-            cell.SelectionBackColor = Theme.InkSelect;
+            cell.SelectionBackColor = Theme.RowSelect;
             cell.SelectionForeColor = Theme.Text;
+            dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = Theme.RowSelect;
+            dgv.AlternatingRowsDefaultCellStyle.SelectionForeColor = Theme.Text;
+
+            // Cho phép copy chữ: Ctrl+C hoặc chuột phải => "Sao chép ô / dòng"
+            dgv.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            if (dgv.ContextMenuStrip == null) dgv.ContextMenuStrip = TaoMenuSaoChep(dgv);
+            dgv.CellMouseDown -= Grid_CellMouseDown;
+            dgv.CellMouseDown += Grid_CellMouseDown;
             cell.Padding = new Padding(8, 0, 8, 0);
 
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Theme.PaperAlt;
@@ -179,6 +191,69 @@ namespace DoAnWD.UI
             dgv.DataBindingComplete += Grid_DataBindingComplete;
             dgv.SizeChanged -= Grid_SizeChanged;
             dgv.SizeChanged += Grid_SizeChanged;
+        }
+
+        // ---------------- Sao chép ----------------
+
+        private static DataGridViewCell _oChuotPhai;
+
+        /// <summary>Chuột phải vào ô: chọn luôn dòng đó để menu sao chép đúng chỗ</summary>
+        private static void Grid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            var dgv = (DataGridView)sender;
+            var o = dgv[e.ColumnIndex, e.RowIndex];
+            _oChuotPhai = o;
+            if (!o.Selected && o.Visible)
+            {
+                try { dgv.CurrentCell = o; } catch (InvalidOperationException) { /* đang sửa ô dở dang */ }
+            }
+        }
+
+        private static ContextMenuStrip TaoMenuSaoChep(DataGridView dgv)
+        {
+            var menu = new ContextMenuStrip { Font = Theme.Body, ShowImageMargin = false };
+            var oItem = new ToolStripMenuItem("Sao chép ô") { ShortcutKeyDisplayString = "" };
+            var dongItem = new ToolStripMenuItem("Sao chép dòng") { ShortcutKeyDisplayString = "Ctrl+C" };
+            var bangItem = new ToolStripMenuItem("Sao chép cả bảng (dán vào Excel)");
+            oItem.Click += (s, e) =>
+            {
+                var o = _oChuotPhai != null && _oChuotPhai.DataGridView == dgv ? _oChuotPhai : dgv.CurrentCell;
+                DatClipboard(o?.FormattedValue?.ToString());
+            };
+            dongItem.Click += (s, e) =>
+            {
+                var r = (_oChuotPhai != null && _oChuotPhai.DataGridView == dgv ? _oChuotPhai.OwningRow : null) ?? dgv.CurrentRow;
+                if (r == null) return;
+                DatClipboard(string.Join("\t", r.Cells.Cast<DataGridViewCell>()
+                    .Where(c => c.OwningColumn.Visible)
+                    .OrderBy(c => c.OwningColumn.DisplayIndex)
+                    .Select(c => c.FormattedValue?.ToString() ?? "")));
+            };
+            bangItem.Click += (s, e) =>
+            {
+                var cols = dgv.Columns.Cast<DataGridViewColumn>().Where(c => c.Visible).OrderBy(c => c.DisplayIndex).ToList();
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine(string.Join("\t", cols.Select(c => c.HeaderText)));
+                foreach (DataGridViewRow r in dgv.Rows)
+                    sb.AppendLine(string.Join("\t", cols.Select(c => r.Cells[c.Index].FormattedValue?.ToString() ?? "")));
+                DatClipboard(sb.ToString());
+            };
+            menu.Items.AddRange(new ToolStripItem[] { oItem, dongItem, new ToolStripSeparator(), bangItem });
+            menu.Opening += (s, e) =>
+            {
+                bool coDong = dgv.Rows.Count > 0;
+                oItem.Enabled = dongItem.Enabled = coDong && (dgv.CurrentCell != null || _oChuotPhai != null);
+                bangItem.Enabled = coDong;
+            };
+            return menu;
+        }
+
+        private static void DatClipboard(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            try { Clipboard.SetText(text); }
+            catch (System.Runtime.InteropServices.ExternalException) { /* clipboard đang bị app khác giữ */ }
         }
 
         private static void Grid_SizeChanged(object sender, EventArgs e)
@@ -270,12 +345,23 @@ namespace DoAnWD.UI
             bool isStatus = key == "TrangThai" || key == "TrangThaiTheoThoiGian" || key == "XepLoai" ||
                             key == "TinhTrang" || (key == "DiemDanh" && dgv.ReadOnly);
             bool isShift = key == "CaHoc";
-            if (!isStatus && !isShift) return;
-
+            bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
             string text = e.FormattedValue?.ToString() ?? "";
-            if (text.Length == 0) return;
 
-            e.PaintBackground(e.CellBounds, (e.State & DataGridViewElementStates.Selected) != 0);
+            if (!isStatus && !isShift || text.Length == 0)
+            {
+                // Ô thường: vẽ như mặc định nhưng bỏ khung chấm chấm (focus) làm vỡ dòng khi click
+                e.Paint(e.CellBounds, e.PaintParts & ~DataGridViewPaintParts.Focus);
+                if (selected) VeVachChon(dgv, e);
+                e.Handled = true;
+                return;
+            }
+
+            // Tự tô nền để ô nhãn/ca cùng màu xanh với cả dòng đang chọn
+            using (var nen = new SolidBrush(selected ? Theme.RowSelect : e.CellStyle.BackColor))
+                e.Graphics.FillRectangle(nen, e.CellBounds);
+            e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+            if (selected) VeVachChon(dgv, e);
             var g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             var b = e.CellBounds;
@@ -303,6 +389,16 @@ namespace DoAnWD.UI
             }
 
             e.Handled = true;
+        }
+
+        /// <summary>Vạch xanh đậm ở đầu dòng đang chọn (chỉ vẽ ở cột hiển thị đầu tiên)</summary>
+        private static void VeVachChon(DataGridView dgv, DataGridViewCellPaintingEventArgs e)
+        {
+            if (dgv.SelectionMode != DataGridViewSelectionMode.FullRowSelect) return;
+            var dau = dgv.Columns.GetFirstColumn(DataGridViewElementStates.Visible);
+            if (dau == null || dau.Index != e.ColumnIndex) return;
+            using (var b = new SolidBrush(Theme.RowSelectBar))
+                e.Graphics.FillRectangle(b, e.CellBounds.X, e.CellBounds.Y, 3, e.CellBounds.Height - 1);
         }
 
         private static void StyleTextBox(TextBox t)

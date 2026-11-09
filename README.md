@@ -93,8 +93,8 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 | **Điểm danh & điểm** | Theo ngày + ca: có mặt / đi trễ / vắng, điểm bài test 15 phút (bỏ trống nếu không kiểm tra), nhận xét. Kết quả học viên: điểm TB, xếp loại, chuyên cần, biểu đồ điểm, **phiếu báo kết quả** cho phụ huynh | Quản lý, Gia sư (lớp của mình) |
 | **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
 | **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
-| **Gia sư** | Danh sách + hồ sơ: email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
-| **Học viên** | Hồ sơ: phụ huynh + SĐT, trường/lớp, trình độ, ghi chú; lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; phiếu báo; xuất CSV | Quản lý |
+| **Gia sư** | Danh sách + hồ sơ (bấm **Thêm gia sư** để mở cửa sổ nhập riêng): email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
+| **Học viên** | Danh sách + hồ sơ (bấm **Thêm học viên** để mở cửa sổ nhập riêng): phụ huynh + SĐT, trường/lớp, trình độ, ghi chú; lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; phiếu báo; xuất CSV | Quản lý |
 | **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
 
 Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "chỉ hiện gia sư nhận và còn trống ca này") hoặc gắn nhãn "Không nhận ca này"; vẫn ghép được nếu đã thống nhất riêng.
@@ -103,6 +103,7 @@ Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "ch�
 - Danh sách lớp luôn nạp kèm gia sư + học viên trong **một truy vấn** (không còn lỗi N+1).
 - Lịch học chỉ đọc lớp của tháng đang xem; header đếm số lớp theo ca ngay trong SQL; công nợ tính tổng bằng SQL.
 - Tự cập nhật trạng thái mỗi phút chỉ đọc các lớp còn hoạt động.
+- **Chuyển trang tức thì**: mỗi màn hình chỉ dựng giao diện một lần rồi giữ lại; mở lại thì hiện ngay và chỉ nạp lại dữ liệu (`ILamMoi.LamMoi()`). Nút "Làm mới dữ liệu" cũng chỉ nạp lại dữ liệu, không dựng lại màn hình.
 - Bảng Học viên, Gia sư, Học phí phân trang 50 dòng; Học phí mặc định chỉ hiện lớp còn phải thu; Ghép lớp mặc định chỉ hiện lớp đang học.
 
 Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra "Đỗ Bảo Ngọc - 0981111111".
@@ -130,13 +131,15 @@ Giao diện dựa trên hình ảnh **vở ô li**: nền giấy trắng xanh, m
 |---|---|
 | Thanh tiêu đề | Ngày hôm nay, ca đang diễn ra, **dải 6 ca học** (ca hiện tại tô đặc, kèm số lớp học hôm nay), số lớp bắt đầu trong 24 giờ |
 | Menu trái | Nền tím đậm; vạch đỏ chỉ mục đang mở và trượt theo khi chuyển màn hình (tắt nếu Windows tắt hiệu ứng) |
-| Bảng | Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang |
+| Bảng | Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang. Dòng đang chọn tô **xanh dương nhạt** kèm vạch xanh đầu dòng, không còn khung chấm chấm khi click |
+| Sao chép | Ở mọi bảng: **Ctrl+C** chép dòng đang chọn; **chuột phải** để "Sao chép ô", "Sao chép dòng" hoặc "Sao chép cả bảng" (dán thẳng vào Excel) |
+| Thêm mới | "Thêm học viên" / "Thêm gia sư" mở **cửa sổ nhập riêng**; lưu xong tự chọn người vừa thêm. Khung bên phải trang chỉ để xem / sửa người đang chọn |
 | Lịch học | Control tự vẽ, co giãn theo cửa sổ; mỗi lớp hiện ở **mọi ngày** trong khoảng học (trước đây chỉ hiện ở ngày bắt đầu) |
 | Nút bấm | Có icon (thêm, sửa, xóa, lưu, làm mới...) và 4 kiểu màu: chính (tím đặc), phụ (tím nhạt), xóa (đỏ), nhẹ (chữ tím); hành động chính của trang đặt ở góc phải tiêu đề |
 | Ô số liệu | Mỗi loại một màu: gia sư tím, học viên xanh lá, lớp học cam; số trạng thái tô theo màu trạng thái |
 | Ô nhập | Nền tím rất nhạt khi đang gõ để biết con trỏ ở đâu |
-| Chuyển trang | Trang cũ mờ dần, trang mới hiện dần và trượt nhẹ 24px (~220ms) |
-| Chống nháy | Double buffering cho bảng/panel, `WS_EX_COMPOSITED` cho cửa sổ chính |
+| Chuyển trang | Hiện ngay trang đã mở trước đó (bỏ hiệu ứng chụp ảnh màn hình gây khựng ~0,5 giây) |
+| Chống nháy | Double buffering cho bảng/panel |
 
 Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 
@@ -148,11 +151,13 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `SectionBox.cs` | Thay GroupBox: khung mảnh, tiêu đề nằm trong khung |
 | `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
 | `Icons.cs` | Bộ icon nét mảnh vẽ bằng GDI+, không cần file ảnh |
-| `PageTransition.cs` | Hiệu ứng chuyển trang |
 | `Ui.cs`, `ScoreChart.cs` | Hàm dựng control cho các màn hình mới (bố cục TableLayoutPanel tự co giãn), biểu đồ điểm |
 
-Các màn hình mới (`frmHocVien`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
 | `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
+
+`DoAnWD/UI/HoSoEditors.cs` chứa khung nhập hồ sơ học viên / gia sư dùng chung cho trang và cho cửa sổ "Thêm ..." (`dlgHoSo`).
+
+Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
 
 ## Lịch sử nâng cấp
 
@@ -170,6 +175,7 @@ Các màn hình mới (`frmHocVien`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `f
 | `feat: attendance, fees, report card, login…` | Màn hình Điểm danh & điểm, Học phí, Tài khoản, đăng nhập + phân quyền |
 | `perf: load less data…` | Tối ưu truy vấn, phân trang, giảm dữ liệu hiển thị |
 | `feat: tutor profile…` | Trang Gia sư mới + hồ sơ, ca nhận dạy dùng khi ghép lớp, dữ liệu mẫu v3 |
+| `perf(ui): instant page switch…` | Giữ màn hình đã mở để chuyển trang không khựng; dòng chọn màu xanh, sao chép trong bảng; thêm học viên / gia sư bằng cửa sổ riêng; gộp code nhập hồ sơ, xóa hàm không dùng |
 
 ## Dữ liệu mẫu
 

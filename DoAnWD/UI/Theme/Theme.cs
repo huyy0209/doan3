@@ -25,6 +25,8 @@ namespace DoAnWD.UI
         public static readonly Color InkDarker = Hex("#211B4D");
         public static readonly Color InkSoft = Hex("#ECEAF7");    // nền nhạt
         public static readonly Color InkSelect = Hex("#DEDAF4");  // dòng đang chọn trong bảng
+        public static readonly Color RowSelect = Hex("#D2E3FC");  // dòng đang chọn: xanh dương nhạt, dễ nhận ra
+        public static readonly Color RowSelectBar = Hex("#1A73E8"); // vạch xanh đậm đầu dòng đang chọn
         public static readonly Color InkFocus = Hex("#F4F2FC");   // ô nhập đang gõ
         public static readonly Color InkMuted = Hex("#B9B4E0");   // chữ phụ trên nền tím
 
@@ -83,14 +85,6 @@ namespace DoAnWD.UI
             if (caHoc.StartsWith("Tối muộn")) return Hex("#2F3A73");
             if (caHoc.StartsWith("Tối")) return Hex("#5B4FA8");
             return Neutral;
-        }
-
-        /// <summary>"Tối (18h-20h)" =&gt; "Tối"</summary>
-        public static string ShiftShortName(string caHoc)
-        {
-            if (string.IsNullOrEmpty(caHoc)) return "";
-            int i = caHoc.IndexOf(" (", StringComparison.Ordinal);
-            return i > 0 ? caHoc.Substring(0, i) : caHoc;
         }
 
         // ------------------------------------------------------------------

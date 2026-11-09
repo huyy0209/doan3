@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -174,7 +174,7 @@ namespace DoAnWD.UI
                         g.FillEllipse(b, cell.X + 9, y + 6, 7, 7);
 
                     var textRect = Rectangle.Round(new RectangleF(cell.X + 20, y, cell.Width - 26, chipH));
-                    string text = $"{Theme.ShiftShortName(lop.CaHoc)}: {lop.MonHoc}";
+                    string text = $"{Constants.CaHoc.TenNgan(lop.CaHoc)}: {lop.MonHoc}";
                     TextRenderer.DrawText(g, text, Theme.Small, textRect, Theme.Text,
                         TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
                 }

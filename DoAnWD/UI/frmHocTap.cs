@@ -21,8 +21,10 @@ namespace DoAnWD
     ///    biểu đồ điểm, lịch sử buổi học, xuất phiếu báo cho phụ huynh.
     /// Gia sư đăng nhập chỉ thấy lớp của mình.
     /// </summary>
-    public class frmHocTap : Form, ITuGiaoDien
+    public class frmHocTap : Form, ITuGiaoDien, ILamMoi
     {
+        public void LamMoi() { NapDiemDanh(); NapHocVien(); }
+
         private readonly HocTapService _service = new HocTapService();
         private readonly int? _gioiHanGS = PhienDangNhap.GioiHanGiaSu;
 

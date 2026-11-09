@@ -15,8 +15,10 @@ namespace DoAnWD
     /// Gia sư: danh sách có tìm kiếm + lọc (môn, trạng thái, ca nhận dạy) + phân trang bên trái,
     /// hồ sơ chi tiết bên phải (email, học vấn, kinh nghiệm, ca nhận dạy, tạm nghỉ, ghi chú).
     /// </summary>
-    public partial class frmGiaSu : Form, ITuGiaoDien
+    public partial class frmGiaSu : Form, ITuGiaoDien, ILamMoi
     {
+        public void LamMoi() { NapDuLieu(_maDangSua); }
+
         private List<GiaSu> _giaSus = new List<GiaSu>();
         private List<LopHoc> _lopHoatDong = new List<LopHoc>();
         private Dictionary<int, TaiKhoanRow> _taiKhoan = new Dictionary<int, TaiKhoanRow>();
@@ -29,18 +31,15 @@ namespace DoAnWD
         private Pager pager;
 
         private Label lblTieuDeForm, lblLich, lblTaiKhoan;
-        private TextBox txtHoTen, txtSDT, txtEmail, txtHocVan, txtGhiChu;
-        private ComboBox cboChuyenMon;
-        private NumericUpDown nudKinhNghiem;
-        private CheckBox[] chkCa;
-        private CheckBox chkTamNghi;
+        private HoSoGiaSuEditor editor;
+        private string[] _monGoiY = new string[0];
         private ThemedButton btnThemMoi, btnLuu, btnXoa;
 
         public frmGiaSu()
         {
             InitializeComponent();
             BuildUi();
-            Load += (s, e) => { NapDuLieu(); BatDauThemMoi(); };
+            Load += (s, e) => { NapDuLieu(); if (!_maDangSua.HasValue) ChuaChon(); };
         }
 
         // ===================================================================
@@ -98,74 +97,23 @@ namespace DoAnWD
 
             // ---- Hồ sơ ----
             lblTieuDeForm = new Label { Font = Theme.Section, ForeColor = Theme.Ink, AutoSize = true, Margin = new Padding(0, 0, 0, 4) };
-            txtHoTen = Ui.Input("Bắt buộc");
-            txtSDT = Ui.Input("Bắt buộc, ví dụ 0909123456");
-            cboChuyenMon = Ui.Combo(true);
-            txtEmail = Ui.Input("ten@gmail.com");
-            txtHocVan = Ui.Input("Ví dụ: SV năm 4 HUTECH, Kiện tướng quốc gia");
-            nudKinhNghiem = new NumericUpDown { Minimum = 0, Maximum = 60, Width = 90, Font = Theme.Body, Margin = new Padding(0, 0, 0, 4) };
-            txtGhiChu = Ui.Input();
-            txtGhiChu.Multiline = true;
-            txtGhiChu.Height = 56;
-            txtGhiChu.ScrollBars = ScrollBars.Vertical;
-
-            // Ca nhận dạy: bỏ chọn hết = nhận mọi ca
-            var cas = Constants.CaHoc.TatCaCaHoc;
-            chkCa = new CheckBox[cas.Length];
-            var luoiCa = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true, Margin = new Padding(0, 0, 0, 2) };
-            for (int i = 0; i < 3; i++) luoiCa.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3f));
-            for (int i = 0; i < cas.Length; i++)
-            {
-                chkCa[i] = new CheckBox
-                {
-                    Text = Constants.CaHoc.TenNgan(cas[i]), Tag = cas[i], AutoSize = true, Font = Theme.Body,
-                    ForeColor = Theme.Blend(Theme.ShiftColor(cas[i]), Theme.Text, 0.35f), Margin = new Padding(0, 2, 6, 2)
-                };
-                luoiCa.Controls.Add(chkCa[i], i % 3, i / 3);
-            }
-
-            chkTamNghi = new CheckBox
-            {
-                Text = "Tạm nghỉ (không nhận lớp mới)", AutoSize = true, Font = Theme.Body, ForeColor = Theme.Text,
-                Margin = new Padding(0, 8, 0, 2)
-            };
+            editor = new HoSoGiaSuEditor();
             lblLich = Ui.Text("", true);
             lblLich.MaximumSize = new Size(440, 0);
             lblTaiKhoan = Ui.Text("", true);
 
             btnThemMoi = Ui.Button("Thêm gia sư", ButtonKind.Secondary, Glyph.Plus);
-            btnThemMoi.Click += (s, e) => BatDauThemMoi();
-            btnLuu = Ui.Button("Thêm", ButtonKind.Primary, Glyph.Check, 110);
+            btnThemMoi.Click += (s, e) => MoCuaSoThem();
+            btnLuu = Ui.Button("Lưu thay đổi", ButtonKind.Primary, Glyph.Check, 150);
             btnLuu.Click += (s, e) => Luu();
             btnXoa = Ui.Button("Xóa", ButtonKind.Danger, Glyph.Trash, 96);
             btnXoa.Click += (s, e) => Xoa();
-
-            var hai = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
-            hai.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            hai.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            Action<int, int, string, Control> o = (col, row, nhan, ctl) =>
-            {
-                var st = Ui.Stack(false, Ui.FieldLabel(nhan), ctl);
-                st.AutoSize = true;
-                st.Dock = DockStyle.Top;
-                st.Margin = new Padding(0, 0, col == 0 ? 10 : 0, 0);
-                hai.Controls.Add(st, col, row);
-            };
-            o(0, 0, "Số điện thoại *", txtSDT);
-            o(1, 0, "Chuyên môn *", cboChuyenMon);
-            o(0, 1, "Email", txtEmail);
-            o(1, 1, "Kinh nghiệm (năm)", nudKinhNghiem);
 
             var secHs = Ui.Section("Hồ sơ");
             secHs.Margin = new Padding(0);
             secHs.Controls.Add(Ui.Stack(false,
                 lblTieuDeForm,
-                Ui.FieldLabel("Họ tên *"), txtHoTen,
-                hai,
-                Ui.FieldLabel("Học vấn / bằng cấp"), txtHocVan,
-                Ui.FieldLabel("Ca nhận dạy (bỏ trống = nhận mọi ca)"), luoiCa,
-                chkTamNghi,
-                Ui.FieldLabel("Ghi chú"), txtGhiChu,
+                editor,
                 lblLich, lblTaiKhoan,
                 Ui.Row(btnLuu, btnXoa)));
 
@@ -223,10 +171,8 @@ namespace DoAnWD
                 cboLocMon.SelectedItem = monChon;
                 if (cboLocMon.SelectedIndex < 0) cboLocMon.SelectedIndex = 0;
 
-                string monDangGo = cboChuyenMon.Text;
-                cboChuyenMon.Items.Clear();
-                cboChuyenMon.Items.AddRange(mon);
-                cboChuyenMon.Text = monDangGo;
+                _monGoiY = mon;
+                editor.DatGoiYMon(mon);
 
                 ApDungLoc(chon);
             }
@@ -294,15 +240,8 @@ namespace DoAnWD
 
             _maDangSua = gs.MaGS;
             lblTieuDeForm.Text = gs.HoTen;
-            txtHoTen.Text = gs.HoTen;
-            txtSDT.Text = gs.SDT;
-            cboChuyenMon.Text = gs.ChuyenMon ?? "";
-            txtEmail.Text = gs.Email;
-            txtHocVan.Text = gs.HocVan;
-            nudKinhNghiem.Value = Math.Max(0, Math.Min(60, gs.KinhNghiem ?? 0));
-            txtGhiChu.Text = gs.GhiChu;
-            foreach (var c in chkCa) c.Checked = !string.IsNullOrWhiteSpace(gs.CaNhanDay) && gs.NhanCa((string)c.Tag);
-            chkTamNghi.Checked = gs.TrangThai == Constants.GiaSuStatus.TamNghi;
+            editor.Enabled = true;
+            editor.Nap(gs);
 
             var lop = _lopHoatDong.Where(l => l.MaGS == gs.MaGS)
                 .OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc)).ToList();
@@ -314,64 +253,69 @@ namespace DoAnWD
                 ? $"Tài khoản đăng nhập: {tk.TenDangNhap} ({tk.TrangThai.ToLower()})"
                 : "Chưa có tài khoản đăng nhập (tạo ở mục Tài khoản).";
 
-            btnXoa.Enabled = true;
-            btnLuu.Text = "Lưu thay đổi";
-            btnLuu.Width = 150;
+            btnLuu.Enabled = btnXoa.Enabled = true;
         }
 
-        private void BatDauThemMoi()
+        /// <summary>Chưa chọn ai: khung hồ sơ để trống và khóa lại</summary>
+        private void ChuaChon()
         {
             _maDangSua = null;
             dgv.ClearSelection();
-            lblTieuDeForm.Text = "Gia sư mới";
-            foreach (var t in new[] { txtHoTen, txtSDT, txtEmail, txtHocVan, txtGhiChu }) t.Clear();
-            cboChuyenMon.Text = "";
-            nudKinhNghiem.Value = 0;
-            foreach (var c in chkCa) c.Checked = false;
-            chkTamNghi.Checked = false;
-            lblLich.Text = "";
+            lblTieuDeForm.Text = "Chưa chọn gia sư";
+            editor.XoaTrang();
+            editor.Enabled = false;
+            lblLich.Text = "Chọn một dòng ở danh sách để xem và sửa hồ sơ.\nBấm \"Thêm gia sư\" để nhập người mới.";
             lblTaiKhoan.Text = "";
-            btnXoa.Enabled = false;
-            btnLuu.Text = "Thêm";
-            btnLuu.Width = 110;
-            txtHoTen.Focus();
+            btnLuu.Enabled = btnXoa.Enabled = false;
         }
 
-        private void Luu()
+        /// <summary>Bật cửa sổ nhập gia sư mới; lưu xong thì chọn luôn người vừa thêm</summary>
+        private void MoCuaSoThem()
         {
-            var hs = new HoSoGiaSu
+            var ed = new HoSoGiaSuEditor();
+            ed.DatGoiYMon(_monGoiY);
+            GiaSu moi = null;
+            using (var dlg = new dlgHoSo("Thêm gia sư", "Họ tên, số điện thoại và chuyên môn là bắt buộc. Các mục khác có thể bổ sung sau.",
+                       ed, () => LuuHoSo(null, ed, out moi), "Thêm"))
             {
-                HoTen = txtHoTen.Text, SDT = txtSDT.Text, ChuyenMon = cboChuyenMon.Text,
-                Email = txtEmail.Text, HocVan = txtHocVan.Text,
-                KinhNghiem = nudKinhNghiem.Value > 0 ? (int?)nudKinhNghiem.Value : null,
-                CaNhanDay = chkCa.Where(c => c.Checked).Select(c => c.Text).ToList(),
-                GhiChu = txtGhiChu.Text, TamNghi = chkTamNghi.Checked
-            };
+                if (dlg.ShowDialog(FindForm()) != DialogResult.OK || moi == null) return;
+            }
+            txtTim.Clear();
+            cboLocMon.SelectedIndex = cboLocTrangThai.SelectedIndex = cboLocCa.SelectedIndex = 0;
+            NapDuLieu(moi.MaGS);
+            HienHoSoDangChon();
+        }
+
+        /// <summary>Lưu qua service; lỗi nhập liệu thì báo và đưa con trỏ về đúng ô</summary>
+        private bool LuuHoSo(int? ma, HoSoGiaSuEditor ed, out GiaSu kq)
+        {
+            kq = null;
             try
             {
-                GiaSu gs;
-                bool moi = !_maDangSua.HasValue;
-                using (var service = new GiaSuService()) gs = service.LuuHoSo(_maDangSua, hs);
-                NapDuLieu(gs.MaGS);
-                _maDangSua = gs.MaGS;
-                HienHoSoDangChon();
-                MessageBox.Show(moi ? $"Đã thêm gia sư {gs.HoTen}." : $"Đã lưu hồ sơ {gs.HoTen}.",
-                    Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var service = new GiaSuService()) kq = service.LuuHoSo(ma, ed.Lay());
+                return true;
             }
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                string m = ex.Message.ToLower();
-                if (m.Contains("họ tên")) txtHoTen.Focus();
-                else if (m.Contains("điện thoại")) txtSDT.Focus();
-                else if (m.Contains("chuyên môn")) cboChuyenMon.Focus();
-                else if (m.Contains("email")) txtEmail.Focus();
+                ed.FocusTheoLoi(ex.Message);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Không lưu được: {ex.GetBaseException().Message}",
                     Constants.Messages.ErrorTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            return false;
+        }
+
+        private void Luu()
+        {
+            if (!_maDangSua.HasValue) return;
+            GiaSu gs;
+            if (!LuuHoSo(_maDangSua, editor, out gs)) return;
+            NapDuLieu(gs.MaGS);
+            HienHoSoDangChon();
+            MessageBox.Show($"Đã lưu hồ sơ {gs.HoTen}.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void Xoa()
@@ -387,7 +331,7 @@ namespace DoAnWD
                 using (var service = new GiaSuService()) service.Delete(_maDangSua.Value);
                 _maDangSua = null;
                 NapDuLieu();
-                BatDauThemMoi();
+                ChuaChon();
             }
             catch (InvalidOperationException ex)
             {

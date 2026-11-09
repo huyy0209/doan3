@@ -75,27 +75,9 @@ namespace DoAnWD.BLL.Services
             return q.ToList();
         }
 
-        /// <summary>
-        /// Lấy tất cả lớp với thông tin chi tiết
-        /// </summary>
-        public IEnumerable<object> GetAllWithDetails()
-        {
-            return _lopHocRepo.GetAllLopHocWithDetails();
-        }
-
         // ===================================================================
         // GHÉP LỚP
         // ===================================================================
-
-        /// <summary>
-        /// Ghép lớp mới (không có thời gian) - Deprecated, giữ để tương thích
-        /// </summary>
-        public void GhepLop(int maHV, int maGS, string monHoc, decimal hocPhi, string trangThai)
-        {
-            DateTime batDau = DateTime.Now.Date.AddDays(1); // Ngày mai
-            DateTime ketThuc = batDau.AddMonths(1);         // Sau 1 tháng
-            GhepLop(maHV, maGS, monHoc, hocPhi, trangThai, batDau, ketThuc, Constants.CaHoc.Sang);
-        }
 
         /// <summary>
         /// Ghép lớp mới với thời gian và ca học.
@@ -196,21 +178,6 @@ namespace DoAnWD.BLL.Services
             return null;
         }
 
-        /// <summary>
-        /// Các ca đã bị chiếm (của gia sư hoặc học viên) trong khoảng ngày cho trước.
-        /// UI dùng để tô đỏ ca không chọn được.
-        /// </summary>
-        public HashSet<string> GetCaDaBan(int maGS, int maHV, DateTime batDau, DateTime ketThuc)
-        {
-            var khoang = new LopHoc { ThoiGianBatDau = batDau, ThoiGianKetThuc = ketThuc };
-
-            return new HashSet<string>(
-                _lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV)
-                    .Where(l => !string.IsNullOrEmpty(l.CaHoc) && l.TrungThoiGian(khoang))
-                    .Select(l => l.CaHoc),
-                StringComparer.OrdinalIgnoreCase);
-        }
-
         // ===================================================================
         // TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI
         // ===================================================================
@@ -255,16 +222,6 @@ namespace DoAnWD.BLL.Services
         // ===================================================================
 
         /// <summary>
-        /// Lấy các lớp đang diễn ra
-        /// </summary>
-        public IEnumerable<LopHoc> GetActiveLopHoc()
-        {
-            return GetLopConHoatDong()
-                .Where(l => l.TrangThaiTheoThoiGian == Constants.LopHocStatus.DangDienRa)
-                .ToList();
-        }
-
-        /// <summary>
         /// Lấy các lớp sắp bắt đầu (trong vòng N ngày), bỏ qua lớp đã hủy
         /// </summary>
         public IEnumerable<LopHoc> GetUpcomingLopHoc(int soNgay = 7)
@@ -295,14 +252,6 @@ namespace DoAnWD.BLL.Services
                     .Select(g => new { Ca = g.Key, SoLop = g.Count() })
                     .ToList()
                     .ToDictionary(x => x.Ca, x => x.SoLop);
-        }
-
-        /// <summary>
-        /// Lấy lớp học theo ca
-        /// </summary>
-        public IEnumerable<LopHoc> GetLopHocByCa(string caHoc)
-        {
-            return GetLopConHoatDong().Where(l => l.CaHoc == caHoc).ToList();
         }
 
         // ===================================================================
@@ -371,16 +320,6 @@ namespace DoAnWD.BLL.Services
         public int CountAll()
         {
             return _lopHocRepo.Count();
-        }
-
-        /// <summary>
-        /// Đếm lớp đang học (bao gồm cả đang diễn ra)
-        /// </summary>
-        public int CountActive()
-        {
-            return _lopHocRepo.Count(l =>
-                l.TrangThai == Constants.LopHocStatus.DangHoc ||
-                l.TrangThai == Constants.LopHocStatus.DangDienRa);
         }
 
         /// <summary>

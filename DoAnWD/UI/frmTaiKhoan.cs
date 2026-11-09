@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -10,8 +10,10 @@ using DoAnWD.UI;
 namespace DoAnWD
 {
     /// <summary>Quản lý tài khoản (chỉ vai trò Quản lý): tạo, đặt lại mật khẩu, khóa / mở khóa</summary>
-    public class frmTaiKhoan : Form, ITuGiaoDien
+    public class frmTaiKhoan : Form, ITuGiaoDien, ILamMoi
     {
+        public void LamMoi() { NapDuLieu(); }
+
         private readonly TaiKhoanService _service = new TaiKhoanService();
         private DataGridView dgv;
         private TextBox txtTen, txtMatKhau;

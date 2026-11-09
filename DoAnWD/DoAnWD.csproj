@@ -73,6 +73,7 @@
     <Compile Include="BLL\Validators\LopHocValidator.cs" />
     <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\TimKiem.cs" />
+    <Compile Include="Common\SoTien.cs" />
     <Compile Include="DAL\Interfaces\IRepository.cs" />
     <Compile Include="DAL\Repositories\GiaSuRepository.cs" />
     <Compile Include="DAL\Repositories\HocVienRepository.cs" />
@@ -167,11 +168,9 @@
     <Compile Include="UI\frmHocPhi.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\HoSoEditors.cs" />
     <Compile Include="UI\frmHocTap.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Theme\PageTransition.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\TrangChu.cs">
       <SubType>Form</SubType>

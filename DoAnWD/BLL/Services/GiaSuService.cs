@@ -41,14 +41,6 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// Lấy gia sư rảnh (để ghép lớp)
-        /// </summary>
-        public IEnumerable<GiaSu> GetAvailable()
-        {
-            return _giaSuRepo.GetAvailableGiaSu();
-        }
-
-        /// <summary>
         /// Lấy gia sư có thể nhận lớp mới (mọi gia sư trừ "Tạm nghỉ")
         /// </summary>
         public IEnumerable<GiaSu> GetForGhepLop()
@@ -62,80 +54,6 @@ namespace DoAnWD.BLL.Services
         public IEnumerable<object> GetWithLopCount()
         {
             return _giaSuRepo.GetGiaSuWithLopCount();
-        }
-
-        /// <summary>
-        /// ✨ Thêm gia sư mới - LUÔN ĐẶT "RẢNH" KHI MỚI TẠO
-        /// </summary>
-        public void Add(string hoTen, string sdt, string chuyenMon, string trangThai)
-        {
-            // Validate
-            string errorMessage;
-            if (!GiaSuValidator.Validate(hoTen, sdt, chuyenMon, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage);
-            }
-
-            if (_giaSuRepo.ExistsSDT(sdt))
-                throw new ArgumentException(Constants.Messages.SDTDaTonTai);
-
-            // Gia sư mới chưa có lớp => "Rảnh", trừ khi quản lý chọn "Tạm nghỉ"
-            var giaSu = new GiaSu
-            {
-                HoTen = hoTen.Trim(),
-                SDT = sdt.Trim(),
-                ChuyenMon = chuyenMon.Trim(),
-                TrangThai = trangThai == Constants.GiaSuStatus.TamNghi
-                    ? Constants.GiaSuStatus.TamNghi
-                    : Constants.GiaSuStatus.Ranh
-            };
-
-            // Save
-            _giaSuRepo.Add(giaSu);
-            _giaSuRepo.SaveChanges();
-        }
-
-        /// <summary>
-        /// ✨ Cập nhật gia sư - TỰ ĐỘNG ĐIỀU CHỈNH TRẠNG THÁI
-        /// </summary>
-        public void Update(int maGS, string hoTen, string sdt, string chuyenMon, string trangThai)
-        {
-            // Validate
-            string errorMessage;
-            if (!GiaSuValidator.Validate(hoTen, sdt, chuyenMon, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage);
-            }
-
-            // Find entity
-            var giaSu = _giaSuRepo.GetById(maGS);
-            if (giaSu == null)
-            {
-                throw new Exception("Không tìm thấy gia sư.");
-            }
-
-            if (_giaSuRepo.ExistsSDT(sdt, maGS))
-                throw new ArgumentException(Constants.Messages.SDTDaTonTai);
-
-            // Update thông tin cơ bản
-            giaSu.HoTen = hoTen.Trim();
-            giaSu.SDT = sdt.Trim();
-            giaSu.ChuyenMon = chuyenMon.Trim();
-
-            // Trạng thái: quản lý chỉ chủ động chọn "Tạm nghỉ" (ngừng nhận lớp mới).
-            // Các trạng thái khác (Rảnh / Bận / Đang dạy) tính tự động theo lịch dạy.
-            if (trangThai == Constants.GiaSuStatus.TamNghi)
-            {
-                giaSu.TrangThai = Constants.GiaSuStatus.TamNghi;
-            }
-            else
-            {
-                giaSu.TrangThai = Constants.GiaSuStatus.Ranh;
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS);
-            }
-
-            _giaSuRepo.Update(giaSu);
-            _giaSuRepo.SaveChanges();
         }
 
         /// <summary>
@@ -239,49 +157,11 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// Đếm gia sư rảnh
-        /// </summary>
-        public int CountAvailable()
-        {
-            return _giaSuRepo.Count(g =>
-                g.TrangThai == Constants.GiaSuStatus.Ranh ||
-                g.TrangThai == Constants.GiaSuStatus.SanSang ||
-                g.TrangThai == null
-            );
-        }
-
-        /// <summary>
-        /// ✨ Đếm gia sư bận - CẬP NHẬT CHO OPTION 2
-        /// </summary>
-        public int CountBusy()
-        {
-            return _giaSuRepo.Count(g =>
-                g.TrangThai == Constants.GiaSuStatus.Ban ||
-                g.TrangThai == Constants.GiaSuStatus.DangDay);
-        }
-
-        /// <summary>
         /// Số lớp đang hoạt động (chưa bắt đầu / đang diễn ra) của một gia sư
         /// </summary>
         public int CountActiveLopHoc(int maGS)
         {
             return _giaSuRepo.CountActiveLopHoc(maGS);
-        }
-
-        /// <summary>
-        /// Đếm gia sư tạm nghỉ
-        /// </summary>
-        public int CountTamNghi()
-        {
-            return _giaSuRepo.Count(g => g.TrangThai == Constants.GiaSuStatus.TamNghi);
-        }
-
-        /// <summary>
-        /// Đếm gia sư đang dạy (backward compatible)
-        /// </summary>
-        public int CountTeaching()
-        {
-            return _giaSuRepo.Count(g => g.TrangThai == Constants.GiaSuStatus.DangDay);
         }
 
         public void Dispose()

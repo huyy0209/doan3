@@ -3,6 +3,7 @@ using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -108,19 +109,6 @@ namespace DoAnWD
         // THANH TRẠNG THÁI
         // ===================================================================
 
-        /// <summary>
-        /// Giảm nháy khi đổi màn hình / thay đổi kích thước (vẽ toàn bộ cửa sổ một lần)
-        /// </summary>
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                var cp = base.CreateParams;
-                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
-                return cp;
-            }
-        }
-
         private void InitializeShell()
         {
             TaoMenuMoi();
@@ -163,9 +151,9 @@ namespace DoAnWD
             btnHocTap = new NavButton { Text = "Điểm danh & điểm", Glyph = Glyph.Clipboard, Name = "btnHocTap" };
             btnHocPhi = new NavButton { Text = "Học phí", Glyph = Glyph.Money, Name = "btnHocPhi" };
             btnTaiKhoan = new NavButton { Text = "Tài khoản", Glyph = Glyph.Key, Name = "btnTaiKhoan" };
-            btnHocTap.Click += (s, e) => { ChonMenu(btnHocTap); LoadChildForm(new frmHocTap()); };
-            btnHocPhi.Click += (s, e) => { ChonMenu(btnHocPhi); LoadChildForm(new frmHocPhi()); };
-            btnTaiKhoan.Click += (s, e) => { ChonMenu(btnTaiKhoan); LoadChildForm(new frmTaiKhoan()); };
+            btnHocTap.Click += (s, e) => { ChonMenu(btnHocTap); MoTrang<frmHocTap>(); };
+            btnHocPhi.Click += (s, e) => { ChonMenu(btnHocPhi); MoTrang<frmHocPhi>(); };
+            btnTaiKhoan.Click += (s, e) => { ChonMenu(btnTaiKhoan); MoTrang<frmTaiKhoan>(); };
             btnHocTap.UseMnemonic = false;
 
             // Thứ tự hiển thị từ trên xuống (Dock Top: thêm sau nằm trên => thêm ngược)
@@ -246,16 +234,14 @@ namespace DoAnWD
             lblSubtitle.Text = $"Cập nhật lúc {lastUpdateTime:HH:mm}";
         }
 
+        /// <summary>
+        /// Timer tự cập nhật: chỉ nạp lại các trang chỉ-xem (Tổng quan, Ghép lớp, Lịch học),
+        /// không đụng trang đang nhập liệu để khỏi mất chữ người dùng đang gõ.
+        /// </summary>
         private void RefreshActiveFormIfNeeded()
         {
-            if (activeChild != null)
-            {
-                if (activeChild is frmGhepLop || activeChild is frmThongKe)
-                {
-                    var type = activeChild.GetType();
-                    LoadChildForm((Form)Activator.CreateInstance(type));
-                }
-            }
+            if (activeChild is frmThongKe || activeChild is frmGhepLop || activeChild is frmCalendarView)
+                (activeChild as ILamMoi)?.LamMoi();
         }
 
         // ===================================================================
@@ -402,42 +388,48 @@ namespace DoAnWD
         }
 
         // ===================================================================
-        // NAVIGATION METHODS - GIỮ NGUYÊN
+        // ĐIỀU HƯỚNG GIỮA CÁC TRANG
         // ===================================================================
 
-        private void LoadChildForm(Form frm)
+        // Mỗi màn hình chỉ dựng giao diện MỘT lần rồi giữ lại; lần sau mở chỉ nạp lại dữ liệu
+        // => chuyển trang tức thì, không khựng.
+        private readonly Dictionary<Type, Form> _trang = new Dictionary<Type, Form>();
+
+        private void MoTrang<T>() where T : Form, new()
         {
-            // Chụp trang cũ để làm hiệu ứng chuyển trang
-            var anhTrangCu = activeChild != null ? PageTransition.Snapshot(panelHost) : null;
+            Form frm;
+            bool moi = !_trang.TryGetValue(typeof(T), out frm) || frm.IsDisposed;
+            if (!moi && frm == activeChild) return;
 
             panelHost.SuspendLayout();
             try
             {
-                if (activeChild != null)
+                if (moi)
                 {
-                    activeChild.Close();
-                    activeChild.Dispose();
-                    panelHost.Controls.Clear();
-                    activeChild = null;
+                    frm = new T
+                    {
+                        TopLevel = false,
+                        FormBorderStyle = FormBorderStyle.None,
+                        Dock = DockStyle.Fill
+                    };
+                    ThemeManager.Apply(frm);   // màn hình cũ dựng bằng Designer: áp giao diện trước khi hiện
+                    panelHost.Controls.Add(frm);
+                    _trang[typeof(T)] = frm;
                 }
 
-                activeChild = frm;
-                frm.TopLevel = false;
-                frm.FormBorderStyle = FormBorderStyle.None;
-                frm.Dock = DockStyle.Fill;
-
-                // Áp giao diện trước khi hiện để không thấy màu cũ chớp qua
-                ThemeManager.Apply(frm);
-
-                panelHost.Controls.Add(frm);
                 frm.Show();
+                frm.BringToFront();
+                if (activeChild != null && activeChild != frm) activeChild.Hide();
+                activeChild = frm;
             }
             finally
             {
                 panelHost.ResumeLayout(true);
             }
 
-            PageTransition.Run(panelHost, anhTrangCu, frm);
+            // Trang đã có sẵn: hiện ngay, nạp dữ liệu mới ngay sau đó
+            if (!moi && frm is ILamMoi)
+                BeginInvoke((MethodInvoker)(() => ((ILamMoi)frm).LamMoi()));
         }
 
         /// <summary>
@@ -485,31 +477,31 @@ namespace DoAnWD
         private void btnGiaSu_Click(object sender, EventArgs e)
         {
             ChonMenu(btnGiaSu);
-            LoadChildForm(new frmGiaSu());
+            MoTrang<frmGiaSu>();
         }
 
         private void btnHocVien_Click(object sender, EventArgs e)
         {
             ChonMenu(btnHocVien);
-            LoadChildForm(new frmHocVien());
+            MoTrang<frmHocVien>();
         }
 
         private void btnGhepLop_Click(object sender, EventArgs e)
         {
             ChonMenu(btnGhepLop);
-            LoadChildForm(new frmGhepLop());
+            MoTrang<frmGhepLop>();
         }
 
         private void btnThongKe_Click(object sender, EventArgs e)
         {
             ChonMenu(btnThongKe);
-            LoadChildForm(new frmThongKe());
+            MoTrang<frmThongKe>();
         }
 
         private void btnCalendar_Click(object sender, EventArgs e)
         {
             ChonMenu(btnCalendar);
-            LoadChildForm(new frmCalendarView());
+            MoTrang<frmCalendarView>();
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -528,8 +520,7 @@ namespace DoAnWD
                     System.Diagnostics.Debug.WriteLine($"[MANUAL REFRESH ERROR] {ex.Message}");
                 }
 
-                var type = activeChild.GetType();
-                LoadChildForm((Form)Activator.CreateInstance(type));
+                (activeChild as ILamMoi)?.LamMoi();   // bấm tay: nạp lại mọi trang
             }
         }
 

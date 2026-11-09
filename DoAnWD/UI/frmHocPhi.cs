@@ -15,8 +15,10 @@ namespace DoAnWD
     /// <summary>
     /// Học phí: công nợ từng lớp (học phí, đã đóng, còn nợ) + ghi nhận các lần phụ huynh đóng tiền.
     /// </summary>
-    public class frmHocPhi : Form, ITuGiaoDien
+    public class frmHocPhi : Form, ITuGiaoDien, ILamMoi
     {
+        public void LamMoi() { NapDuLieu(); }
+
         private static readonly CultureInfo Vi = CultureInfo.GetCultureInfo("vi-VN");
         private readonly HocPhiService _service = new HocPhiService();
         private List<CongNoLop> _congNo = new List<CongNoLop>();
@@ -106,7 +108,7 @@ namespace DoAnWD
             // ---- Ghi nhận đóng tiền ----
             lblLopChon = new Label { Font = Theme.BodyStrong, ForeColor = Theme.Ink, AutoSize = true, MaximumSize = new Size(380, 0), Margin = new Padding(0, 0, 0, 4) };
             txtSoTien = Ui.Input("Số tiền (đ)");
-            txtSoTien.Leave += (s, e) => { decimal v; if (TryTien(txtSoTien.Text, out v)) txtSoTien.Text = v.ToString("N0", Vi); };
+            txtSoTien.Leave += (s, e) => { decimal v; if (SoTien.TryParse(txtSoTien.Text, out v)) txtSoTien.Text = v.ToString("N0", Vi); };
             dtpNgay = Ui.Date(150);
             dtpNgay.MaxDate = DateTime.Now.Date;
             dtpNgay.Value = DateTime.Now.Date;
@@ -158,13 +160,6 @@ namespace DoAnWD
             root.Controls.Add(tiles, 0, 1);
             root.Controls.Add(cot, 0, 2);
             Controls.Add(root);
-        }
-
-        private static bool TryTien(string text, out decimal v)
-        {
-            v = 0;
-            string so = new string((text ?? "").Where(char.IsDigit).ToArray());
-            return so.Length > 0 && so.Length <= 12 && decimal.TryParse(so, out v) && v > 0;
         }
 
         private CongNoLop LopChon
@@ -260,7 +255,7 @@ namespace DoAnWD
             var c = LopChon;
             decimal tien;
             if (c == null) return;
-            if (!TryTien(txtSoTien.Text, out tien))
+            if (!SoTien.TryParse(txtSoTien.Text, out tien))
             {
                 MessageBox.Show("Nhập số tiền, ví dụ 750.000.", Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtSoTien.Focus();

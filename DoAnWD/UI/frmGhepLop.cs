@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
 
 namespace DoAnWD
 {
@@ -13,8 +14,10 @@ namespace DoAnWD
     /// ✨ Form quản lý Lớp Học - CẬP NHẬT CHO OPTION 2
     /// Master-Detail: Gia Sư → Lớp Học
     /// </summary>
-    public partial class frmGhepLop : Form
+    public partial class frmGhepLop : Form, ILamMoi
     {
+        public void LamMoi() { LoadGiaSuList(); }
+
         private GiaSuService _giaSuService;
         private LopHocService _lopHocService;
 

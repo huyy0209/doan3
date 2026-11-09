@@ -110,7 +110,7 @@ namespace DoAnWD
             txtHocPhi.Leave += (s, e) =>
             {
                 decimal hp;
-                if (TryParseHocPhi(txtHocPhi.Text, out hp))
+                if (SoTien.TryParse(txtHocPhi.Text, out hp))
                     txtHocPhi.Text = hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
             };
 
@@ -305,7 +305,7 @@ namespace DoAnWD
                 var lop = _lopHoatDong.Where(l => l.MaHV == hv.MaHV).ToList();
                 lblHVInfo.Text = lop.Count == 0
                     ? "Chưa có lớp nào đang học."
-                    : "Đang học: " + string.Join("; ", lop.Select(l => $"{l.MonHoc} ({Theme.ShiftShortName(l.CaHoc)})"));
+                    : "Đang học: " + string.Join("; ", lop.Select(l => $"{l.MonHoc} ({Constants.CaHoc.TenNgan(l.CaHoc)})"));
             }
             lstCa.Invalidate();
         }
@@ -318,7 +318,7 @@ namespace DoAnWD
                 .OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc)).ToList();
             lblLichGS.Text = lop.Count == 0
                 ? $"{gs.HoTen} chưa dạy lớp nào."
-                : $"Lịch dạy: " + string.Join("; ", lop.Select(l => $"{Theme.ShiftShortName(l.CaHoc)} {l.MonHoc} đến {l.ThoiGianKetThuc:dd/MM}"));
+                : $"Lịch dạy: " + string.Join("; ", lop.Select(l => $"{Constants.CaHoc.TenNgan(l.CaHoc)} {l.MonHoc} đến {l.ThoiGianKetThuc:dd/MM}"));
         }
 
         /// <summary>Tóm tắt + cảnh báo + bật/tắt nút Ghép lớp</summary>
@@ -328,7 +328,7 @@ namespace DoAnWD
             var gs = GiaSuChon;
             string ca = CaChon;
             decimal hp;
-            bool coHocPhi = TryParseHocPhi(txtHocPhi.Text, out hp);
+            bool coHocPhi = SoTien.TryParse(txtHocPhi.Text, out hp);
 
             string loi = null;
             if (ca != null && hv != null)
@@ -385,20 +385,12 @@ namespace DoAnWD
             }
             else
             {
-                lblTomTat.Text = $"{hv.HoTen} học {gs.ChuyenMon} với {gs.HoTen}, ca {Theme.ShiftShortName(ca)}, " +
+                lblTomTat.Text = $"{hv.HoTen} học {gs.ChuyenMon} với {gs.HoTen}, ca {Constants.CaHoc.TenNgan(ca)}, " +
                                  $"{dtpBatDau.Value:dd/MM} – {dtpKetThuc.Value:dd/MM/yyyy}, {hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ";
                 lblTomTat.ForeColor = loi == null ? Theme.Text : Theme.Margin;
             }
 
             btnGhepLop.Enabled = thieu.Count == 0 && loi == null;
-        }
-
-        private static bool TryParseHocPhi(string text, out decimal hocPhi)
-        {
-            hocPhi = 0;
-            if (string.IsNullOrWhiteSpace(text)) return false;
-            string so = new string(text.Where(char.IsDigit).ToArray());
-            return so.Length > 0 && so.Length <= 12 && decimal.TryParse(so, out hocPhi) && hocPhi > 0;
         }
 
         // ===================================================================
@@ -482,7 +474,7 @@ namespace DoAnWD
             var gs = GiaSuChon;
             string ca = CaChon;
             decimal hp;
-            if (hv == null || gs == null || ca == null || !TryParseHocPhi(txtHocPhi.Text, out hp)) return;
+            if (hv == null || gs == null || ca == null || !SoTien.TryParse(txtHocPhi.Text, out hp)) return;
 
             try
             {

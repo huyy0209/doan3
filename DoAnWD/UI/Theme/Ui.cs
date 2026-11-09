@@ -146,7 +146,7 @@ namespace DoAnWD.UI
         public static Rectangle DrawListItemBackground(DrawItemEventArgs e, bool dim = false)
         {
             bool sel = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-            using (var b = new SolidBrush(sel ? Theme.InkSelect : dim ? Theme.PaperAlt : Theme.Surface))
+            using (var b = new SolidBrush(sel ? Theme.RowSelect : dim ? Theme.PaperAlt : Theme.Surface))
                 e.Graphics.FillRectangle(b, e.Bounds);
             using (var p = new Pen(Theme.Rule))
                 e.Graphics.DrawLine(p, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
