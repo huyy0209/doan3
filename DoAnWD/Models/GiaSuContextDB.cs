@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Linq;
@@ -7,6 +7,13 @@ namespace DoAnWD.Models
 {
     public partial class GiaSuContextDB : DbContext
     {
+        static GiaSuContextDB()
+        {
+            // CSDL được tạo bằng script Database/QuanLyGiaSu.sql
+            // => tắt cơ chế tự tạo/kiểm tra model của EF
+            Database.SetInitializer<GiaSuContextDB>(null);
+        }
+
         public GiaSuContextDB()
             : base("name=GiaSuContextDB")
         {
