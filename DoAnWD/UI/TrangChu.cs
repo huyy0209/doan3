@@ -1,14 +1,18 @@
 ﻿using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
 using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace DoAnWD
 {
     /// <summary>
-    /// Form Trang Chủ - ✨ CẬP NHẬT CHO OPTION 2: Tự động cập nhật trạng thái lớp học
+    /// Khung chính của ứng dụng: menu trái, thanh tiêu đề (ngày + dải ca học + trạng thái),
+    /// vùng nội dung có đường lề đỏ. Tự động cập nhật trạng thái lớp và thông báo lớp sắp học.
     /// </summary>
     public partial class TrangChu : Form
     {
@@ -18,9 +22,13 @@ namespace DoAnWD
         private Timer autoUpdateTimer;
         private DateTime lastUpdateTime;
 
-        // Thanh trạng thái góc phải + nút menu đang chọn
-        private Label lblStatus;
-        private Button activeMenuButton;
+        // Menu đang chọn + vạch chỉ báo trượt
+        private NavButton activeMenuButton;
+        private Timer indicatorTimer;
+        private float indicatorTop;
+
+        private static readonly string[] TenThu =
+            { "Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy" };
 
         // ✨ NOTIFICATION SYSTEM
         private Timer notificationTimer;
@@ -33,7 +41,7 @@ namespace DoAnWD
 
             // NotificationService giữ danh sách lớp đã báo => sống suốt vòng đời form
             _notificationService = new NotificationService();
-            InitializeStatusLabel();
+            InitializeShell();
 
             InitializeAutoUpdateTimer();
             InitializeNotificationTimer();
@@ -100,32 +108,89 @@ namespace DoAnWD
         // THANH TRẠNG THÁI
         // ===================================================================
 
-        private void InitializeStatusLabel()
+        /// <summary>
+        /// Giảm nháy khi đổi màn hình / thay đổi kích thước (vẽ toàn bộ cửa sổ một lần)
+        /// </summary>
+        protected override CreateParams CreateParams
         {
-            lblStatus = new Label
+            get
             {
-                AutoSize = false,
-                Width = 520,
-                Height = 40,
-                TextAlign = System.Drawing.ContentAlignment.MiddleRight,
-                Font = new System.Drawing.Font("Segoe UI", 10F),
-                ForeColor = Constants.Colors.Gray,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right
-            };
-            lblStatus.Location = new System.Drawing.Point(panelTop.Width - lblStatus.Width - 20, 20);
-            panelTop.Controls.Add(lblStatus);
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
+                return cp;
+            }
         }
 
+        private void InitializeShell()
+        {
+            ThemeManager.EnableDoubleBuffer(panelHost);
+            ThemeManager.EnableDoubleBuffer(panelSidebar);
+
+            panelLogo.Paint += PanelLogo_Paint;
+            panelTop.Paint += (s, e) =>
+            {
+                using (var p = new Pen(Theme.Rule))
+                    e.Graphics.DrawLine(p, 0, panelTop.Height - 1, panelTop.Width, panelTop.Height - 1);
+            };
+            panelMarginLine.Paint += (s, e) =>
+            {
+                using (var b = new SolidBrush(Theme.Margin))
+                    e.Graphics.FillRectangle(b, 8, 0, 2, panelMarginLine.Height);
+            };
+
+            indicatorTimer = new Timer { Interval = 15 };
+            indicatorTimer.Tick += IndicatorTimer_Tick;
+        }
+
+        /// <summary>
+        /// Biểu tượng: trang vở nhỏ có đường lề đỏ và dòng kẻ
+        /// </summary>
+        private void PanelLogo_Paint(object sender, PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var page = new RectangleF(24, 30, 26, 32);
+
+            using (var path = Theme.RoundedRect(page, 3))
+            using (var b = new SolidBrush(Color.White))
+                g.FillPath(b, path);
+            using (var p = new Pen(Theme.InkMuted))
+                for (int i = 1; i <= 3; i++)
+                    g.DrawLine(p, page.X + 9, page.Y + i * 8, page.Right - 4, page.Y + i * 8);
+            using (var p = new Pen(Theme.Margin, 2f))
+                g.DrawLine(p, page.X + 6, page.Y + 2, page.X + 6, page.Bottom - 2);
+        }
+
+        /// <summary>
+        /// Cập nhật thanh tiêu đề: ngày, ca hiện tại, số lớp theo ca, lớp sắp bắt đầu
+        /// </summary>
         private void CapNhatThanhTrangThai()
         {
-            if (lblStatus == null) return;
+            var now = DateTime.Now;
+            lblTitle.Text = $"{TenThu[(int)now.DayOfWeek]}, {now:dd/MM/yyyy}";
 
-            int sapBatDau = _notificationService.GetUpcomingClassCount(24);
-            lblStatus.Text = $"🔄 Cập nhật lúc {lastUpdateTime:HH:mm}   |   " +
-                             (sapBatDau > 0
-                                 ? $"🔔 {sapBatDau} lớp bắt đầu trong 24 giờ tới"
-                                 : "✅ Không có lớp sắp bắt đầu");
-            lblStatus.ForeColor = sapBatDau > 0 ? Constants.Colors.Orange : Constants.Colors.Gray;
+            string ca = ShiftRibbon.CaHienTai(now);
+            lblSubtitle.Text = ca != null ? $"Đang trong ca {ca}" : "Ngoài giờ học";
+
+            try
+            {
+                using (var service = new LopHocService())
+                    shiftRibbon.SetSoLop(service.GetSoLopHomNayTheoCa());
+
+                int sapBatDau = _notificationService.GetUpcomingClassCount(24);
+                lblStatus.Text = sapBatDau > 0
+                    ? $"{sapBatDau} lớp bắt đầu trong 24 giờ tới"
+                    : "Không có lớp sắp bắt đầu";
+                lblStatus.ForeColor = sapBatDau > 0 ? Theme.Warning : Theme.TextMuted;
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Không đọc được dữ liệu";
+                lblStatus.ForeColor = Theme.Margin;
+                System.Diagnostics.Debug.WriteLine($"[HEADER] {ex.Message}");
+            }
+
+            lblUpdated.Text = $"Cập nhật lúc {lastUpdateTime:HH:mm}";
         }
 
         private void RefreshActiveFormIfNeeded()
@@ -262,6 +327,9 @@ namespace DoAnWD
                 System.Diagnostics.Debug.WriteLine("[TIMER] Auto-update timer đã dừng.");
             }
 
+            indicatorTimer?.Stop();
+            indicatorTimer?.Dispose();
+
             if (notificationTimer != null)
             {
                 notificationTimer.Stop();
@@ -283,64 +351,103 @@ namespace DoAnWD
 
         private void LoadChildForm(Form frm)
         {
-            if (activeChild != null)
+            panelHost.SuspendLayout();
+            try
             {
-                activeChild.Close();
-                activeChild.Dispose();
-                panelHost.Controls.Clear();
-                activeChild = null;
-            }
+                if (activeChild != null)
+                {
+                    activeChild.Close();
+                    activeChild.Dispose();
+                    panelHost.Controls.Clear();
+                    activeChild = null;
+                }
 
-            activeChild = frm;
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-            panelHost.Controls.Add(frm);
-            frm.Show();
+                activeChild = frm;
+                frm.TopLevel = false;
+                frm.FormBorderStyle = FormBorderStyle.None;
+                frm.Dock = DockStyle.Fill;
+
+                // Áp giao diện trước khi hiện để không thấy màu cũ chớp qua
+                ThemeManager.Apply(frm);
+
+                panelHost.Controls.Add(frm);
+                frm.Show();
+            }
+            finally
+            {
+                panelHost.ResumeLayout(true);
+            }
         }
 
         /// <summary>
-        /// Tô sáng nút menu đang mở và hiển thị tên màn hình trên tiêu đề
+        /// Đánh dấu mục menu đang mở; vạch đỏ trượt tới mục đó
         /// </summary>
-        private void ChonMenu(Button btn, string tenManHinh)
+        private void ChonMenu(NavButton btn)
         {
             if (activeMenuButton != null)
-                activeMenuButton.BackColor = panelSidebar.BackColor;
+                activeMenuButton.Active = false;
 
             activeMenuButton = btn;
-            if (btn != null)
-                btn.BackColor = Constants.Colors.Blue;
+            btn.Active = true;
 
-            lblTitle.Text = "QUẢN LÝ GIA SƯ  ›  " + tenManHinh;
+            if (!pnlIndicator.Visible || !Theme.MotionEnabled)
+            {
+                indicatorTop = btn.Top;
+                pnlIndicator.Top = btn.Top;
+                pnlIndicator.Height = btn.Height;
+                pnlIndicator.Visible = true;
+                pnlIndicator.BringToFront();
+                return;
+            }
+
+            indicatorTop = pnlIndicator.Top;
+            indicatorTimer.Start();
+        }
+
+        private void IndicatorTimer_Tick(object sender, EventArgs e)
+        {
+            if (activeMenuButton == null) { indicatorTimer.Stop(); return; }
+
+            float target = activeMenuButton.Top;
+            indicatorTop += (target - indicatorTop) * 0.3f; // ease-out
+
+            if (Math.Abs(target - indicatorTop) < 0.5f)
+            {
+                indicatorTop = target;
+                indicatorTimer.Stop();
+            }
+
+            pnlIndicator.Top = (int)Math.Round(indicatorTop);
+            pnlIndicator.BringToFront();
         }
 
         private void btnGiaSu_Click(object sender, EventArgs e)
         {
-            ChonMenu(btnGiaSu, "Gia sư");
+            ChonMenu(btnGiaSu);
             LoadChildForm(new frmGiaSu());
         }
 
         private void btnHocVien_Click(object sender, EventArgs e)
         {
-            ChonMenu(btnHocVien, "Học viên");
+            ChonMenu(btnHocVien);
             LoadChildForm(new frmHocVien());
         }
 
         private void btnGhepLop_Click(object sender, EventArgs e)
         {
-            ChonMenu(btnGhepLop, "Ghép lớp");
+            ChonMenu(btnGhepLop);
             LoadChildForm(new frmGhepLop());
         }
 
         private void btnThongKe_Click(object sender, EventArgs e)
         {
-            ChonMenu(btnThongKe, "Thống kê");
+            ChonMenu(btnThongKe);
             LoadChildForm(new frmThongKe());
         }
 
         private void btnCalendar_Click(object sender, EventArgs e)
         {
-            ChonMenu(btnCalendar, "Lịch học");
+            ChonMenu(btnCalendar);
             LoadChildForm(new frmCalendarView());
         }
 

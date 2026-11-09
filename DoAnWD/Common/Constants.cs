@@ -96,20 +96,23 @@ namespace DoAnWD.Common
         /// <summary>
         /// Màu sắc chuẩn
         /// </summary>
+        /// <summary>
+        /// Màu dùng chung - lấy từ bộ giao diện "Vở ô li" (DoAnWD.UI.Theme)
+        /// </summary>
         public static class Colors
         {
-            public static readonly Color Green = Color.FromArgb(46, 204, 113);
-            public static readonly Color Red = Color.FromArgb(231, 76, 60);
-            public static readonly Color Blue = Color.FromArgb(52, 152, 219);
-            public static readonly Color Orange = Color.FromArgb(230, 126, 34);
-            public static readonly Color Gray = Color.FromArgb(149, 165, 166);
-            public static readonly Color LightGray = Color.FromArgb(236, 240, 241);
-            public static readonly Color DarkGray = Color.FromArgb(52, 73, 94);
+            public static readonly Color Green = DoAnWD.UI.Theme.Success;
+            public static readonly Color Red = DoAnWD.UI.Theme.Margin;
+            public static readonly Color Blue = DoAnWD.UI.Theme.Ink;
+            public static readonly Color Orange = DoAnWD.UI.Theme.Warning;
+            public static readonly Color Gray = DoAnWD.UI.Theme.Neutral;
+            public static readonly Color LightGray = DoAnWD.UI.Theme.NeutralSoft;
+            public static readonly Color DarkGray = DoAnWD.UI.Theme.Text;
 
-            public static readonly Color ActiveGreen = Color.FromArgb(212, 239, 223);
-            public static readonly Color ActiveOrange = Color.FromArgb(255, 243, 224);
-            public static readonly Color ActiveBlue = Color.FromArgb(214, 234, 248);
-            public static readonly Color InactiveGray = Color.FromArgb(236, 240, 241);
+            public static readonly Color ActiveGreen = DoAnWD.UI.Theme.SuccessSoft;
+            public static readonly Color ActiveOrange = DoAnWD.UI.Theme.WarningSoft;
+            public static readonly Color ActiveBlue = DoAnWD.UI.Theme.InkSoft;
+            public static readonly Color InactiveGray = DoAnWD.UI.Theme.NeutralSoft;
         }
 
         /// <summary>

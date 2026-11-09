@@ -254,6 +254,23 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
+        /// Số lớp có buổi học hôm nay theo từng ca (bỏ lớp đã hủy)
+        /// </summary>
+        public Dictionary<string, int> GetSoLopHomNayTheoCa()
+        {
+            var homNay = DateTime.Now.Date;
+
+            return _lopHocRepo.GetAll()
+                .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
+                            !string.IsNullOrEmpty(l.CaHoc) &&
+                            l.ThoiGianBatDau.HasValue && l.ThoiGianKetThuc.HasValue &&
+                            l.ThoiGianBatDau.Value.Date <= homNay &&
+                            l.ThoiGianKetThuc.Value.Date >= homNay)
+                .GroupBy(l => l.CaHoc)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        /// <summary>
         /// Lấy lớp học theo ca
         /// </summary>
         public IEnumerable<LopHoc> GetLopHocByCa(string caHoc)
