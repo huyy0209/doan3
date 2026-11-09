@@ -9,7 +9,15 @@ using DoAnWD.Models;
 namespace DoAnWD.BLL.Services
 {
     /// <summary>
-    /// Business Logic cho Lớp Học - ✨ CẬP NHẬT CHO OPTION 2
+    /// Business Logic cho Lớp Học.
+    ///
+    /// Luật ghép lớp:
+    ///  1. Gia sư không được "Tạm nghỉ".
+    ///  2. Gia sư KHÔNG có lớp khác cùng ca trong khoảng ngày giao nhau.
+    ///  3. Học viên KHÔNG có lớp khác cùng ca trong khoảng ngày giao nhau.
+    ///  4. Học viên không học trùng môn với cùng gia sư khi lớp cũ còn hoạt động.
+    ///  5. Trạng thái lớp tính theo thời gian (Chưa bắt đầu / Đang diễn ra / Đã kết thúc).
+    ///  6. Sau mỗi thay đổi, trạng thái gia sư được đồng bộ theo lịch dạy.
     /// </summary>
     public class LopHocService : IDisposable
     {
@@ -51,145 +59,160 @@ namespace DoAnWD.BLL.Services
         }
 
         // ===================================================================
-        // ✨ PHƯƠNG THỨC GHÉP LỚP CŨ - GIỮ LẠI ĐỂ BACKWARD COMPATIBLE
+        // GHÉP LỚP
         // ===================================================================
+
         /// <summary>
-        /// Ghép lớp mới (không có thời gian) - Deprecated
+        /// Ghép lớp mới (không có thời gian) - Deprecated, giữ để tương thích
         /// </summary>
         public void GhepLop(int maHV, int maGS, string monHoc, decimal hocPhi, string trangThai)
         {
-            // Gọi overload mới với thời gian mặc định
             DateTime batDau = DateTime.Now.Date.AddDays(1); // Ngày mai
-            DateTime ketThuc = batDau.AddMonths(1); // Sau 1 tháng
-            string caHoc = Constants.CaHoc.Sang; // Ca mặc định
-
-            GhepLop(maHV, maGS, monHoc, hocPhi, trangThai, batDau, ketThuc, caHoc);
+            DateTime ketThuc = batDau.AddMonths(1);         // Sau 1 tháng
+            GhepLop(maHV, maGS, monHoc, hocPhi, trangThai, batDau, ketThuc, Constants.CaHoc.Sang);
         }
 
-        // ===================================================================
-        // ✨ PHƯƠNG THỨC GHÉP LỚP MỚI - CHO OPTION 2
-        // ===================================================================
         /// <summary>
-        /// Ghép lớp mới với thời gian và ca học
+        /// Ghép lớp mới với thời gian và ca học.
+        /// Tham số trangThai được bỏ qua: trạng thái luôn tính theo thời gian.
         /// </summary>
-        public void GhepLop(int maHV, int maGS, string monHoc, decimal hocPhi, string trangThai,
+        public LopHoc GhepLop(int maHV, int maGS, string monHoc, decimal hocPhi, string trangThai,
             DateTime thoiGianBatDau, DateTime thoiGianKetThuc, string caHoc)
         {
-            // ✅ Validate cơ bản
+            // 1. Validate dữ liệu nhập
             string errorMessage;
             if (!LopHocValidator.Validate(maHV, maGS, monHoc, hocPhi, out errorMessage))
-            {
                 throw new ArgumentException(errorMessage);
-            }
 
-            // ✅ Validate thời gian
-            if (thoiGianBatDau >= thoiGianKetThuc)
-            {
-                throw new ArgumentException(Constants.Messages.ThoiGianKhongHopLe);
-            }
+            if (!LopHocValidator.ValidateLich(thoiGianBatDau, thoiGianKetThuc, caHoc, out errorMessage))
+                throw new ArgumentException(errorMessage);
 
-            if (thoiGianBatDau < DateTime.Now.Date)
-            {
-                throw new ArgumentException(Constants.Messages.ThoiGianQuaKhu);
-            }
+            // 2. Kiểm tra gia sư / học viên tồn tại
+            var giaSu = _giaSuRepo.GetById(maGS);
+            if (giaSu == null)
+                throw new InvalidOperationException("Không tìm thấy gia sư.");
+            if (giaSu.TrangThai == Constants.GiaSuStatus.TamNghi)
+                throw new InvalidOperationException(Constants.Messages.GiaSuTamNghi);
 
-            // ✅ Validate ca học
-            if (string.IsNullOrWhiteSpace(caHoc))
-            {
-                throw new ArgumentException(Constants.Messages.VuiLongChonCaHoc);
-            }
+            var hocVien = _hocVienRepo.GetById(maHV);
+            if (hocVien == null)
+                throw new InvalidOperationException("Không tìm thấy học viên.");
 
-            // ✅ Kiểm tra gia sư có rảnh trong thời gian này không
-            if (IsGiaSuBusy(maGS, thoiGianBatDau, thoiGianKetThuc))
-            {
-                var giaSu = _giaSuRepo.GetById(maGS);
-                throw new InvalidOperationException(
-                    $"Gia sư '{giaSu?.HoTen}' đã có lớp trong thời gian này.\n{Constants.Messages.GiaSuKhongRanh}");
-            }
+            // 3. Kiểm tra trùng lịch (gia sư + học viên)
+            string xungDot = TimXungDot(maGS, maHV, monHoc, caHoc, thoiGianBatDau, thoiGianKetThuc);
+            if (xungDot != null)
+                throw new InvalidOperationException(xungDot);
 
-            // ✅ Kiểm tra trùng ca học (nếu cùng gia sư, cùng ca, cùng thời gian)
-            if (IsCaHocConflict(maGS, caHoc, thoiGianBatDau, thoiGianKetThuc))
-            {
-                throw new InvalidOperationException(Constants.Messages.CaHocBiTrung);
-            }
-
-            // ✅ Tạo lớp học mới
+            // 4. Tạo lớp - trạng thái tính theo thời gian
             var lopHoc = new LopHoc
             {
                 MaHV = maHV,
                 MaGS = maGS,
                 MonHoc = monHoc.Trim(),
                 HocPhi = hocPhi,
-                TrangThai = string.IsNullOrWhiteSpace(trangThai) ? Constants.LopHocStatus.ChuaBatDau : trangThai,
                 ThoiGianBatDau = thoiGianBatDau,
                 ThoiGianKetThuc = thoiGianKetThuc,
                 CaHoc = caHoc
             };
+            lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
 
-            // ✅ Validate lần cuối bằng model method
-            string validationError = lopHoc.ValidateThoiGian();
-            if (validationError != null)
-            {
-                throw new ArgumentException(validationError);
-            }
-
-            // ✅ Lưu vào DB
             _lopHocRepo.Add(lopHoc);
+            _lopHocRepo.SaveChanges();
 
-            // ✅ Cập nhật trạng thái gia sư
-            var giaSuEntity = _giaSuRepo.GetById(maGS);
-            if (giaSuEntity != null)
+            // 5. Đồng bộ trạng thái gia sư
+            _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS);
+            _giaSuRepo.SaveChanges();
+
+            return lopHoc;
+        }
+
+        /// <summary>
+        /// Tìm xung đột lịch khi ghép lớp. Trả về thông báo lỗi, hoặc null nếu hợp lệ.
+        /// Dùng chung cho Service (khi lưu) và UI (kiểm tra real-time).
+        /// </summary>
+        public string TimXungDot(int maGS, int maHV, string monHoc, string caHoc,
+            DateTime batDau, DateTime ketThuc)
+        {
+            var lopMoi = new LopHoc
             {
-                // Nếu lớp sắp bắt đầu, đánh dấu GS là "Bận"
-                if (lopHoc.TrangThaiTheoThoiGian == Constants.LopHocStatus.ChuaBatDau)
-                    giaSuEntity.TrangThai = Constants.GiaSuStatus.Ban;
-                else if (lopHoc.TrangThaiTheoThoiGian == Constants.LopHocStatus.DangDienRa)
-                    giaSuEntity.TrangThai = Constants.GiaSuStatus.DangDay;
+                MaGS = maGS,
+                MaHV = maHV,
+                CaHoc = caHoc,
+                ThoiGianBatDau = batDau,
+                ThoiGianKetThuc = ketThuc
+            };
 
-                _giaSuRepo.Update(giaSuEntity);
+            var lopLienQuan = _lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV);
+
+            var trungGiaSu = lopLienQuan.FirstOrDefault(l => l.MaGS == maGS && l.TrungLich(lopMoi));
+            if (trungGiaSu != null)
+                return string.Format("Gia sư đã có lớp {0} (học viên {1}) ở ca {2}, từ {3:dd/MM/yyyy} đến {4:dd/MM/yyyy}.",
+                    trungGiaSu.MonHoc, trungGiaSu.HocVien?.HoTen ?? "?", trungGiaSu.CaHoc,
+                    trungGiaSu.ThoiGianBatDau, trungGiaSu.ThoiGianKetThuc);
+
+            var trungHocVien = lopLienQuan.FirstOrDefault(l => l.MaHV == maHV && l.TrungLich(lopMoi));
+            if (trungHocVien != null)
+                return string.Format("Học viên đã có lớp {0} (gia sư {1}) ở ca {2}, từ {3:dd/MM/yyyy} đến {4:dd/MM/yyyy}.",
+                    trungHocVien.MonHoc, trungHocVien.GiaSu?.HoTen ?? "?", trungHocVien.CaHoc,
+                    trungHocVien.ThoiGianBatDau, trungHocVien.ThoiGianKetThuc);
+
+            if (!string.IsNullOrWhiteSpace(monHoc))
+            {
+                string mon = monHoc.Trim();
+                var trungMon = lopLienQuan.FirstOrDefault(l =>
+                    l.MaGS == maGS && l.MaHV == maHV &&
+                    string.Equals(l.MonHoc?.Trim(), mon, StringComparison.OrdinalIgnoreCase) &&
+                    l.TrungThoiGian(lopMoi));
+                if (trungMon != null)
+                    return string.Format("Học viên đang học môn {0} với gia sư này (lớp {1}, {2}).",
+                        trungMon.MonHoc, trungMon.MaLop, trungMon.CaHoc);
             }
 
-            _lopHocRepo.SaveChanges();
+            return null;
+        }
+
+        /// <summary>
+        /// Các ca đã bị chiếm (của gia sư hoặc học viên) trong khoảng ngày cho trước.
+        /// UI dùng để tô đỏ ca không chọn được.
+        /// </summary>
+        public HashSet<string> GetCaDaBan(int maGS, int maHV, DateTime batDau, DateTime ketThuc)
+        {
+            var khoang = new LopHoc { ThoiGianBatDau = batDau, ThoiGianKetThuc = ketThuc };
+
+            return new HashSet<string>(
+                _lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV)
+                    .Where(l => !string.IsNullOrEmpty(l.CaHoc) && l.TrungThoiGian(khoang))
+                    .Select(l => l.CaHoc),
+                StringComparer.OrdinalIgnoreCase);
         }
 
         // ===================================================================
-        // ✨ PHƯƠNG THỨC TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI - CORE FEATURE
+        // TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI
         // ===================================================================
+
         /// <summary>
-        /// Tự động cập nhật trạng thái tất cả lớp học dựa trên thời gian
+        /// Cập nhật trạng thái tất cả lớp theo thời gian, sau đó đồng bộ trạng thái
+        /// của các gia sư bị ảnh hưởng.
         /// </summary>
-        /// <returns>Số lượng lớp đã cập nhật</returns>
+        /// <returns>Số lớp đã thay đổi trạng thái</returns>
         public int AutoUpdateStatus()
         {
             var allClasses = _lopHocRepo.GetAll().ToList();
+            var giaSuCanDongBo = new HashSet<int>();
             int updatedCount = 0;
 
             foreach (var lop in allClasses)
             {
-                // Sử dụng method từ Model
                 if (lop.CapNhatTrangThaiTuDong())
                 {
                     updatedCount++;
-
-                    // ✅ Cập nhật trạng thái gia sư tương ứng
                     if (lop.MaGS.HasValue)
-                    {
-                        var giaSu = _giaSuRepo.GetById(lop.MaGS.Value);
-                        if (giaSu != null)
-                        {
-                            if (lop.TrangThai == Constants.LopHocStatus.DangDienRa)
-                                giaSu.TrangThai = Constants.GiaSuStatus.DangDay;
-                            else if (lop.TrangThai == Constants.LopHocStatus.DaKetThuc)
-                            {
-                                // Kiểm tra xem GS còn lớp nào đang dạy không
-                                _giaSuRepo.UpdateStatusBasedOnLopHoc(lop.MaGS.Value);
-                            }
-
-                            _giaSuRepo.Update(giaSu);
-                        }
-                    }
+                        giaSuCanDongBo.Add(lop.MaGS.Value);
                 }
             }
+
+            foreach (int maGS in giaSuCanDongBo)
+                _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS);
 
             if (updatedCount > 0)
             {
@@ -201,50 +224,7 @@ namespace DoAnWD.BLL.Services
         }
 
         // ===================================================================
-        // ✨ HELPER METHODS - KIỂM TRA XUNG ĐỘT
-        // ===================================================================
-
-        /// <summary>
-        /// Kiểm tra gia sư có bận trong khoảng thời gian này không
-        /// </summary>
-        private bool IsGiaSuBusy(int maGS, DateTime batDau, DateTime ketThuc)
-        {
-            var existingClasses = _lopHocRepo.GetAll()
-                .Where(l => l.MaGS == maGS && l.DangHoatDong)
-                .ToList();
-
-            var newClass = new LopHoc
-            {
-                ThoiGianBatDau = batDau,
-                ThoiGianKetThuc = ketThuc
-            };
-
-            return existingClasses.Any(l => l.TrungThoiGian(newClass));
-        }
-
-        /// <summary>
-        /// Kiểm tra xung đột ca học
-        /// </summary>
-        private bool IsCaHocConflict(int maGS, string caHoc, DateTime batDau, DateTime ketThuc)
-        {
-            var existingClasses = _lopHocRepo.GetAll()
-                .Where(l => l.MaGS == maGS &&
-                            l.CaHoc == caHoc &&
-                            l.DangHoatDong)
-                .ToList();
-
-            var newClass = new LopHoc
-            {
-                ThoiGianBatDau = batDau,
-                ThoiGianKetThuc = ketThuc,
-                CaHoc = caHoc
-            };
-
-            return existingClasses.Any(l => l.TrungThoiGian(newClass) && l.TrungCaHoc(newClass));
-        }
-
-        // ===================================================================
-        // ✨ QUERY METHODS MỚI
+        // TRUY VẤN
         // ===================================================================
 
         /// <summary>
@@ -253,12 +233,12 @@ namespace DoAnWD.BLL.Services
         public IEnumerable<LopHoc> GetActiveLopHoc()
         {
             return _lopHocRepo.GetAll()
-                .Where(l => l.TrangThai == Constants.LopHocStatus.DangDienRa)
+                .Where(l => l.TrangThaiTheoThoiGian == Constants.LopHocStatus.DangDienRa)
                 .ToList();
         }
 
         /// <summary>
-        /// Lấy các lớp sắp bắt đầu (trong vòng N ngày)
+        /// Lấy các lớp sắp bắt đầu (trong vòng N ngày), bỏ qua lớp đã hủy
         /// </summary>
         public IEnumerable<LopHoc> GetUpcomingLopHoc(int soNgay = 7)
         {
@@ -266,7 +246,8 @@ namespace DoAnWD.BLL.Services
             var future = now.AddDays(soNgay);
 
             return _lopHocRepo.GetAll()
-                .Where(l => l.ThoiGianBatDau.HasValue &&
+                .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
+                            l.ThoiGianBatDau.HasValue &&
                             l.ThoiGianBatDau.Value >= now &&
                             l.ThoiGianBatDau.Value <= future)
                 .ToList();
@@ -283,33 +264,59 @@ namespace DoAnWD.BLL.Services
         }
 
         // ===================================================================
-        // PHƯƠNG THỨC CŨ - GIỮ NGUYÊN
+        // HỦY / XÓA
         // ===================================================================
 
         /// <summary>
-        /// Xóa lớp học
+        /// Hủy lớp: giữ lại bản ghi (lịch sử, thống kê) nhưng giải phóng lịch
+        /// cho gia sư và học viên.
+        /// </summary>
+        public void HuyLop(int maLop)
+        {
+            var lopHoc = _lopHocRepo.GetById(maLop);
+            if (lopHoc == null)
+                throw new InvalidOperationException("Không tìm thấy lớp học.");
+
+            if (lopHoc.TrangThai == Constants.LopHocStatus.DaHuy)
+                throw new InvalidOperationException("Lớp này đã được hủy trước đó.");
+
+            if (lopHoc.TrangThaiTheoThoiGian == Constants.LopHocStatus.DaKetThuc)
+                throw new InvalidOperationException("Lớp đã kết thúc, không thể hủy.");
+
+            lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
+            _lopHocRepo.SaveChanges();
+
+            if (lopHoc.MaGS.HasValue)
+            {
+                _giaSuRepo.UpdateStatusBasedOnLopHoc(lopHoc.MaGS.Value);
+                _giaSuRepo.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Xóa hẳn lớp học khỏi CSDL
         /// </summary>
         public void Delete(int maLop)
         {
             var lopHoc = _lopHocRepo.GetById(maLop);
             if (lopHoc == null)
-            {
-                throw new Exception("Không tìm thấy lớp học.");
-            }
+                throw new InvalidOperationException("Không tìm thấy lớp học.");
 
             int? maGS = lopHoc.MaGS;
 
-            // Xóa lớp
             _lopHocRepo.Remove(lopHoc);
             _lopHocRepo.SaveChanges();
 
-            // Cập nhật trạng thái gia sư
             if (maGS.HasValue)
             {
                 _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
                 _giaSuRepo.SaveChanges();
             }
         }
+
+        // ===================================================================
+        // ĐẾM
+        // ===================================================================
 
         /// <summary>
         /// Đếm tổng lớp học
@@ -330,7 +337,7 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// ✨ Đếm lớp theo trạng thái
+        /// Đếm lớp theo trạng thái
         /// </summary>
         public int CountByStatus(string trangThai)
         {

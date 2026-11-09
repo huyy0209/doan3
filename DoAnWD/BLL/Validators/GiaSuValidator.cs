@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 using DoAnWD.Common;
 
 namespace DoAnWD.BLL.Validators
@@ -41,6 +42,15 @@ namespace DoAnWD.BLL.Validators
                 return false;
             }
 
+            string ten = hoTen.Trim();
+            if (ten.Length < Constants.Validation.MinNameLength ||
+                ten.Length > Constants.Validation.MaxNameLength ||
+                ten.Any(char.IsDigit))
+            {
+                errorMessage = Constants.Messages.HoTenKhongHopLe;
+                return false;
+            }
+
             return true;
         }
 
@@ -76,6 +86,12 @@ namespace DoAnWD.BLL.Validators
             if (string.IsNullOrWhiteSpace(chuyenMon))
             {
                 errorMessage = Constants.Messages.VuiLongNhapChuyenMon;
+                return false;
+            }
+
+            if (chuyenMon.Trim().Length > Constants.Validation.MaxChuyenMonLength)
+            {
+                errorMessage = $"Chuyên môn tối đa {Constants.Validation.MaxChuyenMonLength} ký tự.";
                 return false;
             }
 

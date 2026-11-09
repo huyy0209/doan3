@@ -93,7 +93,14 @@ namespace DoAnWD.BLL.Services
             if (_hocVienRepo.HasActiveLopHoc(maHV))
             {
                 throw new InvalidOperationException(
-                    $"Không thể xóa!\n\nHọc viên '{hocVien.HoTen}' đang có lớp học.\n\nVui lòng xóa các lớp học trước.");
+                    $"Không thể xóa!\n\nHọc viên '{hocVien.HoTen}' đang có lớp học.\n\nVui lòng hủy các lớp học trước.");
+            }
+
+            int tongLop = _hocVienRepo.CountAllLopHoc(maHV);
+            if (tongLop > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Không thể xóa!\n\nHọc viên '{hocVien.HoTen}' đã có {tongLop} lớp trong lịch sử học.");
             }
 
             _hocVienRepo.Remove(hocVien);

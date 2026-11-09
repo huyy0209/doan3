@@ -48,6 +48,14 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
+        /// Lấy gia sư có thể nhận lớp mới (mọi gia sư trừ "Tạm nghỉ")
+        /// </summary>
+        public IEnumerable<GiaSu> GetForGhepLop()
+        {
+            return _giaSuRepo.GetGiaSuNhanLop();
+        }
+
+        /// <summary>
         /// Lấy gia sư với số lớp đang dạy
         /// </summary>
         public IEnumerable<object> GetWithLopCount()
@@ -67,14 +75,18 @@ namespace DoAnWD.BLL.Services
                 throw new ArgumentException(errorMessage);
             }
 
-            // Create entity
+            if (_giaSuRepo.ExistsSDT(sdt))
+                throw new ArgumentException(Constants.Messages.SDTDaTonTai);
+
+            // Gia sư mới chưa có lớp => "Rảnh", trừ khi quản lý chọn "Tạm nghỉ"
             var giaSu = new GiaSu
             {
                 HoTen = hoTen.Trim(),
                 SDT = sdt.Trim(),
                 ChuyenMon = chuyenMon.Trim(),
-                // ✅ LUÔN ĐẶT "RẢNH" KHI MỚI TẠO (vì chưa có lớp học nào)
-                TrangThai = Constants.GiaSuStatus.Ranh
+                TrangThai = trangThai == Constants.GiaSuStatus.TamNghi
+                    ? Constants.GiaSuStatus.TamNghi
+                    : Constants.GiaSuStatus.Ranh
             };
 
             // Save
@@ -101,25 +113,24 @@ namespace DoAnWD.BLL.Services
                 throw new Exception("Không tìm thấy gia sư.");
             }
 
+            if (_giaSuRepo.ExistsSDT(sdt, maGS))
+                throw new ArgumentException(Constants.Messages.SDTDaTonTai);
+
             // Update thông tin cơ bản
             giaSu.HoTen = hoTen.Trim();
             giaSu.SDT = sdt.Trim();
             giaSu.ChuyenMon = chuyenMon.Trim();
 
-            // ✅ XỬ LÝ TRẠNG THÁI THÔNG MINH
-            // Nếu user chọn trạng thái từ form → dùng trạng thái đó
-            // NHƯNG nếu gia sư có lớp học → tự động set "Bận"
-            if (_giaSuRepo.HasActiveLopHoc(maGS))
+            // Trạng thái: quản lý chỉ chủ động chọn "Tạm nghỉ" (ngừng nhận lớp mới).
+            // Các trạng thái khác (Rảnh / Bận / Đang dạy) tính tự động theo lịch dạy.
+            if (trangThai == Constants.GiaSuStatus.TamNghi)
             {
-                // ✅ Có lớp học → Bắt buộc "Bận" hoặc "Đang dạy"
-                giaSu.TrangThai = Constants.GiaSuStatus.Ban;
+                giaSu.TrangThai = Constants.GiaSuStatus.TamNghi;
             }
             else
             {
-                // ✅ Không có lớp → Cho phép user chọn "Rảnh" hoặc trạng thái khác
-                giaSu.TrangThai = string.IsNullOrWhiteSpace(trangThai)
-                    ? Constants.GiaSuStatus.Ranh
-                    : trangThai;
+                giaSu.TrangThai = Constants.GiaSuStatus.Ranh;
+                _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS);
             }
 
             _giaSuRepo.Update(giaSu);
@@ -143,6 +154,15 @@ namespace DoAnWD.BLL.Services
                 var lopCount = _giaSuRepo.CountActiveLopHoc(maGS);
                 throw new InvalidOperationException(
                     $"Không thể xóa!\n\nGia sư '{giaSu.HoTen}' đang có {lopCount} lớp học.\n\nVui lòng xóa các lớp học trước.");
+            }
+
+            // Có lịch sử lớp (đã kết thúc/đã hủy) => không xóa để giữ dữ liệu thống kê
+            int tongLop = _giaSuRepo.CountAllLopHoc(maGS);
+            if (tongLop > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Không thể xóa!\n\nGia sư '{giaSu.HoTen}' đã có {tongLop} lớp trong lịch sử.\n\n" +
+                    $"Hãy chuyển trạng thái sang \"{Constants.GiaSuStatus.TamNghi}\" thay vì xóa.");
             }
 
             _giaSuRepo.Remove(giaSu);
@@ -185,6 +205,14 @@ namespace DoAnWD.BLL.Services
             return _giaSuRepo.Count(g =>
                 g.TrangThai == Constants.GiaSuStatus.Ban ||
                 g.TrangThai == Constants.GiaSuStatus.DangDay);
+        }
+
+        /// <summary>
+        /// Đếm gia sư tạm nghỉ
+        /// </summary>
+        public int CountTamNghi()
+        {
+            return _giaSuRepo.Count(g => g.TrangThai == Constants.GiaSuStatus.TamNghi);
         }
 
         /// <summary>

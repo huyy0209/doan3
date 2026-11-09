@@ -17,7 +17,7 @@ namespace DoAnWD.DAL.Repositories
         }
 
         /// <summary>
-        /// Lấy gia sư rảnh hoặc sẵn sàng (để ghép lớp)
+        /// Lấy gia sư rảnh hoặc sẵn sàng
         /// </summary>
         public IEnumerable<GiaSu> GetAvailableGiaSu()
         {
@@ -29,6 +29,18 @@ namespace DoAnWD.DAL.Repositories
         }
 
         /// <summary>
+        /// Lấy gia sư có thể nhận thêm lớp: mọi gia sư trừ "Tạm nghỉ".
+        /// Gia sư đang bận vẫn nhận được lớp ở ca khác - xung đột được kiểm tra theo ca.
+        /// </summary>
+        public IEnumerable<GiaSu> GetGiaSuNhanLop()
+        {
+            return _dbSet
+                .Where(g => g.TrangThai == null || g.TrangThai != Constants.GiaSuStatus.TamNghi)
+                .OrderBy(g => g.HoTen)
+                .ToList();
+        }
+
+        /// <summary>
         /// Lấy gia sư đang dạy
         /// </summary>
         public IEnumerable<GiaSu> GetTeachingGiaSu()
@@ -37,78 +49,105 @@ namespace DoAnWD.DAL.Repositories
         }
 
         /// <summary>
-        /// ✨ Lấy gia sư với số lớp đang dạy - CẬP NHẬT CHO OPTION 2
+        /// Lấy gia sư với số lớp đang hoạt động
         /// </summary>
         public IEnumerable<object> GetGiaSuWithLopCount()
         {
+            // Biến local để EF dịch thành SQL "IN (...)"
+            var hoatDong = Constants.LopHocStatus.HoatDong;
+
             return _dbSet.Select(g => new
             {
                 g.MaGS,
                 g.HoTen,
                 g.ChuyenMon,
                 g.TrangThai,
-                // ✅ SỬA: Đếm tất cả lớp ĐANG HOẠT ĐỘNG (chưa bắt đầu + đang diễn ra + đang học)
-                SoLop = g.LopHocs.Count(l =>
-                    l.TrangThai == Constants.LopHocStatus.ChuaBatDau ||
-                    l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                    l.TrangThai == Constants.LopHocStatus.DangHoc)  // Backward compatible
+                SoLop = g.LopHocs.Count(l => hoatDong.Contains(l.TrangThai))
             }).OrderByDescending(g => g.SoLop).ToList();
         }
 
         /// <summary>
-        /// Kiểm tra gia sư có lớp đang học không
+        /// Nạp danh sách lớp của gia sư (null nếu không có gia sư)
+        /// </summary>
+        private GiaSu LoadWithLopHocs(int maGS)
+        {
+            var giaSu = _dbSet.Find(maGS);
+            if (giaSu == null) return null;
+
+            _context.Entry(giaSu).Collection(g => g.LopHocs).Load();
+            return giaSu;
+        }
+
+        /// <summary>
+        /// Kiểm tra gia sư có lớp đang hoạt động không
         /// </summary>
         public bool HasActiveLopHoc(int maGS)
         {
-            var giaSu = _dbSet.Find(maGS);
-            if (giaSu == null) return false;
-
-            _context.Entry(giaSu).Collection(g => g.LopHocs).Load();
-
-            // ✅ SỬA: Kiểm tra cả trạng thái mới
-            return giaSu.LopHocs.Any(l =>
-                l.TrangThai == Constants.LopHocStatus.DangHoc ||
-                l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                l.TrangThai == Constants.LopHocStatus.ChuaBatDau);
+            return CountActiveLopHoc(maGS) > 0;
         }
 
         /// <summary>
-        /// ✨ Đếm số lớp đang dạy của gia sư - CẬP NHẬT CHO OPTION 2
+        /// Đếm số lớp đang hoạt động (chưa bắt đầu / đang diễn ra) của gia sư
         /// </summary>
         public int CountActiveLopHoc(int maGS)
         {
-            var giaSu = _dbSet.Find(maGS);
+            var giaSu = LoadWithLopHocs(maGS);
             if (giaSu == null) return 0;
 
-            _context.Entry(giaSu).Collection(g => g.LopHocs).Load();
-
-            // ✅ SỬA: Đếm cả trạng thái mới
-            return giaSu.LopHocs.Count(l =>
-                l.TrangThai == Constants.LopHocStatus.DangHoc ||
-                l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                l.TrangThai == Constants.LopHocStatus.ChuaBatDau);
+            return giaSu.LopHocs.Count(l => l.DangHoatDong &&
+                Constants.LopHocStatus.LaHoatDong(l.TrangThaiTheoThoiGian));
         }
 
         /// <summary>
-        /// ✨ Cập nhật trạng thái gia sư dựa trên số lớp - CẬP NHẬT CHO OPTION 2
+        /// Đếm tất cả lớp (kể cả đã kết thúc/đã hủy) - dùng khi xóa
+        /// </summary>
+        public int CountAllLopHoc(int maGS)
+        {
+            var giaSu = LoadWithLopHocs(maGS);
+            return giaSu?.LopHocs.Count ?? 0;
+        }
+
+        /// <summary>
+        /// Đồng bộ trạng thái gia sư theo lịch dạy thực tế:
+        ///  - Có lớp đang diễn ra      => "Đang dạy"
+        ///  - Chỉ có lớp chưa bắt đầu => "Bận"
+        ///  - Không còn lớp            => "Rảnh"
+        ///  - "Tạm nghỉ" do quản lý đặt => giữ nguyên
+        /// (Chỉ thay đổi entity, cần gọi SaveChanges sau đó)
         /// </summary>
         public void UpdateStatusBasedOnLopHoc(int maGS)
         {
-            var giaSu = _dbSet.Find(maGS);
+            var giaSu = LoadWithLopHocs(maGS);
             if (giaSu == null) return;
 
-            _context.Entry(giaSu).Collection(g => g.LopHocs).Load();
+            if (giaSu.TrangThai == Constants.GiaSuStatus.TamNghi)
+                return;
 
-            // ✅ SỬA: Đếm lớp active với trạng thái mới
-            var activeLopCount = giaSu.LopHocs.Count(l =>
-                l.TrangThai == Constants.LopHocStatus.DangHoc ||
-                l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                l.TrangThai == Constants.LopHocStatus.ChuaBatDau);
+            var trangThaiLop = giaSu.LopHocs
+                .Where(l => l.DangHoatDong)
+                .Select(l => l.TrangThaiTheoThoiGian)
+                .ToList();
 
-            // ✅ SỬA: Cập nhật theo trạng thái mới
-            giaSu.TrangThai = activeLopCount > 0
-                ? Constants.GiaSuStatus.Ban  // Dùng "Bận" thay vì "Đang dạy"
-                : Constants.GiaSuStatus.Ranh;
+            if (trangThaiLop.Any(t => t == Constants.LopHocStatus.DangDienRa ||
+                                      t == Constants.LopHocStatus.DangHoc))
+                giaSu.TrangThai = Constants.GiaSuStatus.DangDay;
+            else if (trangThaiLop.Any(t => t == Constants.LopHocStatus.ChuaBatDau))
+                giaSu.TrangThai = Constants.GiaSuStatus.Ban;
+            else
+                giaSu.TrangThai = Constants.GiaSuStatus.Ranh;
+        }
+
+        /// <summary>
+        /// Kiểm tra số điện thoại đã được gia sư khác dùng chưa
+        /// </summary>
+        public bool ExistsSDT(string sdt, int? boQuaMaGS = null)
+        {
+            if (string.IsNullOrWhiteSpace(sdt)) return false;
+            sdt = sdt.Trim();
+
+            return boQuaMaGS.HasValue
+                ? _dbSet.Any(g => g.SDT == sdt && g.MaGS != boQuaMaGS.Value)
+                : _dbSet.Any(g => g.SDT == sdt);
         }
 
         /// <summary>
@@ -119,7 +158,7 @@ namespace DoAnWD.DAL.Repositories
             if (string.IsNullOrWhiteSpace(keyword))
                 return GetAll();
 
-            keyword = keyword.ToLower();
+            keyword = keyword.Trim().ToLower();
             return _dbSet.Where(g =>
                 (g.HoTen != null && g.HoTen.ToLower().Contains(keyword)) ||
                 (g.SDT != null && g.SDT.Contains(keyword)) ||

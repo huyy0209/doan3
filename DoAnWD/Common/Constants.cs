@@ -17,6 +17,10 @@ namespace DoAnWD.Common
             public const string Ban = "Bận";
             public const string DangDay = "Đang dạy";
             public const string SanSang = "Sẵn sàng";
+            public const string TamNghi = "Tạm nghỉ"; // Không nhận lớp mới
+
+            /// <summary>Các trạng thái hiển thị trên form Gia Sư</summary>
+            public static readonly string[] TatCa = { Ranh, Ban, DangDay, TamNghi };
         }
 
         /// <summary>
@@ -33,6 +37,20 @@ namespace DoAnWD.Common
             public const string DangHoc = "Đang học";
             public const string HoanThanh = "Hoàn thành";
             public const string SanSang = "Sẵn sàng";
+
+            // Lớp bị hủy giữa chừng - giữ lại để còn lịch sử/thống kê
+            public const string DaHuy = "Đã hủy";
+
+            /// <summary>
+            /// Các trạng thái được coi là lớp "đang hoạt động" (chiếm lịch gia sư/học viên).
+            /// Dùng mảng để EF dịch được sang câu lệnh SQL IN (...).
+            /// </summary>
+            public static readonly string[] HoatDong = { ChuaBatDau, DangDienRa, DangHoc };
+
+            public static bool LaHoatDong(string trangThai)
+            {
+                return trangThai == ChuaBatDau || trangThai == DangDienRa || trangThai == DangHoc;
+            }
         }
 
         /// <summary>
@@ -119,6 +137,10 @@ namespace DoAnWD.Common
             public const string HocPhiKhongHopLe = "Học phí phải lớn hơn 0!";
             public const string GiaSuKhongRanh = "Gia sư đang bận, không thể ghép lớp!";
             public const string CaHocBiTrung = "Ca học đã bị trùng với lớp khác!";
+            public const string HoTenKhongHopLe = "Họ tên phải từ 2-100 ký tự và không chứa chữ số!";
+            public const string SDTDaTonTai = "Số điện thoại đã được dùng cho gia sư khác!";
+            public const string GiaSuTamNghi = "Gia sư đang tạm nghỉ, không thể nhận lớp mới!";
+            public const string CaHocKhongHopLe = "Ca học không hợp lệ!";
 
             // Messages mới cho Option 2
             public const string ThoiGianKhongHopLe = "Thời gian bắt đầu phải trước thời gian kết thúc!";
@@ -138,6 +160,10 @@ namespace DoAnWD.Common
             public const string EmailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
             public const int MinNameLength = 2;
             public const int MaxNameLength = 100;
+            public const int MaxChuyenMonLength = 100;
+            public const int MaxDiaChiLength = 200;
+            public const int MaxMonHocLength = 50;
+            public const decimal MaxHocPhi = 100000000m; // 100 triệu / khóa
         }
 
         /// <summary>

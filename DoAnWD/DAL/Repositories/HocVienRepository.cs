@@ -18,7 +18,7 @@ namespace DoAnWD.DAL.Repositories
             if (string.IsNullOrWhiteSpace(keyword))
                 return GetAll();
 
-            keyword = keyword.ToLower();
+            keyword = keyword.Trim().ToLower();
             return _dbSet.Where(h =>
                 (h.HoTen != null && h.HoTen.ToLower().Contains(keyword)) ||
                 (h.SDT != null && h.SDT.Contains(keyword)) ||
@@ -26,13 +26,30 @@ namespace DoAnWD.DAL.Repositories
             ).ToList();
         }
 
+        /// <summary>
+        /// Học viên còn lớp đang hoạt động (chưa bắt đầu / đang diễn ra) không.
+        /// Trước đây chỉ kiểm tra "Đang học" nên vẫn xóa được học viên có lớp sắp học.
+        /// </summary>
         public bool HasActiveLopHoc(int maHV)
         {
             var hocVien = _dbSet.Find(maHV);
             if (hocVien == null) return false;
 
             _context.Entry(hocVien).Collection(h => h.LopHocs).Load();
-            return hocVien.LopHocs.Any(l => l.TrangThai == Common.Constants.LopHocStatus.DangHoc);
+            return hocVien.LopHocs.Any(l => l.DangHoatDong &&
+                Common.Constants.LopHocStatus.LaHoatDong(l.TrangThaiTheoThoiGian));
+        }
+
+        /// <summary>
+        /// Đếm tất cả lớp (kể cả đã kết thúc/đã hủy) của học viên
+        /// </summary>
+        public int CountAllLopHoc(int maHV)
+        {
+            var hocVien = _dbSet.Find(maHV);
+            if (hocVien == null) return 0;
+
+            _context.Entry(hocVien).Collection(h => h.LopHocs).Load();
+            return hocVien.LopHocs.Count;
         }
     }
 }

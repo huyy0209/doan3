@@ -23,14 +23,35 @@ namespace DoAnWD.DAL.Repositories
             return _dbSet
                 .Include(l => l.HocVien)
                 .Where(l => l.MaGS == maGS)
+                .OrderByDescending(l => l.ThoiGianBatDau)
                 .Select(l => new
                 {
                     l.MaLop,
                     HocVien = l.HocVien.HoTen ?? "Chưa có",
                     l.MonHoc,
+                    l.CaHoc,
+                    BatDau = l.ThoiGianBatDau,
+                    KetThuc = l.ThoiGianKetThuc,
                     l.HocPhi,
                     l.TrangThai
                 }).ToList();
+        }
+
+        /// <summary>
+        /// Lấy các lớp còn hoạt động có liên quan tới gia sư HOẶC học viên
+        /// (dùng để kiểm tra trùng lịch khi ghép lớp)
+        /// </summary>
+        public List<LopHoc> GetLopHoatDongCuaGiaSuHoacHocVien(int maGS, int maHV)
+        {
+            var hoatDong = Constants.LopHocStatus.HoatDong;
+
+            return _dbSet
+                .Include(l => l.GiaSu)
+                .Include(l => l.HocVien)
+                .Where(l => (l.MaGS == maGS || l.MaHV == maHV) && hoatDong.Contains(l.TrangThai))
+                .ToList()
+                .Where(l => l.DangHoatDong)
+                .ToList();
         }
 
         /// <summary>

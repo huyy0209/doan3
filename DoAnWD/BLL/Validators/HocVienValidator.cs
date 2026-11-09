@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 using DoAnWD.Common;
 
 namespace DoAnWD.BLL.Validators
@@ -21,7 +22,11 @@ namespace DoAnWD.BLL.Validators
             if (!ValidateSDT(sdt, out errorMessage))
                 return false;
 
-            // Không validate Email nữa
+            if (!string.IsNullOrWhiteSpace(diaChi) && diaChi.Trim().Length > Constants.Validation.MaxDiaChiLength)
+            {
+                errorMessage = $"Địa chỉ tối đa {Constants.Validation.MaxDiaChiLength} ký tự.";
+                return false;
+            }
 
             return true;
         }
@@ -33,6 +38,15 @@ namespace DoAnWD.BLL.Validators
             if (string.IsNullOrWhiteSpace(hoTen))
             {
                 errorMessage = Constants.Messages.VuiLongNhapHoTen;
+                return false;
+            }
+
+            string ten = hoTen.Trim();
+            if (ten.Length < Constants.Validation.MinNameLength ||
+                ten.Length > Constants.Validation.MaxNameLength ||
+                ten.Any(char.IsDigit))
+            {
+                errorMessage = Constants.Messages.HoTenKhongHopLe;
                 return false;
             }
 

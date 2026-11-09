@@ -29,6 +29,10 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public ThongKeStats GetStatistics()
         {
+            var hoatDong = Constants.LopHocStatus.HoatDong;
+            var dauThang = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var dauThangSau = dauThang.AddMonths(1);
+
             return new ThongKeStats
             {
                 TongGiaSu = _giaSuRepo.Count(),
@@ -38,7 +42,9 @@ namespace DoAnWD.BLL.Services
                 // ✅ SỬA: Dùng trạng thái mới
                 GiaSuRanh = _giaSuRepo.Count(g =>
                     g.TrangThai == Constants.GiaSuStatus.Ranh ||
+                    g.TrangThai == Constants.GiaSuStatus.SanSang ||
                     g.TrangThai == null),
+                GiaSuTamNghi = _giaSuRepo.Count(g => g.TrangThai == Constants.GiaSuStatus.TamNghi),
                 GiaSuDangDay = _giaSuRepo.Count(g =>
                     g.TrangThai == Constants.GiaSuStatus.Ban ||
                     g.TrangThai == Constants.GiaSuStatus.DangDay),
@@ -46,7 +52,17 @@ namespace DoAnWD.BLL.Services
                 // ✅ SỬA: Tính lớp đang học bao gồm cả 2 trạng thái
                 LopDangHoc = _lopHocRepo.Count(l =>
                     l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                    l.TrangThai == Constants.LopHocStatus.DangHoc)
+                    l.TrangThai == Constants.LopHocStatus.DangHoc),
+                LopDaHuy = _lopHocRepo.Count(l => l.TrangThai == Constants.LopHocStatus.DaHuy),
+
+                // Doanh thu = tổng học phí (không tính lớp đã hủy)
+                DoanhThuDangHoatDong = _context.LopHocs
+                    .Where(l => hoatDong.Contains(l.TrangThai))
+                    .Sum(l => l.HocPhi) ?? 0,
+                DoanhThuThangNay = _context.LopHocs
+                    .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
+                                l.ThoiGianBatDau >= dauThang && l.ThoiGianBatDau < dauThangSau)
+                    .Sum(l => l.HocPhi) ?? 0
             };
         }
 
@@ -92,5 +108,13 @@ namespace DoAnWD.BLL.Services
         public int GiaSuRanh { get; set; }
         public int GiaSuDangDay { get; set; }
         public int LopDangHoc { get; set; }
+        public int LopDaHuy { get; set; }
+        public int GiaSuTamNghi { get; set; }
+
+        /// <summary>Tổng học phí các lớp đang hoạt động</summary>
+        public decimal DoanhThuDangHoatDong { get; set; }
+
+        /// <summary>Tổng học phí các lớp khai giảng trong tháng hiện tại</summary>
+        public decimal DoanhThuThangNay { get; set; }
     }
 }

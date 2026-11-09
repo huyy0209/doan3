@@ -46,6 +46,10 @@ namespace DoAnWD.Models
         {
             get
             {
+                // Lớp đã hủy giữ nguyên trạng thái, không tính theo thời gian
+                if (TrangThai == Common.Constants.LopHocStatus.DaHuy)
+                    return TrangThai;
+
                 if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
                     return TrangThai; // Trả về trạng thái thủ công nếu không có thời gian
 
@@ -68,8 +72,11 @@ namespace DoAnWD.Models
         {
             get
             {
+                if (TrangThai == Common.Constants.LopHocStatus.DaHuy)
+                    return false; // Lớp đã hủy không còn chiếm lịch
+
                 if (!ThoiGianKetThuc.HasValue)
-                    return true; // Nếu không có thời gian kết thúc, coi như đang hoạt động
+                    return Common.Constants.LopHocStatus.LaHoatDong(TrangThai);
 
                 return DateTime.Now <= ThoiGianKetThuc.Value;
             }
@@ -173,6 +180,15 @@ namespace DoAnWD.Models
         }
 
         /// <summary>
+        /// Trùng lịch = cùng ca học VÀ khoảng ngày học giao nhau.
+        /// (Một gia sư/học viên có thể học nhiều lớp song song nếu khác ca.)
+        /// </summary>
+        public bool TrungLich(LopHoc other)
+        {
+            return TrungCaHoc(other) && TrungThoiGian(other);
+        }
+
+        /// <summary>
         /// Validate thời gian của lớp học
         /// </summary>
         /// <returns>Thông báo lỗi (null nếu hợp lệ)</returns>
@@ -197,6 +213,9 @@ namespace DoAnWD.Models
         public bool CapNhatTrangThaiTuDong()
         {
             if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
+                return false;
+
+            if (TrangThai == Common.Constants.LopHocStatus.DaHuy)
                 return false;
 
             string trangThaiMoi = TrangThaiTheoThoiGian;
