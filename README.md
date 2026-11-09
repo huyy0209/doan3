@@ -41,6 +41,7 @@ doan3/
    sqlcmd -S . -E -i Database\QuanLyGiaSu.sql
    ```
    Script chạy lại nhiều lần được; chỉ chèn dữ liệu mẫu khi bảng còn trống.
+   Muốn có nhiều dữ liệu để thử hơn, chạy thêm `Database/DuLieuMau_ThemNhieu.sql` (xem mục *Dữ liệu mẫu*).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu bạn dùng SQL Express, đổi thành:
    ```xml
    data source=.\SQLEXPRESS;
@@ -128,4 +129,9 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 
 ## Dữ liệu mẫu
 
-Script tạo sẵn 6 gia sư (1 người Tạm nghỉ), 6 học viên và 6 lớp ở các trạng thái khác nhau, trong đó gia sư *Nguyễn Văn An* dạy 2 lớp song song ở 2 ca khác nhau, để thử ngay các luật ghép lớp.
+| Script | Nội dung |
+|---|---|
+| `QuanLyGiaSu.sql` | Tạo CSDL + 6 gia sư (1 người Tạm nghỉ), 6 học viên, 6 lớp; gia sư *Nguyễn Văn An* dạy 2 lớp song song ở 2 ca khác nhau |
+| `DuLieuMau_ThemNhieu.sql` | Thêm 14 gia sư (nhiều môn, có Cờ vua, Lập trình Scratch; 1 người Tạm nghỉ), 30 học viên (vài cặp anh chị em dùng chung SĐT phụ huynh) và 46 lớp: đã kết thúc, đang diễn ra, chưa bắt đầu, 2 lớp bắt đầu trong 24 giờ tới (để thấy thông báo) và 3 lớp đã hủy |
+
+Dữ liệu thêm được tính theo **ngày chạy script**, nên lịch, dải ca và thống kê luôn có số liệu "hôm nay". Script bỏ qua bản ghi đã có, không tạo lớp trùng ca của cùng gia sư/học viên, và cuối cùng đồng bộ lại trạng thái lớp + gia sư.
