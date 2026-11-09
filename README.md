@@ -36,19 +36,25 @@ doan3/
    ```bash
    git clone https://github.com/huyy0209/doan3.git
    ```
-2. **Tạo CSDL**: mở `Database/QuanLyGiaSu.sql` trong SQL Server Management Studio và bấm *Execute*, hoặc chạy:
-   ```bash
-   sqlcmd -S . -E -i Database\QuanLyGiaSu.sql
-   ```
-   Script chạy lại nhiều lần được; chỉ chèn dữ liệu mẫu khi bảng còn trống.
-   Muốn có nhiều dữ liệu để thử hơn, chạy thêm `Database/DuLieuMau_ThemNhieu.sql` (xem mục *Dữ liệu mẫu*).
+2. **Tạo CSDL**: mở từng file trong thư mục `Database` bằng SQL Server Management Studio và bấm *Execute*, **theo thứ tự**:
+
+   | # | Script | Bắt buộc |
+   |---|---|---|
+   | 1 | `QuanLyGiaSu.sql` | Có: tạo CSDL + dữ liệu mẫu nhỏ |
+   | 2 | `NangCap_v2.sql` | Có: hồ sơ học viên, điểm danh, học phí, tài khoản |
+   | 3 | `DuLieuMau_ThemNhieu.sql` | Không: thêm 14 gia sư, 30 học viên, 46 lớp |
+   | 4 | `DuLieuMau_DiemDanh_HocPhi.sql` | Không: điểm danh, điểm test, học phí mẫu |
+
+   Mọi script chạy lại nhiều lần được. Dùng dòng lệnh: `sqlcmd -S . -E -i Database\QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu bạn dùng SQL Express, đổi thành:
    ```xml
    data source=.\SQLEXPRESS;
    ```
 4. Mở `DoAnWD.slnx` bằng Visual Studio 2022 → chuột phải solution → **Restore NuGet Packages** → **F5**.
 
-Nếu không kết nối được CSDL, ứng dụng sẽ báo rõ lỗi và hướng dẫn sửa thay vì văng lỗi.
+Nếu không kết nối được CSDL hoặc chưa chạy `NangCap_v2.sql`, ứng dụng báo rõ cần làm gì thay vì văng lỗi.
+
+**Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Vào **Đổi mật khẩu** ngay sau đó, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
 
 ## Nghiệp vụ chính
 
@@ -76,16 +82,33 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 
 ## Chức năng
 
-| Màn hình | Chức năng |
-|---|---|
-| **Thống kê** (mở mặc định) | Tổng gia sư/học viên/lớp, học phí lớp đang hoạt động, học phí khai giảng trong tháng, số lớp theo trạng thái, theo ca, lớp sắp bắt đầu/sắp kết thúc |
-| **Gia sư** | Thêm/sửa/xóa, tìm kiếm, tô màu theo trạng thái, đặt Tạm nghỉ |
-| **Học viên** | Thêm/sửa/xóa, tìm kiếm |
-| **Ghép lớp** | Danh sách gia sư → lớp của gia sư (ca, ngày, học phí, trạng thái); ghép lớp mới; hủy hoặc xóa lớp |
-| **Lịch học** | Lịch theo tháng, lọc theo gia sư |
-| Thông báo | Toast + âm thanh cho lớp bắt đầu trong 24 giờ tới; dòng trạng thái góc phải |
+| Màn hình | Chức năng | Ai dùng |
+|---|---|---|
+| **Tổng quan** | Số gia sư/học viên/lớp, học phí đang thu, còn phải thu, trạng thái lớp, theo ca, lớp sắp bắt đầu/kết thúc | Quản lý |
+| **Ghép lớp** | Danh sách gia sư và lớp; ghép lớp 3 bước (tìm học viên, chọn ca, chọn gia sư còn trống ca); hủy/xóa lớp | Quản lý |
+| **Điểm danh & điểm** | Theo ngày + ca: có mặt / đi trễ / vắng, điểm bài test 15 phút (bỏ trống nếu không kiểm tra), nhận xét. Kết quả học viên: điểm TB, xếp loại, chuyên cần, biểu đồ điểm, **phiếu báo kết quả** cho phụ huynh | Quản lý, Gia sư (lớp của mình) |
+| **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
+| **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
+| **Gia sư** | Thêm/sửa/xóa, tìm kiếm, lọc theo môn + trạng thái, Tạm nghỉ | Quản lý |
+| **Học viên** | Hồ sơ: phụ huynh + SĐT, trường/lớp, trình độ, ghi chú; lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; phiếu báo; xuất CSV | Quản lý |
+| **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
 
-Trong hộp thoại **Ghép lớp**, danh sách ca tô **đỏ gạch ngang** những ca gia sư hoặc học viên đã bận trong khoảng ngày đã chọn, và nút Ghép lớp chỉ bật khi không có xung đột.
+Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra "Đỗ Bảo Ngọc - 0981111111".
+
+### Điểm danh và điểm test
+- Mỗi lớp có tối đa **một bản ghi mỗi ngày** (điểm danh + điểm + nhận xét); lưu lại cùng ngày thì cập nhật.
+- Điểm thang 10, được nhập "8,5" hoặc "8.5". Vắng thì không có điểm. Không điểm danh cho ngày tương lai hoặc ngoài thời gian lớp.
+- Xếp loại theo điểm TB các bài test: Giỏi ≥ 8, Khá ≥ 6,5, Trung bình ≥ 5, Yếu < 5.
+- **Phiếu báo kết quả** là file HTML mở bằng trình duyệt (có biểu đồ điểm, bảng các buổi có điểm/nhận xét/vắng). Bấm Ctrl+P để in hoặc lưu PDF gửi phụ huynh.
+
+### Học phí
+- Còn nợ = học phí cả khóa − tổng các lần đã đóng. Không cho đóng vượt số còn nợ.
+- Lớp đã có điểm danh hoặc đã đóng tiền thì chỉ **hủy** được (giữ lịch sử), không xóa hẳn.
+
+### Tài khoản và bảo mật
+- Mật khẩu lưu dạng băm **PBKDF2-SHA256** (salt ngẫu nhiên, 100.000 vòng), không lưu mật khẩu gốc.
+- Đăng nhập sai không cho biết sai tên hay sai mật khẩu; sai từ lần thứ 3 phải chờ vài giây mới thử lại được.
+- Luôn còn ít nhất một quản lý đang hoạt động; không tự khóa tài khoản đang dùng.
 
 ## Giao diện
 
@@ -114,6 +137,9 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
 | `Icons.cs` | Bộ icon nét mảnh vẽ bằng GDI+, không cần file ảnh |
 | `PageTransition.cs` | Hiệu ứng chuyển trang |
+| `Ui.cs`, `ScoreChart.cs` | Hàm dựng control cho các màn hình mới (bố cục TableLayoutPanel tự co giãn), biểu đồ điểm |
+
+Các màn hình mới (`frmHocVien`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
 | `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
 
 ## Lịch sử nâng cấp
@@ -126,6 +152,10 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `docs: add README` | Tài liệu này |
 | `feat(ui): redesign…` | Thiết kế lại toàn bộ giao diện theo chủ đề "vở ô li" |
 | `feat(ui): readability…` | Chữ to hơn, nút có icon và màu rõ, ô số liệu theo màu, hiệu ứng chuyển trang |
+| `chore(db): add larger sample data…` | Script dữ liệu mẫu lớn |
+| `feat(db): student profile, attendance…` | CSDL v2: hồ sơ học viên, điểm danh + điểm test, học phí, tài khoản; các service + kiểm thử |
+| `feat(ui): searchable 3-step class matching…` | Ghép lớp 3 bước có tìm kiếm/lọc; trang Học viên mới; lọc gia sư |
+| `feat: attendance, fees, report card, login…` | Màn hình Điểm danh & điểm, Học phí, Tài khoản, đăng nhập + phân quyền |
 
 ## Dữ liệu mẫu
 

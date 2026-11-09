@@ -10,6 +10,12 @@ namespace DoAnWD.UI
     /// Gọi ThemeManager.Apply(form) TRƯỚC khi form hiển thị; code của form
     /// (tô màu trạng thái, bật/tắt nút...) chạy sau trong sự kiện Load vẫn giữ nguyên.
     /// </summary>
+    /// <summary>
+    /// Đánh dấu màn hình dựng bằng code đã tự áp giao diện (Ui.*):
+    /// ThemeManager.Apply sẽ bỏ qua để không ghi đè font/màu đã chọn.
+    /// </summary>
+    public interface ITuGiaoDien { }
+
     public static class ThemeManager
     {
         private static readonly PropertyInfo DoubleBufferedProp =
@@ -17,6 +23,7 @@ namespace DoAnWD.UI
 
         public static void Apply(Control root)
         {
+            if (root is ITuGiaoDien) return;
             root.SuspendLayout();
             try
             {
@@ -260,7 +267,8 @@ namespace DoAnWD.UI
             var dgv = (DataGridView)sender;
             var col = dgv.Columns[e.ColumnIndex];
             string key = !string.IsNullOrEmpty(col.DataPropertyName) ? col.DataPropertyName : col.Name;
-            bool isStatus = key == "TrangThai" || key == "TrangThaiTheoThoiGian";
+            bool isStatus = key == "TrangThai" || key == "TrangThaiTheoThoiGian" || key == "XepLoai" ||
+                            key == "TinhTrang" || (key == "DiemDanh" && dgv.ReadOnly);
             bool isShift = key == "CaHoc";
             if (!isStatus && !isShift) return;
 

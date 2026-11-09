@@ -6,7 +6,7 @@ namespace DoAnWD.UI
     public enum Glyph
     {
         None, Plus, Edit, Trash, Check, Close, Refresh, ChevronLeft, ChevronRight,
-        Calendar, Chart, User, Users, Link, Exit, Search
+        Calendar, Chart, User, Users, Link, Exit, Search, Money, Key, Clipboard
     }
 
     /// <summary>
@@ -71,6 +71,18 @@ namespace DoAnWD.UI
                         g.DrawLines(p, new[] { new PointF(9, 2.5f), new PointF(3, 2.5f), new PointF(3, 13.5f), new PointF(9, 13.5f) });
                         g.DrawLine(p, 6.5f, 8, 14, 8);
                         g.DrawLines(p, new[] { new PointF(11.5f, 5.5f), new PointF(14, 8), new PointF(11.5f, 10.5f) }); break;
+                    case Glyph.Money:
+                        g.DrawRectangle(p, 1.5f, 4, 13, 8.5f);
+                        g.DrawEllipse(p, 6, 5.8f, 4, 4.8f);
+                        g.DrawLine(p, 3.5f, 6.2f, 3.5f, 6.3f); g.DrawLine(p, 12.5f, 10.2f, 12.5f, 10.3f); break;
+                    case Glyph.Key:
+                        g.DrawEllipse(p, 1.8f, 5, 6, 6);
+                        g.DrawLines(p, new[] { new PointF(7.8f, 8), new PointF(14, 8), new PointF(14, 10.5f) });
+                        g.DrawLine(p, 11.5f, 8, 11.5f, 10); break;
+                    case Glyph.Clipboard:
+                        g.DrawRectangle(p, 3, 3, 10, 11.5f);
+                        g.DrawRectangle(p, 5.8f, 1.8f, 4.4f, 2.4f);
+                        g.DrawLines(p, new[] { new PointF(5.5f, 9.5f), new PointF(7.3f, 11.3f), new PointF(10.8f, 7.3f) }); break;
                     case Glyph.Search:
                         g.DrawEllipse(p, 2.5f, 2.5f, 8, 8); g.DrawLine(p, 9.3f, 9.3f, 13.5f, 13.5f); break;
                 }

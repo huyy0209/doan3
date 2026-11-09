@@ -41,6 +41,9 @@ namespace DoAnWD.BLL.Services
                                 l.ThoiGianBatDau >= now &&
                                 l.ThoiGianBatDau <= thresholdTime)
                     .OrderBy(l => l.ThoiGianBatDau)
+                    .ToList()
+                    // Gia sư đăng nhập chỉ nhận thông báo lớp của mình
+                    .Where(l => !PhienDangNhap.GioiHanGiaSu.HasValue || l.MaGS == PhienDangNhap.GioiHanGiaSu.Value)
                     .ToList();
             }
         }

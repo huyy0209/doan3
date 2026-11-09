@@ -60,7 +60,7 @@ namespace DoAnWD.UI
 
             var textRect = new Rectangle(56, 0, Width - 68, Height);
             TextRenderer.DrawText(g, Text, _active ? Theme.NavActive : Theme.Nav, textRect, fore,
-                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine);
+                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
 
             if (!string.IsNullOrEmpty(Badge))
                 TextRenderer.DrawText(g, Badge, Theme.SmallStrong, textRect, Theme.InkMuted,

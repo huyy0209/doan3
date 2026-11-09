@@ -102,10 +102,24 @@ namespace DoAnWD.UI
             {
                 case "Rảnh":
                 case "Sẵn sàng":
+                case "Có mặt":
+                case "Giỏi":
+                case "Đã đủ":
+                case "Hoạt động":
                     return Success;
                 case "Bận":
                 case "Chưa bắt đầu":
+                case "Đi trễ":
+                case "Trung bình":
+                case "Còn nợ":
                     return Warning;
+                case "Khá":
+                    return Ink;
+                case "Vắng không phép":
+                case "Yếu":
+                case "Chưa đóng":
+                case "Đã khóa":
+                    return Margin;
                 case "Đang dạy":
                 case "Đang diễn ra":
                 case "Đang học":

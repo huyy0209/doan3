@@ -18,7 +18,7 @@ namespace DoAnWD
     ///   3. Chọn gia sư: lọc theo môn, mặc định chỉ hiện người còn trống ca đã chọn
     /// Kiểm tra trùng lịch được tính ngay trong bộ nhớ; khi lưu, LopHocService kiểm tra lại lần cuối.
     /// </summary>
-    public partial class frmChucNangGhepLop : Form
+    public partial class frmChucNangGhepLop : Form, ITuGiaoDien
     {
         private readonly LopHocService _lopHocService = new LopHocService();
 

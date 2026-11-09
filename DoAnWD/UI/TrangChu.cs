@@ -123,6 +123,7 @@ namespace DoAnWD
 
         private void InitializeShell()
         {
+            TaoMenuMoi();
             btnThongKe.Glyph = Glyph.Chart;
             btnGhepLop.Glyph = Glyph.Link;
             btnCalendar.Glyph = Glyph.Calendar;
@@ -148,6 +149,52 @@ namespace DoAnWD
 
             indicatorTimer = new Timer { Interval = 15 };
             indicatorTimer.Tick += IndicatorTimer_Tick;
+        }
+
+        private NavButton btnHocTap, btnHocPhi, btnTaiKhoan, btnDoiMatKhau;
+
+        /// <summary>
+        /// Thêm các mục menu mới và ẩn mục theo vai trò:
+        ///  - Quản lý: mọi mục
+        ///  - Gia sư: Điểm danh &amp; điểm, Lịch học (chỉ lớp của mình)
+        /// </summary>
+        private void TaoMenuMoi()
+        {
+            btnHocTap = new NavButton { Text = "Điểm danh & điểm", Glyph = Glyph.Clipboard, Name = "btnHocTap" };
+            btnHocPhi = new NavButton { Text = "Học phí", Glyph = Glyph.Money, Name = "btnHocPhi" };
+            btnTaiKhoan = new NavButton { Text = "Tài khoản", Glyph = Glyph.Key, Name = "btnTaiKhoan" };
+            btnHocTap.Click += (s, e) => { ChonMenu(btnHocTap); LoadChildForm(new frmHocTap()); };
+            btnHocPhi.Click += (s, e) => { ChonMenu(btnHocPhi); LoadChildForm(new frmHocPhi()); };
+            btnTaiKhoan.Click += (s, e) => { ChonMenu(btnTaiKhoan); LoadChildForm(new frmTaiKhoan()); };
+            btnHocTap.UseMnemonic = false;
+
+            // Thứ tự hiển thị từ trên xuống (Dock Top: thêm sau nằm trên => thêm ngược)
+            var thuTu = new[] { btnThongKe, btnGhepLop, btnHocTap, btnCalendar, btnHocPhi, btnGiaSu, btnHocVien, btnTaiKhoan };
+            panelNav.SuspendLayout();
+            foreach (var b in thuTu) panelNav.Controls.Remove(b);
+            for (int i = thuTu.Length - 1; i >= 0; i--) panelNav.Controls.Add(thuTu[i]);
+            pnlIndicator.BringToFront();
+            panelNav.ResumeLayout(true);
+
+            // Chân menu: Đổi mật khẩu, Làm mới, Đăng xuất
+            btnDoiMatKhau = new NavButton { Text = "Đổi mật khẩu", Glyph = Glyph.Key };
+            btnDoiMatKhau.Click += (s, e) =>
+            {
+                using (var f = new frmDoiMatKhau(PhienDangNhap.MaTK, PhienDangNhap.TenDangNhap)) f.ShowDialog(this);
+            };
+            panelNavFooter.Controls.Add(btnDoiMatKhau);
+            panelNavFooter.Controls.SetChildIndex(btnDoiMatKhau, panelNavFooter.Controls.Count - 1);
+            panelNavFooter.Height = 3 * 48 + 12;
+            btnExit.Text = "Đăng xuất";
+
+            // Phân quyền
+            if (PhienDangNhap.DaDangNhap)
+            {
+                lblAppSub.Text = PhienDangNhap.TenHienThi;
+                if (!PhienDangNhap.LaQuanLy)
+                    foreach (var b in new[] { btnThongKe, btnGhepLop, btnHocPhi, btnGiaSu, btnHocVien, btnTaiKhoan })
+                        b.Visible = false;
+            }
         }
 
         /// <summary>
@@ -181,7 +228,7 @@ namespace DoAnWD
             try
             {
                 using (var service = new LopHocService())
-                    shiftRibbon.SetSoLop(service.GetSoLopHomNayTheoCa());
+                    shiftRibbon.SetSoLop(service.GetSoLopHomNayTheoCa(PhienDangNhap.GioiHanGiaSu));
 
                 int sapBatDau = _notificationService.GetUpcomingClassCount(24);
                 lblStatus.Text = sapBatDau > 0
@@ -319,8 +366,11 @@ namespace DoAnWD
             lastUpdateTime = DateTime.Now;
             CapNhatThanhTrangThai();
 
-            // Mở màn hình Thống kê làm dashboard mặc định
-            btnThongKe_Click(btnThongKe, EventArgs.Empty);
+            // Màn hình mặc định: quản lý xem Tổng quan, gia sư vào thẳng Điểm danh
+            if (!PhienDangNhap.DaDangNhap || PhienDangNhap.LaQuanLy)
+                btnThongKe_Click(btnThongKe, EventArgs.Empty);
+            else
+                btnHocTap.PerformClick();
         }
 
         private void TrangChu_FormClosing(object sender, FormClosingEventArgs e)
@@ -483,8 +533,15 @@ namespace DoAnWD
             }
         }
 
+        /// <summary>Đăng xuất: đóng cửa sổ chính và mở lại màn hình đăng nhập</summary>
+        public bool DangXuat { get; private set; }
+
         private void btnExit_Click(object sender, EventArgs e)
         {
+            if (MessageBox.Show("Đăng xuất khỏi tài khoản này?", Constants.Messages.ConfirmTitle,
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+            DangXuat = true;
             Close();
         }
 

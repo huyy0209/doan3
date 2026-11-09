@@ -256,11 +256,12 @@ namespace DoAnWD.BLL.Services
         /// <summary>
         /// Số lớp có buổi học hôm nay theo từng ca (bỏ lớp đã hủy)
         /// </summary>
-        public Dictionary<string, int> GetSoLopHomNayTheoCa()
+        public Dictionary<string, int> GetSoLopHomNayTheoCa(int? maGS = null)
         {
             var homNay = DateTime.Now.Date;
 
             return _lopHocRepo.GetAll()
+                .Where(l => !maGS.HasValue || l.MaGS == maGS.Value)
                 .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
                             !string.IsNullOrEmpty(l.CaHoc) &&
                             l.ThoiGianBatDau.HasValue && l.ThoiGianKetThuc.HasValue &&

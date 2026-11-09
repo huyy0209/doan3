@@ -123,6 +123,12 @@ namespace DoAnWD
             gbSapKetThuc.SetBounds(le, gbSapKetThuc.Top, w, gbSapKetThuc.Height);
         }
 
+        private static decimal ConPhaiThu()
+        {
+            try { return new BLL.Services.HocPhiService().TongConNo(); }
+            catch { return 0; } // CSDL chưa nâng cấp v2
+        }
+
         /// <summary>
         /// Chia đều các cặp (số, nhãn) thành cột trong một khối: số ở trên, nhãn ở dưới
         /// </summary>
@@ -218,7 +224,7 @@ namespace DoAnWD
                     lblDoanhThu.Text =
                         $"Học phí đang thu: {stats.DoanhThuDangHoatDong.ToString("N0", vi)} đ\n" +
                         $"Tháng này: {stats.DoanhThuThangNay.ToString("N0", vi)} đ\n" +
-                        $"Đã hủy: {stats.LopDaHuy} lớp";
+                        $"Còn phải thu: {ConPhaiThu().ToString("N0", vi)} đ";
                 }
 
                 // ✨ THÊM: Thống kê theo trạng thái mới

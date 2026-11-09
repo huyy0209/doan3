@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -29,7 +29,7 @@ namespace DoAnWD.UI
 
         public static Label Title(string text)
         {
-            return new Label { Text = text, Font = Theme.PageTitle, ForeColor = Theme.Text, AutoSize = true, Margin = new Padding(0, 0, 0, 2) };
+            return new Label { Text = text, Font = Theme.PageTitle, ForeColor = Theme.Text, AutoSize = true, Margin = new Padding(0, 0, 0, 2), UseMnemonic = false };
         }
 
         public static Label Text(string text, bool muted = false)
@@ -37,13 +37,13 @@ namespace DoAnWD.UI
             return new Label
             {
                 Text = text, Font = Theme.Body, AutoSize = true,
-                ForeColor = muted ? Theme.TextMuted : Theme.Text, Margin = new Padding(0, 4, 0, 4)
+                ForeColor = muted ? Theme.TextMuted : Theme.Text, Margin = new Padding(0, 4, 0, 4), UseMnemonic = false
             };
         }
 
         public static Label FieldLabel(string text)
         {
-            return new Label { Text = text, Font = Theme.Label, ForeColor = Theme.Text, AutoSize = true, Margin = new Padding(0, 8, 0, 3) };
+            return new Label { Text = text, Font = Theme.Label, ForeColor = Theme.Text, AutoSize = true, Margin = new Padding(0, 8, 0, 3), UseMnemonic = false };
         }
 
         public static TextBox Input(string placeholder = null, int width = 0)

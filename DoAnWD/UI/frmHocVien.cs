@@ -16,7 +16,7 @@ namespace DoAnWD
     /// Học viên: danh sách có tìm kiếm + lọc bên trái, hồ sơ chi tiết bên phải.
     /// Chọn một dòng để xem/sửa; "Thêm học viên" để nhập người mới.
     /// </summary>
-    public partial class frmHocVien : Form
+    public partial class frmHocVien : Form, ITuGiaoDien
     {
         private const string TatCa = "Tất cả";
         private const string DangHoc = "Đang học";

@@ -121,7 +121,7 @@ namespace DoAnWD.UI
             // Icon + chữ căn giữa như một khối. Nút đang ở chế độ "Lưu" luôn dùng dấu tích.
             Glyph glyph = Text.StartsWith("Lưu") ? Glyph.Check : Glyph;
             const int iconSize = 16, gap = 7;
-            var textSize = TextRenderer.MeasureText(g, Text, Font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+            var textSize = TextRenderer.MeasureText(g, Text, Font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
             bool coIcon = glyph != Glyph.None && textSize.Width + iconSize + gap + 16 <= Width;
             int total = textSize.Width + (coIcon ? iconSize + gap : 0);
             int x = Math.Max(6, (Width - total) / 2);
@@ -135,7 +135,7 @@ namespace DoAnWD.UI
             var textRect = new Rectangle(x, 0, Width - x - 4, Height);
             TextRenderer.DrawText(g, Text, Font, textRect, fore,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
-                TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+                TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }
     }
 }

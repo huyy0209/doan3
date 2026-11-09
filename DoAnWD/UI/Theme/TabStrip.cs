@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -13,7 +13,7 @@ namespace DoAnWD.UI
     {
         private readonly TabControl _tabs;
         private int _hover = -1;
-        private const int TabWidth = 128;
+
 
         public TabStrip(TabControl tabs)
         {
@@ -51,9 +51,16 @@ namespace DoAnWD.UI
             return strip;
         }
 
+        private int TabWidth(int i)
+        {
+            return TextRenderer.MeasureText(_tabs.TabPages[i].Text, Theme.BodyStrong).Width + 40;
+        }
+
         private Rectangle TabRect(int i)
         {
-            return new Rectangle(Padding.Left + i * TabWidth, 0, TabWidth, Height);
+            int x = Padding.Left;
+            for (int k = 0; k < i; k++) x += TabWidth(k);
+            return new Rectangle(x, 0, TabWidth(i), Height);
         }
 
         private int HitTest(Point p)

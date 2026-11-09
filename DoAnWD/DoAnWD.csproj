@@ -152,6 +152,21 @@
     <Compile Include="UI\Theme\ThemeManager.cs" />
     <Compile Include="UI\Theme\Icons.cs" />
     <Compile Include="UI\Theme\Ui.cs" />
+    <Compile Include="UI\Theme\ScoreChart.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\frmDangNhap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmTaiKhoan.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmHocPhi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmHocTap.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Theme\PageTransition.cs">
       <SubType>Component</SubType>
     </Compile>

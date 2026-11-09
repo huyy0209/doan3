@@ -63,6 +63,13 @@ namespace DoAnWD
 
                 cboGiaSu.DisplayMember = "Text";
                 cboGiaSu.SelectedIndex = 0;
+
+                // Gia sư đăng nhập: chỉ xem lịch của mình
+                if (!BLL.Services.PhienDangNhap.LaQuanLy && BLL.Services.PhienDangNhap.MaGS.HasValue)
+                {
+                    _selectedGiaSuId = BLL.Services.PhienDangNhap.MaGS;
+                    cboGiaSu.Visible = false;
+                }
             }
             catch (Exception ex)
             {
@@ -173,6 +180,8 @@ namespace DoAnWD
 
         private void cboGiaSu_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (!BLL.Services.PhienDangNhap.LaQuanLy && BLL.Services.PhienDangNhap.MaGS.HasValue) return;
+
             if (cboGiaSu.SelectedIndex == 0)
             {
                 _selectedGiaSuId = null;

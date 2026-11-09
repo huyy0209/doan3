@@ -22,7 +22,35 @@ namespace DoAnWD
             if (!KiemTraKetNoiCSDL())
                 return;
 
-            Application.Run(new TrangChu());
+            // Đăng nhập; "Đăng xuất" trong ứng dụng quay lại màn hình này
+            bool vuaTaoAdmin;
+            try
+            {
+                vuaTaoAdmin = new BLL.Services.TaiKhoanService().DamBaoTaiKhoanMacDinh();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "CSDL chưa được nâng cấp lên phiên bản mới.\n\n" +
+                    "Hãy chạy script Database\\NangCap_v2.sql trong SQL Server Management Studio rồi mở lại ứng dụng.\n\n" +
+                    "Chi tiết: " + ex.GetBaseException().Message,
+                    "Cần nâng cấp CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            while (true)
+            {
+                using (var dangNhap = new frmDangNhap(vuaTaoAdmin))
+                {
+                    if (dangNhap.ShowDialog() != DialogResult.OK) return;
+                }
+                vuaTaoAdmin = false;
+
+                var trangChu = new TrangChu();
+                Application.Run(trangChu);
+                if (!trangChu.DangXuat) return;
+                BLL.Services.PhienDangNhap.KetThuc();
+            }
         }
 
         /// <summary>
