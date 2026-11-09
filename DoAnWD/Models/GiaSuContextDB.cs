@@ -23,6 +23,9 @@ namespace DoAnWD.Models
         public virtual DbSet<HocVien> HocViens { get; set; }
         public virtual DbSet<LopHoc> LopHocs { get; set; }
         public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
+        public virtual DbSet<BuoiHoc> BuoiHocs { get; set; }
+        public virtual DbSet<ThanhToan> ThanhToans { get; set; }
+        public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -33,6 +36,22 @@ namespace DoAnWD.Models
             modelBuilder.Entity<HocVien>()
                 .Property(e => e.SDT)
                 .IsUnicode(false);
+
+            modelBuilder.Entity<HocVien>()
+                .Property(e => e.SDTPhuHuynh)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<TaiKhoan>()
+                .Property(e => e.TenDangNhap)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<TaiKhoan>()
+                .Property(e => e.MatKhauHash)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<BuoiHoc>()
+                .Property(e => e.Diem)
+                .HasPrecision(4, 2);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DoAnWD.BLL.Validators;
 using DoAnWD.Common;
 using DoAnWD.DAL.Repositories;
@@ -164,6 +165,11 @@ namespace DoAnWD.BLL.Services
                     $"Không thể xóa!\n\nGia sư '{giaSu.HoTen}' đã có {tongLop} lớp trong lịch sử.\n\n" +
                     $"Hãy chuyển trạng thái sang \"{Constants.GiaSuStatus.TamNghi}\" thay vì xóa.");
             }
+
+            // Gia sư chưa có lớp nào nhưng có tài khoản đăng nhập => xóa luôn tài khoản
+            var ctx = _giaSuRepo.Context;
+            foreach (var tk in ctx.TaiKhoans.Where(t => t.MaGS == maGS).ToList())
+                ctx.TaiKhoans.Remove(tk);
 
             _giaSuRepo.Remove(giaSu);
             _giaSuRepo.SaveChanges();

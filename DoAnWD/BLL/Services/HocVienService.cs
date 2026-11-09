@@ -82,6 +82,41 @@ namespace DoAnWD.BLL.Services
             _hocVienRepo.SaveChanges();
         }
 
+        private static string Gon(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+        /// <summary>
+        /// Thêm mới (maHV = null) hoặc cập nhật hồ sơ học viên đầy đủ
+        /// </summary>
+        public HocVien LuuHoSo(int? maHV, HoSoHocVien hs)
+        {
+            string loi = HocVienValidator.KiemTraHoSo(hs);
+            if (loi != null) throw new ArgumentException(loi);
+
+            HocVien hv;
+            if (maHV.HasValue)
+            {
+                hv = _hocVienRepo.GetById(maHV.Value);
+                if (hv == null) throw new InvalidOperationException("Không tìm thấy học viên.");
+            }
+            else
+            {
+                hv = new HocVien();
+                _hocVienRepo.Add(hv);
+            }
+
+            hv.HoTen = hs.HoTen.Trim();
+            hv.SDT = Gon(hs.SDT);
+            hv.DiaChi = Gon(hs.DiaChi);
+            hv.TenPhuHuynh = Gon(hs.TenPhuHuynh);
+            hv.SDTPhuHuynh = Gon(hs.SDTPhuHuynh);
+            hv.TruongLop = Gon(hs.TruongLop);
+            hv.TrinhDo = Gon(hs.TrinhDo);
+            hv.GhiChu = Gon(hs.GhiChu);
+
+            _hocVienRepo.SaveChanges();
+            return hv;
+        }
+
         public void Delete(int maHV)
         {
             var hocVien = _hocVienRepo.GetById(maHV);

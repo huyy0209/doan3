@@ -18,6 +18,9 @@ namespace DoAnWD.DAL.Repositories
         protected readonly GiaSuContextDB _context;
         protected readonly DbSet<T> _dbSet;
 
+        /// <summary>DbContext dùng chung (cho service cần thao tác nhiều bảng trong một lần lưu)</summary>
+        public GiaSuContextDB Context => _context;
+
         public Repository(GiaSuContextDB context)
         {
             _context = context;

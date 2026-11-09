@@ -58,6 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\Dto\HocTapDto.cs" />
+    <Compile Include="BLL\Services\BaoCaoService.cs" />
+    <Compile Include="BLL\Services\HocPhiService.cs" />
+    <Compile Include="BLL\Services\HocTapService.cs" />
+    <Compile Include="BLL\Services\TaiKhoanService.cs" />
     <Compile Include="BLL\Services\GiaSuService.cs" />
     <Compile Include="BLL\Services\HocVienService.cs" />
     <Compile Include="BLL\Services\LopHocService.cs" />
@@ -67,6 +72,7 @@
     <Compile Include="BLL\Validators\HocVienValidator.cs" />
     <Compile Include="BLL\Validators\LopHocValidator.cs" />
     <Compile Include="Common\Constants.cs" />
+    <Compile Include="Common\TimKiem.cs" />
     <Compile Include="DAL\Interfaces\IRepository.cs" />
     <Compile Include="DAL\Repositories\GiaSuRepository.cs" />
     <Compile Include="DAL\Repositories\HocVienRepository.cs" />
@@ -114,6 +120,9 @@
     <Compile Include="UI\frmThongKe.Designer.cs">
       <DependentUpon>frmThongKe.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\BuoiHoc.cs" />
+    <Compile Include="Models\ThanhToan.cs" />
+    <Compile Include="Models\TaiKhoan.cs" />
     <Compile Include="Models\GiaSu.cs" />
     <Compile Include="Models\GiaSuContextDB.cs" />
     <Compile Include="Models\HocVien.cs" />

@@ -71,5 +71,42 @@ namespace DoAnWD.BLL.Validators
 
             return true;
         }
+
+        /// <summary>
+        /// Kiểm tra hồ sơ đầy đủ: cần ít nhất một số điện thoại (học viên nhỏ tuổi thường chỉ có SĐT phụ huynh)
+        /// </summary>
+        public static string KiemTraHoSo(HoSoHocVien hs)
+        {
+            string msg;
+            if (!ValidateHoTen(hs.HoTen, out msg)) return msg;
+
+            if (string.IsNullOrWhiteSpace(hs.SDT) && string.IsNullOrWhiteSpace(hs.SDTPhuHuynh))
+                return "Nhập ít nhất một số điện thoại: của học viên hoặc của phụ huynh.";
+            if (!string.IsNullOrWhiteSpace(hs.SDT) && !ValidateSDT(hs.SDT, out msg)) return msg;
+            if (!string.IsNullOrWhiteSpace(hs.SDTPhuHuynh) && !ValidateSDT(hs.SDTPhuHuynh, out msg))
+                return "SĐT phụ huynh không hợp lệ (10-11 số, bắt đầu bằng 0).";
+
+            if (Dai(hs.DiaChi, Constants.Validation.MaxDiaChiLength)) return "Địa chỉ tối đa 200 ký tự.";
+            if (Dai(hs.TenPhuHuynh, 100)) return "Tên phụ huynh tối đa 100 ký tự.";
+            if (Dai(hs.TruongLop, 150)) return "Trường / lớp tối đa 150 ký tự.";
+            if (Dai(hs.TrinhDo, 50)) return "Trình độ tối đa 50 ký tự.";
+            if (Dai(hs.GhiChu, 500)) return "Ghi chú tối đa 500 ký tự.";
+            return null;
+        }
+
+        private static bool Dai(string s, int max) => !string.IsNullOrEmpty(s) && s.Trim().Length > max;
+    }
+
+    /// <summary>Dữ liệu nhập của form học viên</summary>
+    public class HoSoHocVien
+    {
+        public string HoTen { get; set; }
+        public string SDT { get; set; }
+        public string DiaChi { get; set; }
+        public string TenPhuHuynh { get; set; }
+        public string SDTPhuHuynh { get; set; }
+        public string TruongLop { get; set; }
+        public string TrinhDo { get; set; }
+        public string GhiChu { get; set; }
     }
 }

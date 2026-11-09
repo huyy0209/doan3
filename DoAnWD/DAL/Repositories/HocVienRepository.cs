@@ -18,12 +18,9 @@ namespace DoAnWD.DAL.Repositories
             if (string.IsNullOrWhiteSpace(keyword))
                 return GetAll();
 
-            keyword = keyword.Trim().ToLower();
-            return _dbSet.Where(h =>
-                (h.HoTen != null && h.HoTen.ToLower().Contains(keyword)) ||
-                (h.SDT != null && h.SDT.Contains(keyword)) ||
-                (h.DiaChi != null && h.DiaChi.ToLower().Contains(keyword))
-            ).ToList();
+            // Lọc trong bộ nhớ để không phân biệt dấu tiếng Việt
+            return _dbSet.ToList().Where(h => Common.TimKiem.Khop(keyword,
+                h.HoTen, h.SDT, h.DiaChi, h.TenPhuHuynh, h.SDTPhuHuynh, h.TruongLop, h.TrinhDo)).ToList();
         }
 
         /// <summary>

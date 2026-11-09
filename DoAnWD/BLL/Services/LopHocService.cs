@@ -321,6 +321,11 @@ namespace DoAnWD.BLL.Services
 
             int? maGS = lopHoc.MaGS;
 
+            // Đã có điểm danh / đóng tiền => phải giữ lịch sử, chỉ được hủy
+            if (_context.BuoiHocs.Any(b => b.MaLop == maLop) || _context.ThanhToans.Any(t => t.MaLop == maLop))
+                throw new InvalidOperationException(
+                    "Lớp đã có điểm danh hoặc đã đóng học phí nên không xóa hẳn được. Hãy dùng \"Hủy lớp\" để giữ lịch sử.");
+
             _lopHocRepo.Remove(lopHoc);
             _lopHocRepo.SaveChanges();
 

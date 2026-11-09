@@ -118,6 +118,42 @@ namespace DoAnWD.Common
         /// <summary>
         /// ✅ Thông báo - BỔ SUNG ĐẦY ĐỦ
         /// </summary>
+        /// <summary>Điểm danh một buổi học</summary>
+        public static class DiemDanh
+        {
+            public const string CoMat = "Có mặt";
+            public const string DiTre = "Đi trễ";
+            public const string VangCoPhep = "Vắng có phép";
+            public const string VangKhongPhep = "Vắng không phép";
+
+            public static readonly string[] TatCa = { CoMat, DiTre, VangCoPhep, VangKhongPhep };
+
+            /// <summary>Có mặt hoặc đi trễ => có học, được làm bài test</summary>
+            public static bool CoHoc(string diemDanh)
+            {
+                return diemDanh == CoMat || diemDanh == DiTre;
+            }
+        }
+
+        /// <summary>Vai trò tài khoản</summary>
+        public static class VaiTro
+        {
+            public const string QuanLy = "QuanLy";
+            public const string GiaSu = "GiaSu";
+
+            public static string TenHienThi(string vaiTro)
+            {
+                return vaiTro == QuanLy ? "Quản lý" : "Gia sư";
+            }
+        }
+
+        /// <summary>Gợi ý cho ô nhập (vẫn gõ được giá trị khác)</summary>
+        public static class GoiY
+        {
+            public static readonly string[] TrinhDo = { "Vỡ lòng", "Căn bản", "Sơ cấp", "Trung cấp", "Nâng cao" };
+            public static readonly string[] HinhThucThanhToan = { "Tiền mặt", "Chuyển khoản" };
+        }
+
         public static class Messages
         {
             // Titles

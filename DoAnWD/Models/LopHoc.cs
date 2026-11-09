@@ -7,6 +7,16 @@ namespace DoAnWD.Models
     [Table("LopHoc")]
     public partial class LopHoc
     {
+        public LopHoc()
+        {
+            BuoiHocs = new System.Collections.Generic.HashSet<BuoiHoc>();
+            ThanhToans = new System.Collections.Generic.HashSet<ThanhToan>();
+        }
+
+        public virtual System.Collections.Generic.ICollection<BuoiHoc> BuoiHocs { get; set; }
+
+        public virtual System.Collections.Generic.ICollection<ThanhToan> ThanhToans { get; set; }
+
         [Key]
         public int MaLop { get; set; }
 
