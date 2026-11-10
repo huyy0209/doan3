@@ -1,4 +1,4 @@
-namespace DoAnWD
+namespace DoAnWD.UI.Dialogs
 {
     partial class frmChucNangGhepLop
     {

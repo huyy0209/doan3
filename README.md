@@ -1,6 +1,6 @@
 # Hệ thống Quản lý Gia sư (DoAnWD)
 
-Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca học** cho một trung tâm gia sư: ghép lớp không trùng ca, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, phiếu báo kết quả cho phụ huynh, học phí, lịch học, thống kê và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
+Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca học** cho một trung tâm gia sư: ghép lớp không trùng ca, đặt tên lớp, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả cho phụ huynh, học phí, lịch học, thống kê và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
 
 > Chạy nhanh: bấm đúp `CaiDatCSDL.bat` (lần đầu) rồi `ChayNhanh.bat`.
 
@@ -40,7 +40,8 @@ doan3/
 │   ├── 02_NangCap_v2.sql        #   hồ sơ học viên, điểm danh, học phí, tài khoản
 │   ├── 03_NangCap_v3.sql        #   hồ sơ gia sư, chỉ mục
 │   ├── 04_NangCap_v4.sql        #   học bù
-│   └── 05_ … 08_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc)
+│   ├── 05_NangCap_v5.sql        #   danh mục môn học, tên lớp, thi lên cấp
+│   └── 11_ … 15_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc; số 1x để script nâng cấp sau này không làm đổi số)
 └── DoAnWD/
     ├── Program.cs               # Điểm vào: kiểm tra CSDL, đăng nhập, mở trang chủ
     ├── App.config               # Connection string
@@ -48,14 +49,15 @@ doan3/
     ├── Models/                  # Entity EF + DbContext
     ├── DAL/                     # Repository
     ├── BLL/
-    │   ├── Services/            # Nghiệp vụ: gia sư, học viên, lớp, điểm danh, học phí, tài khoản, báo cáo
+    │   ├── Services/            # Nghiệp vụ: gia sư, học viên, lớp, môn học, điểm danh + học bù + cấp độ, học phí, tài khoản, báo cáo
     │   ├── Validators/          # Kiểm tra dữ liệu nhập
     │   └── Dto/                 # Dữ liệu trả về cho màn hình
     └── UI/
-        ├── TrangChu.cs          # Khung chính: menu trái, thanh ca học, điều hướng giữa các trang
-        ├── Pages/               # Các trang trong khung chính (Tổng quan, Ghép lớp, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản)
-        ├── Dialogs/             # Cửa sổ bật ra: đăng nhập, ghép lớp, thêm hồ sơ, xếp học bù, thông báo
-        ├── Controls/            # Khung nhập hồ sơ học viên / gia sư dùng chung
+        ├── TrangChu.cs          # Khung chính: menu trái, thanh ca học, giữ các trang đã mở
+        ├── DieuHuong.cs         # Trang này mở trang khác (vd. bấm ô Tổng quan => trang đã lọc sẵn)
+        ├── Pages/               # namespace DoAnWD.UI.Pages: Tổng quan, Lớp học, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản
+        ├── Dialogs/             # namespace DoAnWD.UI.Dialogs: đăng nhập, ghép lớp, môn học, thêm hồ sơ, xếp học bù, thông báo
+        ├── Controls/            # namespace DoAnWD.UI.Controls: khung nhập hồ sơ, cuộn tới đâu tải tới đó
         └── Theme/               # Màu, font, nút, bảng, lịch... dùng chung cho mọi màn hình
 ```
 
@@ -73,10 +75,12 @@ doan3/
    | `02_NangCap_v2.sql` | Có | Hồ sơ học viên, điểm danh, học phí, tài khoản |
    | `03_NangCap_v3.sql` | Có | Hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú) + chỉ mục tăng tốc |
    | `04_NangCap_v4.sql` | Có | Học bù: buổi học có ca, gia sư dạy bù, buổi vắng được bù |
-   | `05_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
-   | `06_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
-   | `07_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
-   | `08_DuLieuMau_HocBu.sql` | Không | Xếp học bù cho khoảng một nửa số buổi vắng gần đây |
+   | `05_NangCap_v5.sql` | Có | Danh mục môn học (môn chính / năng khiếu + cấp độ), tên lớp, cấp đầu vào, bài thi lên cấp; tự đặt tên cho lớp cũ |
+   | `11_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
+   | `12_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
+   | `13_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
+   | `14_DuLieuMau_HocBu.sql` | Không | Xếp học bù cho khoảng một nửa số buổi vắng gần đây |
+   | `15_DuLieuMau_CapDo.sql` | Không | Tên lớp + cấp đầu vào cho lớp mẫu, bài thi lên cấp mẫu ở lớp năng khiếu |
 
    Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -I -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu dùng SQL Express, đổi thành `data source=.\SQLEXPRESS;`.
@@ -118,6 +122,18 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 - Chuyên cần: buổi vắng **đã học bù xong** tính là có mặt (theo điểm danh của buổi bù); buổi bù không cộng thêm vào số buổi của lớp. Điểm test của buổi bù tính vào điểm trung bình.
 - Gia sư thấy và điểm danh được học viên đến học bù vào ca mình dạy, kể cả học viên của lớp khác.
 
+### Môn học và đánh giá
+- Quản lý quản lý **danh mục môn học** (trang Lớp học → nút *Môn học*): thêm, đổi tên, đổi loại, xóa.
+  - **Môn chính** (Toán, Văn, Anh...): đánh giá bằng **xếp loại** theo điểm TB các bài test: Giỏi ≥ 8, Khá ≥ 6,5, Trung bình ≥ 5, Yếu < 5.
+  - **Môn năng khiếu** (Cờ vua, Vẽ, Đàn...): đánh giá theo **cấp độ**; mỗi môn có danh sách cấp riêng (mặc định Cờ vua: Mầm non → Vỡ lòng → Căn bản → Sơ cấp → Trung cấp → Nâng cao).
+- Ghép lớp năng khiếu chọn **cấp đầu vào** (mặc định theo trình độ của học viên nếu khớp).
+- **Thi lên cấp**: đánh dấu "Thi lên cấp" ở buổi có bài test; app tự ghi cấp đang thi (cấp kế tiếp). Điểm **từ 8** là đạt và lên cấp đó; trượt thì giữ cấp cũ (không tụt cấp). Cấp hiện tại luôn tính lại từ cấp đầu vào + các bài thi, nên sửa điểm bài thi cũ cũng ra kết quả đúng.
+- Đổi tên môn cập nhật luôn các lớp và chuyên môn gia sư đang dùng tên cũ. Môn đang có lớp không xóa được (chọn **Ngừng dạy** để ẩn khỏi ghép lớp mới). Không bỏ được cấp độ đang có lớp dùng.
+
+### Tên lớp
+- Khi ghép lớp, tên tự gợi ý **"Môn - Học viên - Ca"** (ví dụ *Cờ vua - Đỗ Bảo Ngọc - Tối*), sửa được; sửa rồi thì không tự đổi nữa, bấm *Gợi ý lại* để lấy lại gợi ý.
+- Tên lớp **không trùng** (trùng thì gợi ý thêm "(2)"). Đổi tên ở trang Lớp học. Tên lớp hiện ở Lớp học, Học viên, điểm danh theo ca, Học phí, Lịch, Tổng quan và phiếu báo.
+
 ### Ràng buộc xóa
 - Không xóa gia sư/học viên đang có lớp hoạt động.
 - Không xóa gia sư/học viên đã có lịch sử lớp (để giữ số liệu thống kê) → dùng `Tạm nghỉ` cho gia sư.
@@ -127,8 +143,8 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 
 | Màn hình | Chức năng | Ai dùng |
 |---|---|---|
-| **Tổng quan** | Số gia sư/học viên/lớp, học phí đang thu, còn phải thu, trạng thái lớp, theo ca, lớp sắp bắt đầu/kết thúc | Quản lý |
-| **Ghép lớp** | Danh sách gia sư và lớp; ghép lớp 3 bước (tìm học viên, chọn ca, chọn gia sư còn trống ca); hủy/xóa lớp | Quản lý |
+| **Tổng quan** | Số gia sư/học viên/lớp, học phí đang thu, còn phải thu, trạng thái gia sư / lớp, học viên đang học, theo ca, lớp sắp bắt đầu/kết thúc. **Bấm vào ô số liệu để mở trang liên quan đã lọc sẵn** (vd. "Rảnh" → Gia sư đang rảnh, "Đang diễn ra" → Lớp học đang diễn ra, ô học phí → Học phí) | Quản lý |
+| **Lớp học** | Mọi lớp: tìm theo tên lớp / học viên / gia sư / môn, lọc trạng thái, ca, môn; **cuộn tới đâu tải tới đó**. Lớp đang chọn: đổi tên, đánh giá (xếp loại hoặc cấp độ + lịch sử thi lên cấp), mở trang học viên, hủy / xóa lớp. **Ghép lớp mới** 3 bước (học viên → môn, cấp đầu vào, ca, ngày, học phí → gia sư dạy môn đó và còn trống ca) + tên lớp. **Môn học**: danh mục môn | Quản lý |
 | **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
 | **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
 | **Gia sư** | Danh sách + hồ sơ (bấm **Thêm gia sư** để mở cửa sổ nhập riêng): email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
@@ -142,14 +158,18 @@ Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "ch�
 - Lịch học chỉ đọc lớp của tháng đang xem; header đếm số lớp theo ca ngay trong SQL; công nợ tính tổng bằng SQL.
 - Tự cập nhật trạng thái mỗi phút chỉ đọc các lớp còn hoạt động.
 - **Chuyển trang tức thì**: mỗi màn hình chỉ dựng giao diện một lần rồi giữ lại; mở lại thì hiện ngay và chỉ nạp lại dữ liệu (`ILamMoi.LamMoi()`). Nút "Làm mới dữ liệu" cũng chỉ nạp lại dữ liệu, không dựng lại màn hình.
-- Bảng Học viên, Gia sư, Học phí phân trang 50 dòng; Học phí mặc định chỉ hiện lớp còn phải thu; Ghép lớp mặc định chỉ hiện lớp đang học.
+- Bảng Học viên, Gia sư, Học phí phân trang 50 dòng; Học phí mặc định chỉ hiện lớp còn phải thu.
+- Trang Lớp học và danh sách buổi học của học viên **cuộn tới đâu tải tới đó** (`CuonTaiDan<T>`): lúc đầu chỉ đưa 30–40 dòng vào bảng, cuộn gần cuối mới thêm đợt tiếp (dữ liệu đã có trong bộ nhớ, không gọi lại CSDL). Trang Lớp học mặc định chỉ hiện lớp còn hoạt động.
+- Trang Lớp học đọc dữ liệu bằng 3 truy vấn (lớp kèm gia sư + học viên, buổi có điểm / bài thi, danh mục môn) rồi tìm / lọc trong bộ nhớ.
+- Tổng quan: đếm lớp theo trạng thái bằng **một** câu GROUP BY (trước là 4 câu), danh sách lớp còn hoạt động đọc **một lần** dùng chung cho 3 bảng của tab Lớp học (trước là 3 lần).
+- Tab "Điểm danh theo ca" chỉ nạp khi đang mở tab đó.
 
 Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra "Đỗ Bảo Ngọc - 0981111111".
 
 ### Điểm danh và điểm test
-- Mỗi lớp có tối đa **một bản ghi mỗi ngày** (điểm danh + điểm + nhận xét); lưu lại cùng ngày thì cập nhật.
+- Mỗi lớp có tối đa **một buổi thường mỗi ngày** (điểm danh + điểm + nhận xét); lưu lại cùng ngày thì cập nhật. Buổi học bù là bản ghi riêng.
 - Điểm thang 10, được nhập "8,5" hoặc "8.5". Vắng thì không có điểm. Không điểm danh cho ngày tương lai hoặc ngoài thời gian lớp.
-- Xếp loại theo điểm TB các bài test: Giỏi ≥ 8, Khá ≥ 6,5, Trung bình ≥ 5, Yếu < 5.
+- Môn chính xếp loại theo điểm TB các bài test: Giỏi ≥ 8, Khá ≥ 6,5, Trung bình ≥ 5, Yếu < 5. Môn năng khiếu đánh giá theo cấp độ (xem *Môn học và đánh giá*).
 - **Phiếu báo kết quả** là file HTML mở bằng trình duyệt (có biểu đồ điểm, bảng các buổi có điểm/nhận xét/vắng). Bấm Ctrl+P để in hoặc lưu PDF gửi phụ huynh.
 
 ### Học phí
@@ -220,15 +240,17 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `fr
 | `perf(ui): instant page switch…` | Giữ màn hình đã mở để chuyển trang không khựng; dòng chọn màu xanh, sao chép trong bảng; thêm học viên / gia sư bằng cửa sổ riêng; gộp code nhập hồ sơ, xóa hàm không dùng |
 | `fix(ui): grid borders, overview data; tidy project…` | Ô bảng điểm danh có khung ổn định; tab Lớp học ở Tổng quan đủ tiêu đề cột, đủ 6 ca, cột "Còn" dễ đọc; sắp xếp UI vào `Pages/`, `Dialogs/`, `Controls/`; đánh số script SQL; thêm `ChayNhanh.bat`, `CaiDatCSDL.bat` |
 | `feat: merge attendance into students, make-up classes…` | Gộp điểm danh + điểm vào trang Học viên (theo học viên và theo ca); học bù cho buổi vắng (ngày, ca, gia sư khác), kiểm tra trùng ca; CSDL v4, dữ liệu mẫu học bù |
+| `feat: subject catalog, levels, class names; overview links…` | Danh mục môn học (môn chính / năng khiếu), đánh giá theo xếp loại hoặc cấp độ + thi lên cấp; tên lớp khi ghép lớp; trang Lớp học mới thay trang Ghép lớp cũ; bấm ô Tổng quan để mở trang đã lọc; cuộn tới đâu tải tới đó; gộp truy vấn Tổng quan, xóa hàm không dùng; UI chia namespace theo thư mục; CSDL v5 |
 
 ## Dữ liệu mẫu
 
 | Script | Nội dung |
 |---|---|
 | `01_QuanLyGiaSu.sql` | Tạo CSDL + 6 gia sư (1 người Tạm nghỉ), 6 học viên, 6 lớp; gia sư *Nguyễn Văn An* dạy 2 lớp song song ở 2 ca khác nhau |
-| `05_DuLieuMau_ThemNhieu.sql` | Thêm 14 gia sư (nhiều môn, có Cờ vua, Lập trình Scratch; 1 người Tạm nghỉ), 30 học viên (vài cặp anh chị em dùng chung SĐT phụ huynh) và 46 lớp: đã kết thúc, đang diễn ra, chưa bắt đầu, 2 lớp bắt đầu trong 24 giờ tới (để thấy thông báo) và 3 lớp đã hủy |
-| `06_DuLieuMau_DiemDanh_HocPhi.sql` | Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống; điểm danh các buổi đã học trong 21 ngày gần nhất, khoảng 1/3 số buổi có bài test 15 phút; các lần đóng học phí (đủ, một phần, chưa đóng) |
-| `07_DuLieuMau_v3.sql` | Điền hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy), ghi chú học viên, tài khoản gia sư mẫu `gs<mã>` / `123456` |
-| `08_DuLieuMau_HocBu.sql` | Khoảng một nửa số buổi vắng trong 21 ngày gần nhất được xếp học bù 2 ngày sau, vào ca đầu tiên trong ngày mà học viên và gia sư đều rảnh; buổi bù đã qua có điểm danh, một số có điểm test |
+| `11_DuLieuMau_ThemNhieu.sql` | Thêm 14 gia sư (nhiều môn, có Cờ vua, Lập trình Scratch; 1 người Tạm nghỉ), 30 học viên (vài cặp anh chị em dùng chung SĐT phụ huynh) và 46 lớp: đã kết thúc, đang diễn ra, chưa bắt đầu, 2 lớp bắt đầu trong 24 giờ tới (để thấy thông báo) và 3 lớp đã hủy |
+| `12_DuLieuMau_DiemDanh_HocPhi.sql` | Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống; điểm danh các buổi đã học trong 21 ngày gần nhất, khoảng 1/3 số buổi có bài test 15 phút; các lần đóng học phí (đủ, một phần, chưa đóng) |
+| `13_DuLieuMau_v3.sql` | Điền hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy), ghi chú học viên, tài khoản gia sư mẫu `gs<mã>` / `123456` |
+| `14_DuLieuMau_HocBu.sql` | Khoảng một nửa số buổi vắng trong 21 ngày gần nhất được xếp học bù 2 ngày sau, vào ca đầu tiên trong ngày mà học viên và gia sư đều rảnh; buổi bù đã qua có điểm danh, một số có điểm test |
+| `15_DuLieuMau_CapDo.sql` | Đặt tên + cấp đầu vào cho các lớp mẫu; ở mỗi lớp năng khiếu đang học, bài test gần nhất được đánh dấu là bài thi lên cấp kế tiếp |
 
 Dữ liệu thêm được tính theo **ngày chạy script**, nên lịch, dải ca và thống kê luôn có số liệu "hôm nay". Script bỏ qua bản ghi đã có, không tạo lớp trùng ca của cùng gia sư/học viên, và cuối cùng đồng bộ lại trạng thái lớp + gia sư.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -8,8 +8,10 @@ using DoAnWD.BLL.Dto;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// Tab "Buổi học & điểm" của học viên đang chọn:
@@ -27,6 +29,7 @@ namespace DoAnWD
 
         private List<KetQuaLop> _ketQua = new List<KetQuaLop>();
         private BindingList<DongBuoi> _buoi = new BindingList<DongBuoi>();
+        private CuonTaiDan<DongBuoi> _cuonBuoi;   // lớp học lâu có nhiều buổi: cuộn tới đâu hiện tới đó
 
         /// <summary>Một dòng trên lưới buổi học (điểm nhập dạng chữ để gõ "8,5" hay "8.5" đều được)</summary>
         private class DongBuoi
@@ -39,6 +42,7 @@ namespace DoAnWD
             public string DiemDanh { get; set; }
             public string DiemText { get; set; }
             public string NhanXet { get; set; }
+            public bool ThiLenCap { get; set; }
             public string GhiChu { get; set; }
 
             [Browsable(false)] public BuoiHocRow Goc { get; set; }
@@ -60,7 +64,7 @@ namespace DoAnWD
             cboLopHV.Format += (s, e) =>
             {
                 var k = e.ListItem as KetQuaLop;
-                if (k != null) e.Value = $"{k.MonHoc} · {k.GiaSu} · {Constants.CaHoc.TenNgan(k.CaHoc)} ({k.TrangThai?.ToLower()})";
+                if (k != null) e.Value = $"{k.TenLop} ({k.TrangThai?.ToLower()})";
             };
 
             dtpThemBuoi = Ui.Date(130);
@@ -118,7 +122,12 @@ namespace DoAnWD
             var cNX = cot("NhanXet", "Nhận xét", 150, false);
             cNX.DefaultCellStyle.Padding = new Padding(11, 0, 11, 0);
             dgvBuoi.Columns.Add(cNX);
-            dgvBuoi.Columns.Add(cot("GhiChu", "Học bù", 104, true));
+            dgvBuoi.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                DataPropertyName = "ThiLenCap", Name = "ThiLenCap", HeaderText = "Thi lên cấp", FillWeight = 64,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 64
+            });
+            dgvBuoi.Columns.Add(cot("GhiChu", "Ghi chú", 112, true));
             dgvBuoi.DataSource = _buoi;
 
             dgvBuoi.CellValidating += (s, e) => KiemTraOdiem(dgvBuoi, e);
@@ -142,7 +151,7 @@ namespace DoAnWD
             };
             dgvBuoi.CurrentCellDirtyStateChanged += (s, e) =>
             {
-                if (dgvBuoi.IsCurrentCellDirty && dgvBuoi.CurrentCell is DataGridViewComboBoxCell)
+                if (dgvBuoi.IsCurrentCellDirty && (dgvBuoi.CurrentCell is DataGridViewComboBoxCell || dgvBuoi.CurrentCell is DataGridViewCheckBoxCell))
                     dgvBuoi.CommitEdit(DataGridViewDataErrorContexts.Commit);
             };
             dgvBuoi.CellFormatting += (s, e) =>
@@ -153,18 +162,20 @@ namespace DoAnWD
                 if (d.Goc != null && d.Goc.LaHocBu) e.CellStyle.BackColor = Theme.InkSoft;     // dòng học bù: nền tím nhạt
                 if (col == "DiemDanhChon" && !Constants.DiemDanh.CoHoc(d.DiemDanh) && d.Goc?.MaBuoiBu == null)
                     e.CellStyle.ForeColor = Theme.Margin;                                       // vắng chưa bù: chữ đỏ
-                if (col == "GhiChu") { e.CellStyle.ForeColor = Theme.Ink; e.CellStyle.Font = Theme.SmallStrong; }
+                if (col == "GhiChu")
+                {
+                    e.CellStyle.Font = Theme.SmallStrong;
+                    e.CellStyle.ForeColor = d.Goc != null && d.Goc.ThiLenCap
+                        ? (d.Goc.KetQuaThi.EndsWith("đạt") && !d.Goc.KetQuaThi.EndsWith("chưa đạt") ? Theme.Success : Theme.Warning)
+                        : Theme.Ink;
+                }
                 // Buổi bù chưa tới ngày: chữ mờ (điểm danh khi tới ngày học)
                 if (d.Goc != null && d.Goc.LaHocBu && d.Goc.ChuaToiNgay && col != "GhiChu") e.CellStyle.ForeColor = Theme.TextFaint;
             };
             // Buổi khóa (bù chưa tới ngày / không phải của mình) hiện như chữ thường, không có khung nhập
-            dgvBuoi.DataBindingComplete += (s, e) =>
-            {
-                for (int i = 0; i < dgvBuoi.Rows.Count && i < _buoi.Count; i++)
-                    if (_buoi[i].KhoaSua)
-                        foreach (var c in new[] { "DiemDanhChon", "DiemText", "NhanXet" })
-                            dgvBuoi.Rows[i].Cells[c].ReadOnly = true;
-            };
+            dgvBuoi.DataBindingComplete += (s, e) => KhoaDong(0, dgvBuoi.Rows.Count);
+            dgvBuoi.RowsAdded += (s, e) => KhoaDong(e.RowIndex, e.RowCount);
+            _cuonBuoi = new CuonTaiDan<DongBuoi>(dgvBuoi, 30);
             dgvBuoi.CurrentCellChanged += (s, e) => CapNhatNutBuoi();
             dgvBuoi.DataError += (s, e) => { e.ThrowException = false; };
 
@@ -192,6 +203,14 @@ namespace DoAnWD
             st.RowStyles[3] = new RowStyle(SizeType.Percent, 100);
             dgvBuoi.Dock = DockStyle.Fill;
             return st;
+        }
+
+        private void KhoaDong(int tu, int soDong)
+        {
+            for (int i = tu; i < tu + soDong && i < dgvBuoi.Rows.Count && i < _buoi.Count; i++)
+                if (_buoi[i].KhoaSua)
+                    foreach (var c in new[] { "DiemDanhChon", "DiemText", "NhanXet", "ThiLenCap" })
+                        dgvBuoi.Rows[i].Cells[c].ReadOnly = true;
         }
 
         /// <summary>Ô điểm phải là số 0-10 (bỏ trống = buổi đó không kiểm tra)</summary>
@@ -254,8 +273,8 @@ namespace DoAnWD
             if (k == null)
             {
                 _vuaNap = false;
-                _buoi = new BindingList<DongBuoi>();
-                dgvBuoi.DataSource = _buoi;
+                _cuonBuoi.Nap(new DongBuoi[0]);
+                _buoi = _cuonBuoi.HienThi;
                 chart.SetData(new KeyValuePair<DateTime, decimal>[0]);
                 lblTongKet.Text = !_maDangSua.HasValue ? "" : "Học viên chưa có lớp nào.";
                 lblGoiYBuoi.Text = !_maDangSua.HasValue ? "Chọn học viên ở danh sách bên trái." : "";
@@ -282,15 +301,19 @@ namespace DoAnWD
 
             _vuaNap = false;
             cboLopHV.Enabled = true;
+            string danhGia = k.TienTrinh != null
+                ? $"  ·  cấp {k.TienTrinh.CapHienTai}" + (k.TienTrinh.CapKeTiep != null ? $" (tiếp theo: {k.TienTrinh.CapKeTiep})" : " (cao nhất)")
+                : (k.DiemTrungBinh.HasValue ? $"  ·  điểm TB {k.DiemTrungBinh:0.##} ({k.XepLoai})" : "");
             lblTongKet.Text = $"Chuyên cần {k.SoBuoiCoMat}/{k.SoBuoi} buổi" +
                               (k.SoBuoiHocBu > 0 ? $" (có {k.SoBuoiHocBu} buổi học bù)" : "") +
                               (k.SoBuoiVang > 0 ? $"  ·  vắng {k.SoBuoiVang}" : "") +
-                              $"  ·  {k.SoBaiTest} bài test" +
-                              (k.DiemTrungBinh.HasValue ? $"  ·  điểm TB {k.DiemTrungBinh:0.##} ({k.XepLoai})" : "");
+                              $"  ·  {k.SoBaiTest} bài test" + danhGia;
+            // Cột thi lên cấp chỉ có ở môn năng khiếu
+            dgvBuoi.Columns["ThiLenCap"].Visible = k.LaNangKhieu;
             chart.SetData(k.Buoi.Where(b => b.Diem.HasValue)
                 .Select(b => new KeyValuePair<DateTime, decimal>(b.NgayHoc, b.Diem.Value)));
 
-            _buoi = new BindingList<DongBuoi>(k.Buoi.Select(b => new DongBuoi
+            _cuonBuoi.Nap(k.Buoi.Select(b => new DongBuoi
             {
                 MaBuoi = b.MaBuoi,
                 MaLop = b.MaLop,
@@ -300,11 +323,12 @@ namespace DoAnWD
                 DiemDanh = b.DiemDanh,
                 DiemText = b.Diem?.ToString("0.##"),
                 NhanXet = b.NhanXet,
+                ThiLenCap = b.ThiLenCap,
                 GhiChu = GhiChuBu(b),
                 Goc = b,
                 KhoaSua = (b.LaHocBu && b.ChuaToiNgay) || !DuocSua(k, b)
-            }).ToList());
-            dgvBuoi.DataSource = _buoi;
+            }));
+            _buoi = _cuonBuoi.HienThi;
 
             bool sua = DuocSua(k, null);
             btnThemBuoi.Enabled = dtpThemBuoi.Enabled = sua;
@@ -317,6 +341,7 @@ namespace DoAnWD
 
         private static string GhiChuBu(BuoiHocRow b)
         {
+            if (b.ThiLenCap) return b.KetQuaThi;
             if (b.LaHocBu)
                 return b.ChuaToiNgay
                     ? $"Lịch bù {b.NgayVangGoc:dd/MM} (chưa học)"
@@ -356,6 +381,7 @@ namespace DoAnWD
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            while (_cuonBuoi.ConLai > 0) _cuonBuoi.TaiThem();   // cần đủ danh sách để kiểm tra trùng ngày + chèn đúng chỗ
             var daCo = _buoi.FirstOrDefault(x => x.Goc != null && !x.Goc.LaHocBu && x.NgayHoc.Date == ngay || x.Goc == null && x.NgayHoc.Date == ngay);
             if (daCo != null)
             {
@@ -393,7 +419,11 @@ namespace DoAnWD
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
-                rows.Add(new BuoiHocRow { MaBuoi = d.MaBuoi, MaLop = d.MaLop, NgayHoc = d.NgayHoc, DiemDanh = d.DiemDanh, Diem = diem, NhanXet = d.NhanXet });
+                rows.Add(new BuoiHocRow
+                {
+                    MaBuoi = d.MaBuoi, MaLop = d.MaLop, NgayHoc = d.NgayHoc, DiemDanh = d.DiemDanh, Diem = diem, NhanXet = d.NhanXet,
+                    ThiLenCap = k.LaNangKhieu && d.ThiLenCap, CapDoThi = d.Goc?.CapDoThi
+                });
             }
 
             try
@@ -449,7 +479,6 @@ namespace DoAnWD
                 if (dlg.ShowDialog(FindForm()) != DialogResult.OK) return;
             }
             HienBuoiHoc();
-            NapDiemDanh();
         }
 
         private void HuyHocBu()
@@ -466,7 +495,6 @@ namespace DoAnWD
             {
                 _hocTap.HuyHocBu(maBu, _gioiHanGS);
                 HienBuoiHoc();
-                NapDiemDanh();
             }
             catch (Exception ex)
             {

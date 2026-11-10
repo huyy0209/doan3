@@ -30,6 +30,11 @@ namespace DoAnWD.BLL.Services
         public ThongKeStats GetStatistics()
         {
             var hoatDong = Constants.LopHocStatus.HoatDong;
+            // Đếm lớp theo trạng thái bằng một truy vấn GROUP BY thay vì đếm từng trạng thái
+            var theoTrangThai = _context.LopHocs.GroupBy(l => l.TrangThai)
+                .Select(g => new { g.Key, SoLop = g.Count() }).ToList()
+                .ToDictionary(x => x.Key ?? "", x => x.SoLop);
+            Func<string, int> dem = tt => { int n; return theoTrangThai.TryGetValue(tt, out n) ? n : 0; };
             var dauThang = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             var dauThangSau = dauThang.AddMonths(1);
 
@@ -49,11 +54,14 @@ namespace DoAnWD.BLL.Services
                     g.TrangThai == Constants.GiaSuStatus.Ban ||
                     g.TrangThai == Constants.GiaSuStatus.DangDay),
 
-                // ✅ SỬA: Tính lớp đang học bao gồm cả 2 trạng thái
-                LopDangHoc = _lopHocRepo.Count(l =>
-                    l.TrangThai == Constants.LopHocStatus.DangDienRa ||
-                    l.TrangThai == Constants.LopHocStatus.DangHoc),
-                LopDaHuy = _lopHocRepo.Count(l => l.TrangThai == Constants.LopHocStatus.DaHuy),
+                LopChuaBatDau = dem(Constants.LopHocStatus.ChuaBatDau),
+                LopDangDienRa = dem(Constants.LopHocStatus.DangDienRa) + dem(Constants.LopHocStatus.DangHoc),
+                LopDaKetThuc = dem(Constants.LopHocStatus.DaKetThuc),
+                LopDangHoc = dem(Constants.LopHocStatus.DangDienRa) + dem(Constants.LopHocStatus.DangHoc),
+                LopDaHuy = dem(Constants.LopHocStatus.DaHuy),
+                // Học viên đang có lớp chưa kết thúc
+                HocVienDangHoc = _context.LopHocs.Where(l => l.MaHV != null && hoatDong.Contains(l.TrangThai))
+                    .Select(l => l.MaHV).Distinct().Count(),
 
                 // Doanh thu = tổng học phí (không tính lớp đã hủy)
                 DoanhThuDangHoatDong = _context.LopHocs
@@ -109,6 +117,10 @@ namespace DoAnWD.BLL.Services
         public int GiaSuDangDay { get; set; }
         public int LopDangHoc { get; set; }
         public int LopDaHuy { get; set; }
+        public int LopChuaBatDau { get; set; }
+        public int LopDangDienRa { get; set; }
+        public int LopDaKetThuc { get; set; }
+        public int HocVienDangHoc { get; set; }
         public int GiaSuTamNghi { get; set; }
 
         /// <summary>Tổng học phí các lớp đang hoạt động</summary>

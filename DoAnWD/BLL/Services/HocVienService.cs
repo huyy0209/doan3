@@ -95,11 +95,6 @@ namespace DoAnWD.BLL.Services
             return _hocVienRepo.Search(keyword);
         }
 
-        public int CountAll()
-        {
-            return _hocVienRepo.Count();
-        }
-
         public void Dispose()
         {
             _context?.Dispose();

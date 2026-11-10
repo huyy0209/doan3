@@ -5,8 +5,11 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Validators;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
+using DoAnWD.UI.Dialogs;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD.UI
+namespace DoAnWD.UI.Controls
 {
     /// <summary>
     /// Khung nhập hồ sơ dùng chung: vừa nằm trong trang (sửa người đang chọn),

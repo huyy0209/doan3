@@ -406,7 +406,14 @@ namespace DoAnWD.UI
             using (var br = new SolidBrush(nen)) g.FillRectangle(br, b);
 
             // 2. Nội dung
-            if (suaDuoc)
+            if (cell is DataGridViewCheckBoxCell)
+            {
+                // Ô đánh dấu: ô khóa và chưa đánh dấu thì để trống cho gọn
+                bool coDanhDau = e.Value is bool && (bool)e.Value;
+                if (suaDuoc || coDanhDau)
+                    e.Paint(b, DataGridViewPaintParts.ContentBackground | DataGridViewPaintParts.ContentForeground);
+            }
+            else if (suaDuoc)
                 VeONhap(g, b, text, e.CellStyle, oHienTai, cell is DataGridViewComboBoxCell);
             else if (isStatus && text.Length > 0)
                 VeNhan(g, b, text);

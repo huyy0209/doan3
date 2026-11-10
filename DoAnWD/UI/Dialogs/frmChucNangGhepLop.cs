@@ -4,18 +4,22 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using DoAnWD.BLL.Dto;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Dialogs
 {
     /// <summary>
     /// Ghép lớp mới theo 3 bước:
     ///   1. Tìm và chọn học viên (gõ tên, SĐT, tên phụ huynh, trường... không cần dấu)
-    ///   2. Chọn ca + khoảng ngày (ca học viên đã bận bị đánh dấu)
-    ///   3. Chọn gia sư: lọc theo môn, mặc định chỉ hiện người còn trống ca đã chọn
+    ///   2. Lớp học: môn (danh mục), cấp độ đầu vào (môn năng khiếu), ca + khoảng ngày, học phí
+    ///   3. Chọn gia sư: mặc định chỉ hiện người dạy môn đã chọn và còn trống ca
+    /// Tên lớp tự gợi ý "Môn - Học viên - Ca", sửa được (sửa rồi thì không tự đổi nữa).
     /// Kiểm tra trùng lịch được tính ngay trong bộ nhớ; khi lưu, LopHocService kiểm tra lại lần cuối.
     /// </summary>
     public partial class frmChucNangGhepLop : Form, ITuGiaoDien
@@ -25,25 +29,34 @@ namespace DoAnWD
         private List<HocVien> _hocViens = new List<HocVien>();
         private List<GiaSu> _giaSus = new List<GiaSu>();
         private List<LopHoc> _lopHoatDong = new List<LopHoc>();
+        private List<MonHocDanhMuc> _mons = new List<MonHocDanhMuc>();
+        private HashSet<string> _tenLopDaCo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private bool _tenLopTuGo;      // người dùng đã tự sửa tên lớp => thôi tự gợi ý
+        private bool _dangGoiYTen;
 
         // Bước 1
         private TextBox txtTimHV;
         private ListBox lstHV;
         private Label lblHVInfo;
         // Bước 2
+        private ComboBox cboMonLop, cboCapDo;
+        private Control khungCapDo;
         private ListBox lstCa;
         private DateTimePicker dtpBatDau, dtpKetThuc;
         private TextBox txtHocPhi;
         private Label lblCanhBao;
         // Bước 3
         private TextBox txtTimGS;
-        private ComboBox cboMon;
-        private CheckBox chkChiTrong;
+        private CheckBox chkCungMon, chkChiTrong;
         private ListBox lstGS;
         private Label lblLichGS;
         // Chân
+        private TextBox txtTenLop;
         private Label lblTomTat;
         private ThemedButton btnGhepLop, btnHuy;
+
+        /// <summary>Mã lớp vừa ghép (để trang gọi chọn luôn lớp đó)</summary>
+        public int? MaLopVuaGhep { get; private set; }
 
         public frmChucNangGhepLop()
         {
@@ -73,19 +86,40 @@ namespace DoAnWD
             txtTimHV = Ui.Input("Tìm tên, SĐT, phụ huynh, trường...");
             txtTimHV.TextChanged += (s, e) => LocHocVien();
             lstHV = Ui.List(52, VeHocVien);
-            lstHV.SelectedIndexChanged += (s, e) => { CapNhatCa(); LocGiaSu(); CapNhat(); };
+            lstHV.SelectedIndexChanged += (s, e) => { CapNhatCa(); NapCapDo(); LocGiaSu(); CapNhat(); };
             lblHVInfo = Ui.Text("", true);
             lblHVInfo.MaximumSize = new Size(330, 0);
             var sec1 = Ui.Section("1. Học viên");
             sec1.Controls.Add(Ui.Stack(false, txtTimHV, KhungList(lstHV), lblHVInfo));
             ((TableLayoutPanel)sec1.Controls[0]).RowStyles[1] = new RowStyle(SizeType.Percent, 100);
 
-            // ---- Bước 2: ca và thời gian ----
-            lstCa = Ui.List(40, VeCa);
+            // ---- Bước 2: lớp học ----
+            cboMonLop = Ui.Combo(false);
+            cboMonLop.Format += (s, e) =>
+            {
+                var m = e.ListItem as MonHocDanhMuc;
+                if (m != null) e.Value = m.LaNangKhieu ? $"{m.TenMon} (năng khiếu)" : m.TenMon;
+            };
+            cboMonLop.FormattingEnabled = true;
+            cboMonLop.SelectedIndexChanged += (s, e) => { NapCapDo(); LocGiaSu(); CapNhat(); };
+            cboCapDo = Ui.Combo(false);
+            cboCapDo.SelectedIndexChanged += (s, e) => CapNhat();
+            var oMon = Ui.Stack(false, Ui.FieldLabel("Môn học"), cboMonLop);
+            khungCapDo = Ui.Stack(false, Ui.FieldLabel("Cấp độ đầu vào"), cboCapDo);
+            var hangMon = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
+            hangMon.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
+            hangMon.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
+            foreach (var o in new[] { oMon, khungCapDo }) { o.AutoSize = true; o.Dock = DockStyle.Top; }
+            oMon.Margin = new Padding(0, 0, 8, 0);
+            cboMonLop.Dock = cboCapDo.Dock = DockStyle.Top;
+            hangMon.Controls.Add(oMon, 0, 0);
+            hangMon.Controls.Add(khungCapDo, 1, 0);
+
+            lstCa = Ui.List(34, VeCa);
             lstCa.Items.AddRange(Constants.CaHoc.TatCaCaHoc);
-            lstCa.Height = 40 * 6 + 2;
+            lstCa.Height = 34 * 6 + 2;
             lstCa.Dock = DockStyle.Top;
-            lstCa.SelectedIndexChanged += (s, e) => { LocGiaSu(); CapNhat(); };
+            lstCa.SelectedIndexChanged += (s, e) => { LocGiaSu(); GoiYTenLop(); CapNhat(); };
 
             dtpBatDau = Ui.Date(140);
             dtpKetThuc = Ui.Date(140);
@@ -117,8 +151,9 @@ namespace DoAnWD
             lblCanhBao = Ui.Text("", true);
             lblCanhBao.MaximumSize = new Size(300, 0);
 
-            var sec2 = Ui.Section("2. Ca và thời gian");
+            var sec2 = Ui.Section("2. Lớp học");
             sec2.Controls.Add(Ui.Stack(false,
+                hangMon,
                 Ui.FieldLabel("Ca học"), lstCa,
                 Ui.FieldLabel("Từ ngày – đến ngày"), Ui.Row(dtpBatDau, dtpKetThuc), nhanh,
                 Ui.FieldLabel("Học phí cả khóa (đ)"), txtHocPhi,
@@ -127,8 +162,12 @@ namespace DoAnWD
             // ---- Bước 3: gia sư ----
             txtTimGS = Ui.Input("Tìm tên, SĐT gia sư...");
             txtTimGS.TextChanged += (s, e) => LocGiaSu();
-            cboMon = Ui.Combo();
-            cboMon.SelectedIndexChanged += (s, e) => LocGiaSu();
+            chkCungMon = new CheckBox
+            {
+                Text = "Chỉ hiện gia sư dạy môn này", Checked = true, AutoSize = true,
+                Font = Theme.Body, ForeColor = Theme.Text, Margin = new Padding(0, 4, 0, 0)
+            };
+            chkCungMon.CheckedChanged += (s, e) => LocGiaSu();
             chkChiTrong = new CheckBox
             {
                 Text = "Chỉ hiện gia sư nhận và còn trống ca này", Checked = true, AutoSize = true,
@@ -136,12 +175,20 @@ namespace DoAnWD
             };
             chkChiTrong.CheckedChanged += (s, e) => LocGiaSu();
             lstGS = Ui.List(52, VeGiaSu);
-            lstGS.SelectedIndexChanged += (s, e) => { HienLichGiaSu(); CapNhat(); };
+            lstGS.SelectedIndexChanged += (s, e) =>
+            {
+                if (MonChon == null && GiaSuChon != null)
+                {
+                    var mon = _mons.FirstOrDefault(m => string.Equals(m.TenMon, GiaSuChon.ChuyenMon?.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (mon != null) cboMonLop.SelectedItem = mon;
+                }
+                HienLichGiaSu(); CapNhat();
+            };
             lblLichGS = Ui.Text("", true);
             lblLichGS.MaximumSize = new Size(380, 0);
 
             var sec3 = Ui.Section("3. Gia sư");
-            var stack3 = Ui.Stack(false, txtTimGS, cboMon, chkChiTrong, KhungList(lstGS), lblLichGS);
+            var stack3 = Ui.Stack(false, txtTimGS, chkCungMon, chkChiTrong, KhungList(lstGS), lblLichGS);
             stack3.RowStyles[3] = new RowStyle(SizeType.Percent, 100);
             sec3.Controls.Add(stack3);
 
@@ -157,7 +204,7 @@ namespace DoAnWD
 
             // ---- Tiêu đề + chân ----
             var header = Ui.Stack(false, Ui.Title("Ghép lớp mới"),
-                Ui.Text("Chọn học viên, ca học rồi gia sư còn trống. Môn học lấy theo chuyên môn của gia sư.", true));
+                Ui.Text("Chọn học viên, môn và ca học rồi gia sư còn trống. Tên lớp tự gợi ý, sửa được.", true));
 
             lblTomTat = new Label { AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = Theme.BodyStrong, ForeColor = Theme.Text };
             btnHuy = Ui.Button("Hủy", ButtonKind.Secondary, Glyph.Close, 110);
@@ -165,13 +212,32 @@ namespace DoAnWD
             btnGhepLop = Ui.Button("Ghép lớp", ButtonKind.Primary, Glyph.Check, 150);
             btnGhepLop.Margin = new Padding(0, 4, 0, 4);
             btnGhepLop.Click += BtnGhepLop_Click;
+            txtTenLop = Ui.Input("Tên lớp, ví dụ: Cờ vua - Bảo Ngọc - Tối");
+            txtTenLop.MaxLength = 150;
+            txtTenLop.TextChanged += (s, e) => { if (!_dangGoiYTen) _tenLopTuGo = txtTenLop.Text.Trim().Length > 0; CapNhat(); };
+            var btnGoiY = Ui.Button("Gợi ý lại", ButtonKind.Ghost, Glyph.Refresh, 110);
+            btnGoiY.Click += (s, e) => { _tenLopTuGo = false; GoiYTenLop(); };
+            var nhanTen = Ui.FieldLabel("Tên lớp");
+            nhanTen.Margin = new Padding(0, 10, 8, 0);
+            var hangTen = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true, Margin = new Padding(0, 0, 0, 4) };
+            hangTen.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            hangTen.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            hangTen.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            txtTenLop.Dock = DockStyle.Fill;
+            txtTenLop.Margin = new Padding(0, 6, 8, 0);
+            hangTen.Controls.Add(nhanTen, 0, 0);
+            hangTen.Controls.Add(txtTenLop, 1, 0);
+            hangTen.Controls.Add(btnGoiY, 2, 0);
+
             var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, AutoSize = true };
             footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            footer.Controls.Add(lblTomTat, 0, 0);
-            footer.Controls.Add(btnHuy, 1, 0);
-            footer.Controls.Add(btnGhepLop, 2, 0);
+            footer.Controls.Add(hangTen, 0, 0);
+            footer.SetColumnSpan(hangTen, 3);
+            footer.Controls.Add(lblTomTat, 0, 1);
+            footer.Controls.Add(btnHuy, 1, 1);
+            footer.Controls.Add(btnGhepLop, 2, 1);
 
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3 };
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -206,12 +272,16 @@ namespace DoAnWD
                 using (var hv = new HocVienService()) _hocViens = hv.GetAll().OrderBy(h => h.HoTen).ToList();
                 using (var gs = new GiaSuService()) _giaSus = gs.GetForGhepLop().ToList();
                 _lopHoatDong = _lopHocService.GetLopConHoatDong();
+                _mons = new MonHocService().GetAll(kemNgungDay: false);
+                using (var db = new GiaSuContextDB())
+                    _tenLopDaCo = new HashSet<string>(db.LopHocs.Where(l => l.TenLop != null).Select(l => l.TenLop).ToList(),
+                        StringComparer.OrdinalIgnoreCase);
 
-                cboMon.Items.Clear();
-                cboMon.Items.Add("Tất cả môn");
-                cboMon.Items.AddRange(_giaSus.Select(g => g.ChuyenMon).Where(m => !string.IsNullOrWhiteSpace(m))
-                    .Distinct().OrderBy(m => m).ToArray());
-                cboMon.SelectedIndex = 0;
+                cboMonLop.Items.Clear();
+                cboMonLop.Items.AddRange(_mons.Cast<object>().ToArray());
+                // Chưa chọn môn: hiện mọi gia sư; chọn gia sư trước thì tự lấy môn theo chuyên môn
+                cboMonLop.SelectedIndex = -1;
+                NapCapDo();
 
                 LocHocVien();
                 LocGiaSu();
@@ -226,6 +296,33 @@ namespace DoAnWD
         }
 
         private HocVien HocVienChon => lstHV.SelectedItem as HocVien;
+        private MonHocDanhMuc MonChon => cboMonLop.SelectedItem as MonHocDanhMuc;
+
+        /// <summary>Môn năng khiếu: hiện ô cấp độ đầu vào (mặc định theo trình độ của học viên nếu khớp)</summary>
+        private void NapCapDo()
+        {
+            var mon = MonChon;
+            var cap = mon?.DanhSachCapDo ?? new List<string>();
+            khungCapDo.Visible = cap.Count > 0;
+            cboCapDo.Items.Clear();
+            cboCapDo.Items.AddRange(cap.Cast<object>().ToArray());
+            string trinhDo = HocVienChon?.TrinhDo;
+            int i = cap.FindIndex(c => string.Equals(c, trinhDo, StringComparison.OrdinalIgnoreCase));
+            if (cap.Count > 0) cboCapDo.SelectedIndex = Math.Max(0, i);
+            GoiYTenLop();
+        }
+
+        /// <summary>Tự điền tên lớp "Môn - Học viên - Ca" (không trùng) nếu người dùng chưa tự sửa</summary>
+        private void GoiYTenLop()
+        {
+            if (_tenLopTuGo || txtTenLop == null) return;
+            string goiY = LopHocService.GoiYTenLop(MonChon?.TenMon, HocVienChon?.HoTen, CaChon);
+            string ten = goiY;
+            for (int i = 2; _tenLopDaCo.Contains(ten) && i < 100; i++) ten = $"{goiY} ({i})";
+            _dangGoiYTen = true;
+            txtTenLop.Text = ten;
+            _dangGoiYTen = false;
+        }
         private GiaSu GiaSuChon => lstGS.SelectedItem as GiaSu;
         private string CaChon => lstCa.SelectedItem as string;
 
@@ -273,11 +370,11 @@ namespace DoAnWD
         {
             var chon = GiaSuChon;
             string tk = txtTimGS.Text;
-            string mon = cboMon.SelectedIndex > 0 ? cboMon.SelectedItem as string : null;
+            string mon = chkCungMon.Checked ? MonChon?.TenMon : null;
             string ca = CaChon;
 
             var ds = _giaSus
-                .Where(g => mon == null || g.ChuyenMon == mon)
+                .Where(g => mon == null || string.Equals(g.ChuyenMon?.Trim(), mon, StringComparison.OrdinalIgnoreCase))
                 .Where(g => TimKiem.Khop(tk, g.HoTen, g.SDT, g.ChuyenMon))
                 .Where(g => !chkChiTrong.Checked || ca == null || (g.NhanCa(ca) && LopTrung(l => l.MaGS == g.MaGS, ca) == null))
                 .OrderBy(g => ca != null && (!g.NhanCa(ca) || LopTrung(l => l.MaGS == g.MaGS, ca) != null)) // người trống lên trước
@@ -346,6 +443,9 @@ namespace DoAnWD
                 loi = "Ngày kết thúc phải sau ngày bắt đầu.";
             if (loi == null && !string.IsNullOrWhiteSpace(txtHocPhi.Text) && !coHocPhi)
                 loi = "Học phí phải là số, ví dụ 1.500.000.";
+            string tenLop = txtTenLop.Text.Trim();
+            if (loi == null && tenLop.Length > 0 && _tenLopDaCo.Contains(tenLop))
+                loi = $"Đã có lớp tên \"{tenLop}\". Hãy đặt tên khác.";
 
             if (loi != null)
             {
@@ -374,6 +474,7 @@ namespace DoAnWD
             // Tóm tắt cho người dùng kiểm tra trước khi bấm
             var thieu = new List<string>();
             if (hv == null) thieu.Add("học viên");
+            if (MonChon == null) thieu.Add("môn học");
             if (ca == null) thieu.Add("ca học");
             if (gs == null) thieu.Add("gia sư");
             if (!coHocPhi) thieu.Add("học phí");
@@ -385,7 +486,8 @@ namespace DoAnWD
             }
             else
             {
-                lblTomTat.Text = $"{hv.HoTen} học {gs.ChuyenMon} với {gs.HoTen}, ca {Constants.CaHoc.TenNgan(ca)}, " +
+                string cap = khungCapDo.Visible && cboCapDo.SelectedItem != null ? $" ({cboCapDo.SelectedItem})" : "";
+                lblTomTat.Text = $"{hv.HoTen} học {MonChon.TenMon}{cap} với {gs.HoTen}, ca {Constants.CaHoc.TenNgan(ca)}, " +
                                  $"{dtpBatDau.Value:dd/MM} – {dtpKetThuc.Value:dd/MM/yyyy}, {hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ";
                 lblTomTat.ForeColor = loi == null ? Theme.Text : Theme.Margin;
             }
@@ -474,16 +576,23 @@ namespace DoAnWD
             var gs = GiaSuChon;
             string ca = CaChon;
             decimal hp;
-            if (hv == null || gs == null || ca == null || !SoTien.TryParse(txtHocPhi.Text, out hp)) return;
+            if (hv == null || gs == null || ca == null || MonChon == null || !SoTien.TryParse(txtHocPhi.Text, out hp)) return;
 
             try
             {
                 DateTime bd, kt;
                 LayKhoang(ca, out bd, out kt);
-                var lop = _lopHocService.GhepLop(hv.MaHV, gs.MaGS, gs.ChuyenMon.Trim(), hp, null, bd, kt, ca);
+                var lop = _lopHocService.GhepLop(new GhepLopYeuCau
+                {
+                    MaHV = hv.MaHV, MaGS = gs.MaGS, MonHoc = MonChon.TenMon, HocPhi = hp,
+                    BatDau = bd, KetThuc = kt, CaHoc = ca,
+                    TenLop = txtTenLop.Text, CapDoDauVao = khungCapDo.Visible ? cboCapDo.SelectedItem as string : null
+                });
+                MaLopVuaGhep = lop.MaLop;
 
                 MessageBox.Show(
-                    $"Đã ghép lớp {lop.MonHoc}.\n\nHọc viên: {hv.HoTen}\nGia sư: {gs.HoTen}\nCa: {ca}\n" +
+                    $"Đã ghép lớp \"{lop.TenLop}\".\n\nHọc viên: {hv.HoTen}\nGia sư: {gs.HoTen}\nMôn: {lop.MonHoc}" +
+                    (lop.CapDoDauVao != null ? $" (vào cấp {lop.CapDoDauVao})" : "") + $"\nCa: {ca}\n" +
                     $"Từ {bd:dd/MM/yyyy} đến {kt:dd/MM/yyyy}\nHọc phí: {hp:N0} đ\nTrạng thái: {lop.TrangThai}",
                     Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
 

@@ -24,6 +24,7 @@ namespace DoAnWD.Models
         public virtual DbSet<LopHoc> LopHocs { get; set; }
         public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
         public virtual DbSet<BuoiHoc> BuoiHocs { get; set; }
+        public virtual DbSet<MonHocDanhMuc> MonHocs { get; set; }
         public virtual DbSet<ThanhToan> ThanhToans { get; set; }
         public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
 

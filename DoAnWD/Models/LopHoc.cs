@@ -40,6 +40,18 @@ namespace DoAnWD.Models
         [StringLength(50)]
         public string CaHoc { get; set; }
 
+        /// <summary>Tên lớp do người ghép lớp đặt (không trùng). Bổ sung ở 05_NangCap_v5.sql.</summary>
+        [StringLength(150)]
+        public string TenLop { get; set; }
+
+        /// <summary>Cấp độ lúc vào lớp (môn năng khiếu)</summary>
+        [StringLength(50)]
+        public string CapDoDauVao { get; set; }
+
+        /// <summary>Tên để hiển thị: tên lớp nếu đã đặt, không thì "Môn - Học viên"</summary>
+        [NotMapped]
+        public string TenHienThi => !string.IsNullOrWhiteSpace(TenLop) ? TenLop : $"{MonHoc} - {HocVien?.HoTen}";
+
         public virtual GiaSu GiaSu { get; set; }
 
         public virtual HocVien HocVien { get; set; }

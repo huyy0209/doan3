@@ -63,14 +63,19 @@ namespace DoAnWD.BLL.Services
 
             foreach (var kq in ketQua)
             {
-                sb.AppendFormat("<h2>{0} với gia sư {1}</h2>", H(kq.MonHoc), H(kq.GiaSu));
+                sb.AppendFormat("<h2>{0}</h2>", H(kq.TenLop ?? kq.MonHoc));
+                sb.AppendFormat("<p class=\"sub\">Môn {0} ({1}), gia sư {2}</p>", H(kq.MonHoc), H(kq.LoaiMon?.ToLower()), H(kq.GiaSu));
                 sb.AppendFormat("<p class=\"sub\">{0}, từ {1:dd/MM/yyyy} đến {2:dd/MM/yyyy}, {3}</p>",
                     H(kq.CaHoc), kq.BatDau, kq.KetThuc, H(kq.TrangThai?.ToLower()));
 
                 sb.Append("<div class=\"tong\">");
                 sb.AppendFormat("<div><b>{0}</b><span>điểm trung bình</span></div>",
                     kq.DiemTrungBinh.HasValue ? kq.DiemTrungBinh.Value.ToString("0.##", Vi) : "–");
-                sb.AppendFormat("<div><b>{0}</b><span>xếp loại</span></div>", H(string.IsNullOrEmpty(kq.XepLoai) ? "–" : kq.XepLoai));
+                if (kq.TienTrinh != null)
+                    sb.AppendFormat("<div><b>{0}</b><span>cấp độ hiện tại{1}</span></div>", H(kq.TienTrinh.CapHienTai),
+                        kq.TienTrinh.CapKeTiep != null ? H(", tiếp theo: " + kq.TienTrinh.CapKeTiep) : "");
+                else
+                    sb.AppendFormat("<div><b>{0}</b><span>xếp loại</span></div>", H(string.IsNullOrEmpty(kq.XepLoai) ? "–" : kq.XepLoai));
                 sb.AppendFormat("<div><b>{0}</b><span>bài test</span></div>", kq.SoBaiTest);
                 sb.AppendFormat("<div><b>{0}/{1}</b><span>buổi có mặt</span></div>", kq.SoBuoiCoMat, kq.SoBuoi);
                 if (kq.SoBuoiHocBu > 0)
@@ -81,7 +86,7 @@ namespace DoAnWD.BLL.Services
 
                 // Bỏ buổi bù chưa tới ngày; buổi vắng hiện kèm ngày học bù
                 var coNoiDung = kq.Buoi.Where(b => !(b.LaHocBu && b.ChuaToiNgay))
-                    .Where(b => b.Diem.HasValue || !string.IsNullOrEmpty(b.NhanXet) || b.Vang || b.LaHocBu).ToList();
+                    .Where(b => b.Diem.HasValue || !string.IsNullOrEmpty(b.NhanXet) || b.Vang || b.LaHocBu || b.ThiLenCap).ToList();
                 if (coNoiDung.Count > 0)
                 {
                     sb.Append("<table><tr><th>Ngày</th><th>Điểm danh</th><th class=\"num\">Điểm test</th><th>Nhận xét của gia sư</th></tr>");
@@ -89,7 +94,7 @@ namespace DoAnWD.BLL.Services
                     {
                         bool vang = b.Vang && !b.MaBuoiBu.HasValue;
                         sb.AppendFormat("<tr><td>{0:dd/MM/yyyy}</td><td{1}>{2}</td><td class=\"num\">{3}</td><td>{4}</td></tr>",
-                            b.NgayHoc, vang ? " class=\"vang\"" : "", H(b.DiemDanhHienThi),
+                            b.NgayHoc, vang ? " class=\"vang\"" : "", H(b.DiemDanhHienThi + (b.ThiLenCap ? " · " + b.KetQuaThi : "")),
                             b.Diem.HasValue ? b.Diem.Value.ToString("0.##", Vi) : "", H(b.NhanXet));
                     }
                     sb.Append("</table>");

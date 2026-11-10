@@ -9,8 +9,10 @@ using DoAnWD.BLL.Validators;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// Học viên (gộp cả điểm danh + điểm):
@@ -25,7 +27,8 @@ namespace DoAnWD
         public void LamMoi()
         {
             NapDuLieu(_maDangSua);
-            NapDiemDanh();
+            // Danh sách điểm danh chỉ nạp khi đang mở tab đó (chuyển tab sẽ tự nạp)
+            if (tabsTrang.SelectedIndex == 1) NapDiemDanh();
         }
 
         /// <summary>Gia sư đăng nhập: chỉ học viên / lớp của mình; quản lý = null</summary>
@@ -63,7 +66,6 @@ namespace DoAnWD
             {
                 NapDuLieu();
                 if (!_maDangSua.HasValue) ChuaChon();
-                NapDiemDanh();
             };
         }
 
@@ -193,7 +195,10 @@ namespace DoAnWD
             tabsTrang.TabPages.Add(tab1);
             tabsTrang.TabPages.Add(tab2);
             // Vừa điểm danh theo ca xong, quay lại tab học viên thì thấy ngay dữ liệu mới
-            tabsTrang.SelectedIndexChanged += (s, e) => { if (tabsTrang.SelectedIndex == 0) HienBuoiHoc(); };
+            tabsTrang.SelectedIndexChanged += (s, e) =>
+            {
+                if (tabsTrang.SelectedIndex == 0) HienBuoiHoc(); else NapDiemDanh();
+            };
             var hostTrang = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 4, 0, 0) };
             hostTrang.Controls.Add(tabsTrang);
 

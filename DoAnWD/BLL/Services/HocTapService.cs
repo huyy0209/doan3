@@ -18,11 +18,15 @@ namespace DoAnWD.BLL.Services
     /// </summary>
     public class HocTapService
     {
-        /// <summary>Ném lỗi nếu CSDL chưa chạy 04_NangCap_v4.sql (thiếu cột học bù)</summary>
+        /// <summary>Ném lỗi nếu CSDL chưa chạy đủ script nâng cấp (thiếu cột học bù v4, môn học / tên lớp v5)</summary>
         public static void KiemTraCauTrucCSDL()
         {
             using (var db = new GiaSuContextDB())
-                db.BuoiHocs.Select(b => new { b.MaBuoiGoc, b.CaHoc, b.MaGSDay }).Take(1).ToList();
+            {
+                db.BuoiHocs.Select(b => new { b.MaBuoiGoc, b.CaHoc, b.MaGSDay, b.ThiLenCap, b.CapDoThi }).Take(1).ToList();
+                db.LopHocs.Select(l => new { l.TenLop, l.CapDoDauVao }).Take(1).ToList();
+                db.MonHocs.Take(1).ToList();
+            }
         }
 
         /// <summary>Xếp loại theo điểm trung bình thang 10</summary>
@@ -101,6 +105,7 @@ namespace DoAnWD.BLL.Services
                 var lops = q.ToList();
 
                 var maLops = lops.Select(l => l.MaLop).ToList();
+                var nangKhieu = MonNangKhieu(db);
                 var buoi = db.BuoiHocs
                     .Where(b => b.NgayHoc == d && b.MaBuoiGoc == null && maLops.Contains(b.MaLop))
                     .ToList()
@@ -121,6 +126,10 @@ namespace DoAnWD.BLL.Services
                     return new DiemDanhRow
                     {
                         MaLop = l.MaLop,
+                        TenLop = l.TenHienThi,
+                        LaNangKhieu = l.MonHoc != null && nangKhieu.Contains(l.MonHoc.Trim()),
+                        ThiLenCap = b?.ThiLenCap ?? false,
+                        CapDoThi = b?.CapDoThi,
                         MaBuoi = b?.MaBuoi,
                         MaHV = l.MaHV ?? 0,
                         HocVien = l.HocVien?.HoTen,
@@ -159,6 +168,10 @@ namespace DoAnWD.BLL.Services
                         ketQua.Add(new DiemDanhRow
                         {
                             MaLop = b.MaLop,
+                            TenLop = l.TenHienThi,
+                            LaNangKhieu = l.MonHoc != null && nangKhieu.Contains(l.MonHoc.Trim()),
+                            ThiLenCap = b.ThiLenCap,
+                            CapDoThi = b.CapDoThi,
                             MaBuoi = b.MaBuoi,
                             MaHV = l.MaHV ?? 0,
                             HocVien = l.HocVien?.HoTen,
@@ -178,10 +191,23 @@ namespace DoAnWD.BLL.Services
                 return ketQua
                     .OrderBy(r => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, r.CaHoc))
                     .ThenBy(r => r.LaHocBu)
-                    .ThenBy(r => r.HocVien)
+                        .ThenBy(r => r.HocVien)
                     .ToList();
             }
         }
+
+        /// <summary>Tên các môn năng khiếu trong danh mục</summary>
+        private static HashSet<string> MonNangKhieu(GiaSuContextDB db)
+        {
+            var nk = Constants.LoaiMon.NangKhieu;
+            return new HashSet<string>(db.MonHocs.Where(m => m.LoaiMon == nk).Select(m => m.TenMon).ToList(),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static Dictionary<string, MonHocDanhMuc> DanhMucMon(GiaSuContextDB db) =>
+            db.MonHocs.ToList()
+                .GroupBy(m => m.TenMon.Trim(), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Lưu điểm danh + điểm của nhiều dòng trong cùng một ngày (buổi thường và buổi học bù).
@@ -197,7 +223,9 @@ namespace DoAnWD.BLL.Services
                 NgayHoc = d,
                 DiemDanh = r.DiemDanh,
                 Diem = r.Diem,
-                NhanXet = r.NhanXet
+                NhanXet = r.NhanXet,
+                ThiLenCap = r.ThiLenCap,
+                CapDoThi = r.CapDoThi
             }), chiChoGiaSu);
         }
 
@@ -211,6 +239,7 @@ namespace DoAnWD.BLL.Services
             var loi = new List<string>();
             using (var db = new GiaSuContextDB())
             {
+                var danhMuc = DanhMucMon(db);
                 foreach (var r in rows)
                 {
                     var lop = db.LopHocs.Include(l => l.HocVien).FirstOrDefault(l => l.MaLop == r.MaLop);
@@ -253,6 +282,28 @@ namespace DoAnWD.BLL.Services
                         }
                     }
 
+                    // Bài thi lên cấp: chỉ môn năng khiếu, phải có mặt và có điểm; tự điền cấp thi lên
+                    string capThi = null;
+                    if (r.ThiLenCap)
+                    {
+                        MonHocDanhMuc mon;
+                        danhMuc.TryGetValue((lop.MonHoc ?? "").Trim(), out mon);
+                        if (mon == null || !mon.LaNangKhieu || mon.DanhSachCapDo.Count == 0)
+                        { loi.Add($"{ten}: chỉ môn năng khiếu mới có bài thi lên cấp."); continue; }
+                        if (!r.Diem.HasValue)
+                        { loi.Add($"{ten}: bài thi lên cấp cần có điểm."); continue; }
+
+                        int maLop = lop.MaLop, maBuoiNay = b?.MaBuoi ?? 0;
+                        var buoiKhac = db.BuoiHocs.Where(x => x.MaLop == maLop && x.MaBuoi != maBuoiNay).ToList();
+                        var tt = TienTrinhCapDo.Tinh(mon.DanhSachCapDo, lop.CapDoDauVao, buoiKhac, r.NgayHoc);
+                        // Giữ cấp đã ghi nếu vẫn hợp lệ (sửa điểm bài thi cũ), không thì lấy cấp kế tiếp
+                        capThi = !string.IsNullOrEmpty(r.CapDoThi) && mon.DanhSachCapDo.Contains(r.CapDoThi, StringComparer.OrdinalIgnoreCase)
+                            ? r.CapDoThi
+                            : b != null && b.ThiLenCap && !string.IsNullOrEmpty(b.CapDoThi) ? b.CapDoThi : tt.CapKeTiep;
+                        if (capThi == null)
+                        { loi.Add($"{ten}: học viên đã ở cấp cao nhất ({tt.CapHienTai})."); continue; }
+                    }
+
                     if (b == null)
                     {
                         b = new BuoiHoc { MaLop = r.MaLop, NgayHoc = r.NgayHoc.Date };
@@ -261,6 +312,8 @@ namespace DoAnWD.BLL.Services
                     b.DiemDanh = r.DiemDanh;
                     b.Diem = r.Diem;
                     b.NhanXet = string.IsNullOrWhiteSpace(r.NhanXet) ? null : r.NhanXet.Trim();
+                    b.ThiLenCap = r.ThiLenCap;
+                    b.CapDoThi = capThi;
                 }
                 db.SaveChanges();
             }
@@ -291,10 +344,16 @@ namespace DoAnWD.BLL.Services
 
                 var gsIds = buoi.Where(b => b.MaGSDay.HasValue).Select(b => b.MaGSDay.Value).Distinct().ToList();
                 var tenGS = db.GiaSus.Where(g => gsIds.Contains(g.MaGS)).ToList().ToDictionary(g => g.MaGS, g => g.HoTen);
+                var danhMuc = DanhMucMon(db);
 
                 return lops
                     .OrderByDescending(l => l.ThoiGianBatDau)
-                    .Select(l => TongHop(l, buoi.Where(b => b.MaLop == l.MaLop).ToList(), tenGS))
+                    .Select(l =>
+                    {
+                        MonHocDanhMuc mon;
+                        danhMuc.TryGetValue((l.MonHoc ?? "").Trim(), out mon);
+                        return TongHop(l, buoi.Where(b => b.MaLop == l.MaLop).ToList(), tenGS, mon);
+                    })
                     .ToList();
             }
         }
@@ -303,8 +362,9 @@ namespace DoAnWD.BLL.Services
         /// Tổng hợp một lớp. Buổi vắng đã học bù xong được tính là có mặt (theo điểm danh của buổi bù);
         /// buổi bù không cộng thêm vào số buổi của lớp.
         /// </summary>
-        public static KetQuaLop TongHop(LopHoc l, List<BuoiHoc> buoiCuaLop, Dictionary<int, string> tenGS)
+        public static KetQuaLop TongHop(LopHoc l, List<BuoiHoc> buoiCuaLop, Dictionary<int, string> tenGS, MonHocDanhMuc mon = null)
         {
+            bool nangKhieu = mon != null && mon.LaNangKhieu && mon.DanhSachCapDo.Count > 0;
             var bu = buoiCuaLop.Where(b => b.MaBuoiGoc.HasValue).ToDictionary(b => b.MaBuoiGoc.Value);
             var thuong = buoiCuaLop.Where(b => !b.MaBuoiGoc.HasValue).ToList();
             var ngayCuaBuoi = buoiCuaLop.ToDictionary(b => b.MaBuoi, b => b.NgayHoc);
@@ -346,6 +406,8 @@ namespace DoAnWD.BLL.Services
                     DiemDanh = b.DiemDanh,
                     Diem = b.Diem,
                     NhanXet = b.NhanXet,
+                    ThiLenCap = b.ThiLenCap,
+                    CapDoThi = b.CapDoThi,
                     LaHocBu = b.MaBuoiGoc.HasValue,
                     NgayVangGoc = b.MaBuoiGoc.HasValue && ngayCuaBuoi.TryGetValue(b.MaBuoiGoc.Value, out ngayGoc) ? ngayGoc : (DateTime?)null,
                     MaBuoiBu = bb?.MaBuoi,
@@ -360,6 +422,9 @@ namespace DoAnWD.BLL.Services
             return new KetQuaLop
             {
                 MaLop = l.MaLop,
+                TenLop = l.TenHienThi,
+                LoaiMon = nangKhieu ? Constants.LoaiMon.NangKhieu : Constants.LoaiMon.Chinh,
+                TienTrinh = nangKhieu ? TienTrinhCapDo.Tinh(mon.DanhSachCapDo, l.CapDoDauVao, buoiCuaLop) : null,
                 MaGS = l.MaGS ?? 0,
                 MonHoc = l.MonHoc,
                 GiaSu = l.GiaSu?.HoTen,
@@ -373,7 +438,7 @@ namespace DoAnWD.BLL.Services
                 SoBuoiHocBu = daBu,
                 SoBaiTest = diem.Count,
                 DiemTrungBinh = tb,
-                XepLoai = XepLoai(tb),
+                XepLoai = nangKhieu ? null : XepLoai(tb),
                 Buoi = rows
             };
         }

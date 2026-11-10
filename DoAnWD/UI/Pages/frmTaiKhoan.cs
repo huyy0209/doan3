@@ -6,8 +6,10 @@ using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>Quản lý tài khoản (chỉ vai trò Quản lý): tạo, đặt lại mật khẩu, khóa / mở khóa</summary>
     public class frmTaiKhoan : Form, ITuGiaoDien, ILamMoi

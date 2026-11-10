@@ -7,8 +7,10 @@ using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// ✨ Calendar View - Xem lịch học theo tháng
@@ -144,7 +146,7 @@ namespace DoAnWD
 
             foreach (var lop in classes.OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc)))
             {
-                details.AppendLine($"{lop.CaHoc}  {lop.MonHoc}");
+                details.AppendLine($"{lop.CaHoc}  {lop.TenHienThi}");
                 details.AppendLine($"    Gia sư: {lop.GiaSu?.HoTen ?? "?"}    Học viên: {lop.HocVien?.HoTen ?? "?"}");
                 details.AppendLine();
             }

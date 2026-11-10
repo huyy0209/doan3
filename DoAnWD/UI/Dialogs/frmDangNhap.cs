@@ -4,8 +4,10 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using DoAnWD.BLL.Services;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Dialogs
 {
     /// <summary>Màn hình đăng nhập (mở trước cửa sổ chính)</summary>
     public class frmDangNhap : Form, ITuGiaoDien

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -7,8 +7,10 @@ using DoAnWD.BLL.Dto;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// Tab "Điểm danh theo ca": chọn ngày + ca => mọi học viên học ca đó (lớp thường + học viên đến học bù),
@@ -29,6 +31,9 @@ namespace DoAnWD
             [Browsable(false)] public int? MaBuoi { get; set; }
             [Browsable(false)] public int MaHV { get; set; }
             [Browsable(false)] public bool LaHocBu { get; set; }
+            [Browsable(false)] public bool LaNangKhieu { get; set; }
+            [Browsable(false)] public string CapDoThi { get; set; }
+            public string TenLop { get; set; }
             public string HocVien { get; set; }
             public string MonHoc { get; set; }
             public string GiaSu { get; set; }
@@ -36,6 +41,7 @@ namespace DoAnWD
             public string DiemDanh { get; set; }
             public string DiemText { get; set; }
             public string NhanXet { get; set; }
+            public bool ThiLenCap { get; set; }
             public string GhiChu { get; set; }
         }
 
@@ -80,8 +86,8 @@ namespace DoAnWD
             dgvDiemDanh.SelectionMode = DataGridViewSelectionMode.CellSelect;
             Func<string, string, int, bool, DataGridViewTextBoxColumn> cot = (prop, header, w, ro) =>
                 new DataGridViewTextBoxColumn { DataPropertyName = prop, Name = prop, HeaderText = header, ReadOnly = ro, FillWeight = w };
-            dgvDiemDanh.Columns.Add(cot("HocVien", "Học viên", 160, true));
-            dgvDiemDanh.Columns.Add(cot("MonHoc", "Môn", 80, true));
+            dgvDiemDanh.Columns.Add(cot("HocVien", "Học viên", 150, true));
+            dgvDiemDanh.Columns.Add(cot("TenLop", "Lớp", 170, true));
             var cGS = cot("GiaSu", "Gia sư", 130, true);
             cGS.Visible = LaQuanLy;
             dgvDiemDanh.Columns.Add(cGS);
@@ -101,7 +107,17 @@ namespace DoAnWD
             var cNX = cot("NhanXet", "Nhận xét", 190, false);
             cNX.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(11, 0, 11, 0);
             dgvDiemDanh.Columns.Add(cNX);
+            // Bài thi lên cấp: chỉ bật với lớp năng khiếu
+            dgvDiemDanh.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                DataPropertyName = "ThiLenCap", Name = "ThiLenCap", HeaderText = "Thi lên cấp", FillWeight = 70
+            });
             dgvDiemDanh.Columns.Add(cot("GhiChu", "Ghi chú", 120, true));
+            dgvDiemDanh.DataBindingComplete += (s, e) =>
+            {
+                for (int i = 0; i < dgvDiemDanh.Rows.Count && i < _dongs.Count; i++)
+                    dgvDiemDanh.Rows[i].Cells["ThiLenCap"].ReadOnly = !_dongs[i].LaNangKhieu;
+            };
             dgvDiemDanh.DataSource = _dongs;
             dgvDiemDanh.CellValidating += (s, e) => KiemTraOdiem(dgvDiemDanh, e);
             dgvDiemDanh.CellFormatting += (s, e) =>
@@ -136,7 +152,7 @@ namespace DoAnWD
             };
             dgvDiemDanh.CurrentCellDirtyStateChanged += (s, e) =>
             {
-                if (dgvDiemDanh.IsCurrentCellDirty && dgvDiemDanh.CurrentCell is DataGridViewComboBoxCell)
+                if (dgvDiemDanh.IsCurrentCellDirty && (dgvDiemDanh.CurrentCell is DataGridViewComboBoxCell || dgvDiemDanh.CurrentCell is DataGridViewCheckBoxCell))
                     dgvDiemDanh.CommitEdit(DataGridViewDataErrorContexts.Commit);
             };
             dgvDiemDanh.CellDoubleClick += (s, e) =>
@@ -174,9 +190,10 @@ namespace DoAnWD
                 _dongs = new BindingList<DongNhap>(rows.Select(r => new DongNhap
                 {
                     MaLop = r.MaLop, MaBuoi = r.MaBuoi, MaHV = r.MaHV, LaHocBu = r.LaHocBu,
+                    TenLop = r.TenLop, LaNangKhieu = r.LaNangKhieu, ThiLenCap = r.ThiLenCap, CapDoThi = r.CapDoThi,
                     HocVien = r.HocVien, MonHoc = r.MonHoc, GiaSu = r.GiaSu, CaHoc = r.CaHoc,
                     DiemDanh = r.DiemDanh, DiemText = r.Diem?.ToString("0.##"), NhanXet = r.NhanXet,
-                    GhiChu = r.GhiChu ?? (r.DaLuu ? "Đã lưu" : "")
+                    GhiChu = r.GhiChu ?? (r.ThiLenCap ? $"Thi lên {r.CapDoThi}" : r.DaLuu ? "Đã lưu" : "")
                 }).ToList());
                 dgvDiemDanh.DataSource = _dongs;
                 int daLuu = rows.Count(r => r.DaLuu && !r.LaHocBu);
@@ -207,7 +224,11 @@ namespace DoAnWD
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                rows.Add(new DiemDanhRow { MaLop = d.MaLop, MaBuoi = d.MaBuoi, DiemDanh = d.DiemDanh, Diem = diem, NhanXet = d.NhanXet });
+                rows.Add(new DiemDanhRow
+                {
+                    MaLop = d.MaLop, MaBuoi = d.MaBuoi, DiemDanh = d.DiemDanh, Diem = diem, NhanXet = d.NhanXet,
+                    ThiLenCap = d.LaNangKhieu && d.ThiLenCap, CapDoThi = d.CapDoThi
+                });
             }
 
             try
@@ -226,6 +247,28 @@ namespace DoAnWD
                 MessageBox.Show($"Không lưu được: {ex.GetBaseException().Message}", Constants.Messages.ErrorTitle,
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>Mở tab học viên, chọn học viên (và lớp nếu có) - dùng khi trang khác chuyển tới</summary>
+        public void ChonHocVien(int maHV, int? maLop = null)
+        {
+            if (!_hocViens.Any(h => h.MaHV == maHV)) NapDuLieu();
+            MoHocVien(maHV);
+            if (maLop.HasValue)
+            {
+                var k = _ketQua.FirstOrDefault(x => x.MaLop == maLop.Value);
+                if (k != null) cboLopHV.SelectedItem = k;
+            }
+        }
+
+        /// <summary>Lọc danh sách theo tình trạng ("Đang học", "Chưa có lớp", "Đã nghỉ")</summary>
+        public void LocTinhTrang(string tinhTrang)
+        {
+            tabsTrang.SelectedIndex = 0;
+            txtTim.Clear();
+            cboTrinhDoLoc.SelectedIndex = 0;
+            cboTinhTrang.SelectedItem = tinhTrang;
+            if (cboTinhTrang.SelectedIndex < 0) cboTinhTrang.SelectedIndex = 0;
         }
 
         /// <summary>Chuyển sang tab học viên và chọn học viên đó (tìm theo tên để chắc chắn thấy trong danh sách)</summary>

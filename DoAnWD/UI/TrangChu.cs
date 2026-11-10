@@ -8,8 +8,11 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD
+namespace DoAnWD.UI
 {
     /// <summary>
     /// Khung chính của ứng dụng: menu trái, thanh tiêu đề (ngày + dải ca học + trạng thái),
@@ -175,6 +178,16 @@ namespace DoAnWD
             panelNavFooter.Height = 3 * 48 + 12;
             btnExit.Text = "Đăng xuất";
 
+            // Trang <-> mục menu, dùng khi một trang mở trang khác (DieuHuong)
+            btnGhepLop.Text = "Lớp học";
+            _menuCuaTrang = new Dictionary<Type, NavButton>
+            {
+                { typeof(frmThongKe), btnThongKe }, { typeof(frmLopHoc), btnGhepLop }, { typeof(frmHocVien), btnHocVien },
+                { typeof(frmCalendarView), btnCalendar }, { typeof(frmHocPhi), btnHocPhi }, { typeof(frmGiaSu), btnGiaSu },
+                { typeof(frmTaiKhoan), btnTaiKhoan }
+            };
+            DieuHuong.MoTrang = MoTrangTuNoiKhac;
+
             // Phân quyền
             if (PhienDangNhap.DaDangNhap)
             {
@@ -240,7 +253,7 @@ namespace DoAnWD
         /// </summary>
         private void RefreshActiveFormIfNeeded()
         {
-            if (activeChild is frmThongKe || activeChild is frmGhepLop || activeChild is frmCalendarView)
+            if (activeChild is frmThongKe || activeChild is frmLopHoc || activeChild is frmCalendarView)
                 (activeChild as ILamMoi)?.LamMoi();
         }
 
@@ -398,26 +411,41 @@ namespace DoAnWD
         // => chuyển trang tức thì, không khựng.
         private readonly Dictionary<Type, Form> _trang = new Dictionary<Type, Form>();
 
-        private void MoTrang<T>() where T : Form, new()
+        private void MoTrang<T>() where T : Form, new() => MoTrang(typeof(T));
+
+        /// <summary>Mục menu ứng với từng trang (để DieuHuong mở trang thì menu cũng sáng theo)</summary>
+        private Dictionary<Type, NavButton> _menuCuaTrang;
+
+        /// <summary>Mở trang + đánh dấu menu; null nếu menu trang đó đang ẩn (không có quyền)</summary>
+        private Form MoTrangTuNoiKhac(Type kieu)
+        {
+            NavButton nut;
+            if (_menuCuaTrang != null && _menuCuaTrang.TryGetValue(kieu, out nut))
+            {
+                if (!nut.Visible) return null;
+                ChonMenu(nut);
+            }
+            return MoTrang(kieu);
+        }
+
+        private Form MoTrang(Type kieu)
         {
             Form frm;
-            bool moi = !_trang.TryGetValue(typeof(T), out frm) || frm.IsDisposed;
-            if (!moi && frm == activeChild) return;
+            bool moi = !_trang.TryGetValue(kieu, out frm) || frm.IsDisposed;
+            if (!moi && frm == activeChild) return frm;
 
             panelHost.SuspendLayout();
             try
             {
                 if (moi)
                 {
-                    frm = new T
-                    {
-                        TopLevel = false,
-                        FormBorderStyle = FormBorderStyle.None,
-                        Dock = DockStyle.Fill
-                    };
+                    frm = (Form)Activator.CreateInstance(kieu);
+                    frm.TopLevel = false;
+                    frm.FormBorderStyle = FormBorderStyle.None;
+                    frm.Dock = DockStyle.Fill;
                     ThemeManager.Apply(frm);   // màn hình cũ dựng bằng Designer: áp giao diện trước khi hiện
                     panelHost.Controls.Add(frm);
-                    _trang[typeof(T)] = frm;
+                    _trang[kieu] = frm;
                 }
 
                 frm.Show();
@@ -433,6 +461,7 @@ namespace DoAnWD
             // Trang đã có sẵn: hiện ngay, nạp dữ liệu mới ngay sau đó
             if (!moi && frm is ILamMoi)
                 BeginInvoke((MethodInvoker)(() => ((ILamMoi)frm).LamMoi()));
+            return frm;
         }
 
         /// <summary>
@@ -492,7 +521,7 @@ namespace DoAnWD
         private void btnGhepLop_Click(object sender, EventArgs e)
         {
             ChonMenu(btnGhepLop);
-            MoTrang<frmGhepLop>();
+            MoTrang<frmLopHoc>();
         }
 
         private void btnThongKe_Click(object sender, EventArgs e)

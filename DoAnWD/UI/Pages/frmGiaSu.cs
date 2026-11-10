@@ -8,8 +8,10 @@ using DoAnWD.BLL.Validators;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// Gia sư: danh sách có tìm kiếm + lọc (môn, trạng thái, ca nhận dạy) + phân trang bên trái,
@@ -17,6 +19,18 @@ namespace DoAnWD
     /// </summary>
     public partial class frmGiaSu : Form, ITuGiaoDien, ILamMoi
     {
+        /// <summary>Mục lọc gộp "Bận" + "Đang dạy"</summary>
+        public const string DangCoLop = "Đang có lớp";
+
+        /// <summary>Lọc theo trạng thái (null = mọi trạng thái); dùng khi bấm ô ở trang Tổng quan</summary>
+        public void LocTrangThai(string trangThai)
+        {
+            txtTim.Clear();
+            cboLocMon.SelectedIndex = cboLocCa.SelectedIndex = 0;
+            cboLocTrangThai.SelectedItem = trangThai;
+            if (trangThai == null || cboLocTrangThai.SelectedIndex < 0) cboLocTrangThai.SelectedIndex = 0;
+        }
+
         public void LamMoi() { NapDuLieu(_maDangSua); }
 
         private List<GiaSu> _giaSus = new List<GiaSu>();
@@ -58,6 +72,7 @@ namespace DoAnWD
             cboLocMon = Ui.Combo(false, 125);
             cboLocTrangThai = Ui.Combo(false, 130);
             cboLocTrangThai.Items.Add("Mọi trạng thái");
+            cboLocTrangThai.Items.Add(DangCoLop);
             cboLocTrangThai.Items.AddRange(Constants.GiaSuStatus.TatCa);
             cboLocTrangThai.SelectedIndex = 0;
             cboLocCa = Ui.Combo(false, 140);
@@ -163,7 +178,10 @@ namespace DoAnWD
                 try { _taiKhoan = new TaiKhoanService().GetAll().Where(t => t.MaGS.HasValue).ToDictionary(t => t.MaGS.Value); }
                 catch { _taiKhoan = new Dictionary<int, TaiKhoanRow>(); }
 
-                var mon = _giaSus.Select(g => g.ChuyenMon).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m => m).ToArray();
+                // Gợi ý chuyên môn: danh mục môn học (đang dạy) + chuyên môn đã nhập trước đây
+                var danhMuc = new MonHocService().GetAll(kemNgungDay: false).Select(m => m.TenMon);
+                var mon = danhMuc.Concat(_giaSus.Select(g => g.ChuyenMon)).Where(m => !string.IsNullOrWhiteSpace(m))
+                    .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(m => m).ToArray();
                 string monChon = cboLocMon.SelectedIndex > 0 ? cboLocMon.SelectedItem as string : null;
                 cboLocMon.Items.Clear();
                 cboLocMon.Items.Add("Mọi môn");
@@ -194,7 +212,9 @@ namespace DoAnWD
             var ds = _giaSus
                 .Where(g => TimKiem.Khop(txtTim.Text, g.HoTen, g.SDT, g.Email, g.ChuyenMon, g.HocVan))
                 .Where(g => mon == null || g.ChuyenMon == mon)
-                .Where(g => tt == null || (g.TrangThai ?? Constants.GiaSuStatus.Ranh) == tt)
+                .Where(g => tt == null || (tt == DangCoLop
+                    ? g.TrangThai == Constants.GiaSuStatus.Ban || g.TrangThai == Constants.GiaSuStatus.DangDay
+                    : (g.TrangThai ?? Constants.GiaSuStatus.Ranh) == tt))
                 .Where(g => ca == null || g.NhanCa(ca))
                 .OrderBy(g => g.HoTen)
                 .Select(g => new Dong

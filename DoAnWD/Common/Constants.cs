@@ -127,6 +127,17 @@ namespace DoAnWD.Common
         /// ✅ Thông báo - BỔ SUNG ĐẦY ĐỦ
         /// </summary>
         /// <summary>Điểm danh một buổi học</summary>
+        /// <summary>Loại môn: môn chính xếp loại theo điểm, môn năng khiếu xếp theo cấp độ</summary>
+        public static class LoaiMon
+        {
+            public const string Chinh = "Chính";
+            public const string NangKhieu = "Năng khiếu";
+            public static readonly string[] TatCa = { Chinh, NangKhieu };
+
+            /// <summary>Điểm bài thi lên cấp từ mức này trở lên là đạt</summary>
+            public const decimal DiemDatThiLenCap = 8m;
+        }
+
         public static class DiemDanh
         {
             public const string CoMat = "Có mặt";

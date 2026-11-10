@@ -1,8 +1,11 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD.UI
+namespace DoAnWD.UI.Dialogs
 {
     /// <summary>
     /// Cửa sổ nhỏ bật ra khi bấm "Thêm học viên" / "Thêm gia sư".

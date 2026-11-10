@@ -1,5 +1,5 @@
 ﻿/* ===================================================================
-   QuanLyGiaSu - DỮ LIỆU MẪU: HỌC BÙ (chạy SAU 04_NangCap_v4.sql và 06_DuLieuMau_DiemDanh_HocPhi.sql)
+   QuanLyGiaSu - DỮ LIỆU MẪU: HỌC BÙ (chạy SAU 04_NangCap_v4.sql và 12_DuLieuMau_DiemDanh_HocPhi.sql)
    - Khoảng một nửa số buổi vắng trong 21 ngày gần nhất được xếp học bù
      2 ngày sau buổi vắng (có thể là ngày trong tương lai = lịch đã xếp, chưa học),
      vào ca đầu tiên trong ngày mà cả học viên lẫn gia sư của lớp đều rảnh.

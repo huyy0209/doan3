@@ -6,8 +6,10 @@ using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// ✨ Form Thống Kê - CẬP NHẬT CHO OPTION 2
@@ -21,6 +23,7 @@ namespace DoAnWD
         private LopHocService _lopHocService;
         private Timer _refreshTimer;
         private Label lblDoanhThu;
+        private System.Collections.Generic.List<LopHoc> _lopHoatDong = new System.Collections.Generic.List<LopHoc>();
 
         public frmThongKe()
         {
@@ -36,21 +39,68 @@ namespace DoAnWD
         {
             // Tiêu đề cột khai báo một lần; tự áp lại mỗi khi bảng nạp dữ liệu (kể cả ở tab chưa mở)
             ThemeManager.TieuDeCot(dgvGiaSu, "MaGS", "Mã", "HoTen", "Họ tên", "ChuyenMon", "Chuyên môn", "TrangThai", "Trạng thái", "SoLop", "Số lớp");
-            ThemeManager.TieuDeCot(dgvLopHoc, "MaLop", "Mã lớp", "HocVien", "Học viên", "MonHoc", "Môn học", "CaHoc", "Ca học",
+            ThemeManager.TieuDeCot(dgvLopHoc, "MaLop", null, "TenLop", "Tên lớp", "HocVien", "Học viên", "MonHoc", "Môn học", "CaHoc", "Ca học",
                 "BatDau", "Bắt đầu", "KetThuc", "Kết thúc", "HocPhi", "Học phí", "TrangThai", "Trạng thái");
             ThemeManager.TieuDeCot(dgvThongKeCa, "CaHoc", "Ca học", "SoLop", "Số lớp", "SoGiaSu", "Số gia sư", "TongHocPhi", "Tổng học phí");
             // Hai bảng "sắp ..." bỏ cột mã lớp để đủ chỗ cho tên người và số ngày còn lại
             foreach (var g in new[] { dgvSapBatDau, dgvSapKetThuc })
-                ThemeManager.TieuDeCot(g, "MaLop", null, "HocVien", "Học viên", "GiaSu", "Gia sư", "MonHoc", "Môn", "CaHoc", "Ca",
+                ThemeManager.TieuDeCot(g, "MaLop", null, "TenLop", "Lớp", "HocVien", "Học viên", "GiaSu", "Gia sư", "MonHoc", "Môn", "CaHoc", "Ca",
                     "BatDau", "Bắt đầu", "KetThuc", "Kết thúc", "SoNgayConLai", "Còn", "HocPhi", "Học phí");
             dgvSapBatDau.DataBindingComplete += (s, ev) => ToDongGap(dgvSapBatDau, _mocSapBatDau);
             dgvSapKetThuc.DataBindingComplete += (s, ev) => ToDongGap(dgvSapKetThuc, _mocSapKetThuc);
 
             InitializeDoanhThuLabel();
+            lblLabelLopDangHoc.Text = "HV đang học";
+            GanBamChuyenTrang();
             tabControl.SizeChanged += (s, ev) => SapXepBoCuc();
             SapXepBoCuc();
             RefreshAll();
             InitializeAutoRefresh();
+        }
+
+        // ===================================================================
+        // BẤM Ô SỐ LIỆU => CHUYỂN TỚI TRANG LIÊN QUAN (đã lọc sẵn)
+        // ===================================================================
+
+        private void GanBamChuyenTrang()
+        {
+            Gan(cardTongGS, "Mở trang Gia sư", () => DieuHuong.Mo<frmGiaSu>()?.LocTrangThai(null));
+            Gan(cardTongHV, "Mở trang Học viên", () => DieuHuong.Mo<frmHocVien>()?.LocTinhTrang("Tất cả"));
+            Gan(cardTongLop, "Mở trang Lớp học", () => DieuHuong.Mo<frmLopHoc>()?.LocTrangThai(frmLopHoc.ConHoatDong));
+            if (lblDoanhThu != null)
+                Gan(lblDoanhThu, "Mở trang Học phí", () => DieuHuong.Mo<frmHocPhi>());
+
+            Gan(new Control[] { lblCountGSRanh, lblLabelGSRanh }, "Gia sư đang rảnh",
+                () => DieuHuong.Mo<frmGiaSu>()?.LocTrangThai(Constants.GiaSuStatus.Ranh));
+            Gan(new Control[] { lblCountGSDangDay, lblLabelGSBan }, "Gia sư đang có lớp",
+                () => DieuHuong.Mo<frmGiaSu>()?.LocTrangThai(frmGiaSu.DangCoLop));
+            Gan(new Control[] { lblCountChuaBatDau, lblLabelChuaBatDau }, "Lớp chưa bắt đầu",
+                () => DieuHuong.Mo<frmLopHoc>()?.LocTrangThai(Constants.LopHocStatus.ChuaBatDau));
+            Gan(new Control[] { lblCountDangDienRa, lblLabelDangDienRa }, "Lớp đang diễn ra",
+                () => DieuHuong.Mo<frmLopHoc>()?.LocTrangThai(Constants.LopHocStatus.DangDienRa));
+            Gan(new Control[] { lblCountDaKetThuc, lblLabelDaKetThuc }, "Lớp đã kết thúc",
+                () => DieuHuong.Mo<frmLopHoc>()?.LocTrangThai(Constants.LopHocStatus.DaKetThuc));
+            Gan(new Control[] { lblCountLopDangHoc, lblLabelLopDangHoc }, "Học viên đang học",
+                () => DieuHuong.Mo<frmHocVien>()?.LocTinhTrang("Đang học"));
+        }
+
+        private readonly ToolTip _goiY = new ToolTip();
+
+        /// <summary>Cả khối (và mọi chữ bên trong) bấm được, con trỏ hình bàn tay, có chú thích</summary>
+        private void Gan(Control khoi, string chuThich, Action viec) => Gan(new[] { khoi }, chuThich, viec);
+
+        private void Gan(Control[] cacKhoi, string chuThich, Action viec)
+        {
+            foreach (var k in cacKhoi)
+            {
+                foreach (var c in new[] { k }.Concat(k.Controls.Cast<Control>()))
+                {
+                    if (c == lblDoanhThu && k != lblDoanhThu) continue;   // ô học phí có đích riêng
+                    c.Cursor = Cursors.Hand;
+                    c.Click += (s, e) => viec();
+                    _goiY.SetToolTip(c, chuThich + " (bấm để xem)");
+                }
+            }
         }
 
         // ===================================================================
@@ -203,7 +253,8 @@ namespace DoAnWD
                 LoadStatistics();
                 LoadGiaSuList();
 
-                // ✨ CÁC THỐNG KÊ MỚI CHO OPTION 2
+                // Lớp còn hoạt động đọc MỘT lần, dùng chung cho 3 bảng của tab Lớp học
+                _lopHoatDong = _lopHocService.GetLopConHoatDong();
                 LoadThongKeCaHoc();
                 LoadLopSapBatDau();
                 LoadLopSapKetThuc();
@@ -233,7 +284,7 @@ namespace DoAnWD
                 lblCountLop.Text = stats.TongLopHoc.ToString();
                 lblCountGSRanh.Text = stats.GiaSuRanh.ToString();
                 lblCountGSDangDay.Text = stats.GiaSuDangDay.ToString();
-                lblCountLopDangHoc.Text = stats.LopDangHoc.ToString();
+                lblCountLopDangHoc.Text = stats.HocVienDangHoc.ToString();
 
                 if (lblDoanhThu != null)
                 {
@@ -244,14 +295,9 @@ namespace DoAnWD
                         $"Còn phải thu: {ConPhaiThu().ToString("N0", vi)} đ";
                 }
 
-                // ✨ THÊM: Thống kê theo trạng thái mới
-                int chuaBatDau = _lopHocService.CountByStatus(Constants.LopHocStatus.ChuaBatDau);
-                int dangDienRa = _lopHocService.CountByStatus(Constants.LopHocStatus.DangDienRa);
-                int daKetThuc = _lopHocService.CountByStatus(Constants.LopHocStatus.DaKetThuc);
-
-                lblCountChuaBatDau.Text = chuaBatDau.ToString();
-                lblCountDangDienRa.Text = dangDienRa.ToString();
-                lblCountDaKetThuc.Text = daKetThuc.ToString();
+                lblCountChuaBatDau.Text = stats.LopChuaBatDau.ToString();
+                lblCountDangDienRa.Text = stats.LopDangDienRa.ToString();
+                lblCountDaKetThuc.Text = stats.LopDaKetThuc.ToString();
             }
             catch (Exception ex)
             {
@@ -469,7 +515,7 @@ namespace DoAnWD
             try
             {
                 // Đủ 6 ca theo thứ tự trong ngày (ca chưa có lớp hiện số 0 để thấy ngay ca còn trống)
-                var lop = _lopHocService.GetLopConHoatDong().Where(l => !string.IsNullOrEmpty(l.CaHoc)).ToList();
+                var lop = _lopHoatDong.Where(l => !string.IsNullOrEmpty(l.CaHoc)).ToList();
                 var thongKeCa = Constants.CaHoc.TatCaCaHoc
                     .Select(ca =>
                     {
@@ -514,7 +560,8 @@ namespace DoAnWD
         {
             try
             {
-                var ds = _lopHocService.GetUpcomingLopHoc(7)
+                var now = DateTime.Now;
+                var ds = _lopHoatDong.Where(l => l.ThoiGianBatDau >= now && l.ThoiGianBatDau <= now.AddDays(7))
                     .Where(l => l.ThoiGianBatDau.HasValue)
                     .OrderBy(l => l.ThoiGianBatDau)
                     .ToList();
@@ -522,9 +569,8 @@ namespace DoAnWD
                 dgvSapBatDau.DataSource = ds.Select(l => new
                 {
                     l.MaLop,
-                    HocVien = l.HocVien?.HoTen ?? "",
+                    TenLop = l.TenHienThi,
                     GiaSu = l.GiaSu?.HoTen ?? "",
-                    l.MonHoc,
                     CaHoc = Constants.CaHoc.TenNgan(l.CaHoc),
                     BatDau = l.ThoiGianBatDau.Value.ToString("dd/MM"),
                     SoNgayConLai = ConBaoLau(l.ThoiGianBatDau.Value),
@@ -572,7 +618,7 @@ namespace DoAnWD
         {
             try
             {
-                var ds = _lopHocService.GetLopConHoatDong()
+                var ds = _lopHoatDong
                     .Where(l => l.TrangThai == Constants.LopHocStatus.DangDienRa &&
                                 l.ThoiGianKetThuc.HasValue &&
                                 l.ThoiGianKetThuc.Value >= DateTime.Now &&
@@ -583,9 +629,8 @@ namespace DoAnWD
                 dgvSapKetThuc.DataSource = ds.Select(l => new
                 {
                     l.MaLop,
-                    HocVien = l.HocVien?.HoTen ?? "",
+                    TenLop = l.TenHienThi,
                     GiaSu = l.GiaSu?.HoTen ?? "",
-                    l.MonHoc,
                     CaHoc = Constants.CaHoc.TenNgan(l.CaHoc),
                     KetThuc = l.ThoiGianKetThuc.Value.ToString("dd/MM"),
                     SoNgayConLai = ConBaoLau(l.ThoiGianKetThuc.Value),

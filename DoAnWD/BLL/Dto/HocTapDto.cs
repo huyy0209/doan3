@@ -10,6 +10,7 @@ namespace DoAnWD.BLL.Dto
     public class DiemDanhRow
     {
         public int MaLop { get; set; }
+        public string TenLop { get; set; }
         /// <summary>Buổi đã có trong CSDL (buổi học bù luôn có sẵn từ lúc xếp lịch)</summary>
         public int? MaBuoi { get; set; }
         public int MaHV { get; set; }
@@ -27,6 +28,10 @@ namespace DoAnWD.BLL.Dto
         public string GhiChu { get; set; }
         /// <summary>Buổi thường đã có lịch học bù => không đổi sang có mặt được</summary>
         public bool DaXepBu { get; set; }
+        /// <summary>Lớp môn năng khiếu => được đánh dấu bài thi lên cấp</summary>
+        public bool LaNangKhieu { get; set; }
+        public bool ThiLenCap { get; set; }
+        public string CapDoThi { get; set; }
     }
 
     /// <summary>Một buổi học của học viên (buổi thường hoặc buổi học bù)</summary>
@@ -45,6 +50,13 @@ namespace DoAnWD.BLL.Dto
         public string DiemDanh { get; set; }
         public decimal? Diem { get; set; }
         public string NhanXet { get; set; }
+
+        // ----- Thi lên cấp (môn năng khiếu) -----
+        public bool ThiLenCap { get; set; }
+        /// <summary>Cấp thi lên (tự điền khi lưu nếu bỏ trống)</summary>
+        public string CapDoThi { get; set; }
+        public string KetQuaThi => !ThiLenCap ? "" :
+            $"Thi lên {CapDoThi}: " + (!Diem.HasValue ? "chưa có điểm" : Diem.Value >= Common.Constants.LoaiMon.DiemDatThiLenCap ? "đạt" : "chưa đạt");
 
         // ----- Học bù -----
         public bool LaHocBu { get; set; }
@@ -81,6 +93,11 @@ namespace DoAnWD.BLL.Dto
     public class KetQuaLop
     {
         public int MaLop { get; set; }
+        public string TenLop { get; set; }
+        public string LoaiMon { get; set; }
+        public bool LaNangKhieu => LoaiMon == Common.Constants.LoaiMon.NangKhieu;
+        /// <summary>Tiến trình cấp độ (môn năng khiếu); null với môn chính</summary>
+        public Services.TienTrinhCapDo TienTrinh { get; set; }
         public int MaGS { get; set; }
         public string MonHoc { get; set; }
         public string GiaSu { get; set; }
@@ -96,7 +113,10 @@ namespace DoAnWD.BLL.Dto
         public int SoBuoiHocBu { get; set; }
         public int SoBaiTest { get; set; }
         public decimal? DiemTrungBinh { get; set; }
+        /// <summary>Xếp loại theo điểm TB (chỉ môn chính)</summary>
         public string XepLoai { get; set; }
+        /// <summary>Đánh giá ngắn: xếp loại (môn chính) hoặc cấp độ hiện tại (năng khiếu)</summary>
+        public string DanhGia => LaNangKhieu ? (TienTrinh?.CapHienTai == null ? "" : "Cấp " + TienTrinh.CapHienTai) : XepLoai;
         /// <summary>Mọi buổi (thường + học bù), mới nhất trước</summary>
         public List<BuoiHocRow> Buoi { get; set; } = new List<BuoiHocRow>();
 
@@ -124,10 +144,49 @@ namespace DoAnWD.BLL.Dto
         public bool ThanhCong => MaBuoi.HasValue;
     }
 
+    /// <summary>Thông tin cần để ghép một lớp mới</summary>
+    public class GhepLopYeuCau
+    {
+        public int MaHV { get; set; }
+        public int MaGS { get; set; }
+        public string MonHoc { get; set; }
+        public decimal HocPhi { get; set; }
+        public DateTime BatDau { get; set; }
+        public DateTime KetThuc { get; set; }
+        public string CaHoc { get; set; }
+        /// <summary>Bỏ trống = tự đặt theo gợi ý "Môn - Học viên - Ca"</summary>
+        public string TenLop { get; set; }
+        /// <summary>Môn năng khiếu: cấp lúc vào lớp (bỏ trống = cấp thấp nhất)</summary>
+        public string CapDoDauVao { get; set; }
+    }
+
+    /// <summary>Một dòng trên trang Lớp học</summary>
+    public class LopHocDong
+    {
+        public int MaLop { get; set; }
+        public int? MaHV { get; set; }
+        public int? MaGS { get; set; }
+        public string TenLop { get; set; }
+        public string HocVien { get; set; }
+        public string GiaSu { get; set; }
+        public string MonHoc { get; set; }
+        public string LoaiMon { get; set; }
+        public string CaHoc { get; set; }
+        public DateTime? BatDau { get; set; }
+        public DateTime? KetThuc { get; set; }
+        public string TrangThai { get; set; }
+        public decimal HocPhi { get; set; }
+        public decimal? DiemTB { get; set; }
+        /// <summary>Xếp loại (môn chính) hoặc "Cấp ..." (năng khiếu)</summary>
+        public string DanhGia { get; set; }
+        public Services.TienTrinhCapDo TienTrinh { get; set; }
+    }
+
     /// <summary>Công nợ học phí của một lớp</summary>
     public class CongNoLop
     {
         public int MaLop { get; set; }
+        public string TenLop { get; set; }
         public string HocVien { get; set; }
         public string SDTLienHe { get; set; }
         public string MonHoc { get; set; }

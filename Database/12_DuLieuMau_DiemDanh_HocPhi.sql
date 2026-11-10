@@ -1,6 +1,6 @@
 ﻿/* ===================================================================
    QuanLyGiaSu - DỮ LIỆU MẪU: HỒ SƠ HỌC VIÊN, ĐIỂM DANH, ĐIỂM TEST, HỌC PHÍ
-   Chạy SAU 04_NangCap_v4.sql (và sau 05_DuLieuMau_ThemNhieu.sql nếu có).
+   Chạy SAU 04_NangCap_v4.sql (và sau 11_DuLieuMau_ThemNhieu.sql nếu có).
    - Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống
    - Tạo điểm danh cho các buổi đã học trong 21 ngày gần nhất,
      khoảng 1/3 số buổi có bài test 15 phút

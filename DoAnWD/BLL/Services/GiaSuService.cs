@@ -49,14 +49,6 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// Lấy gia sư với số lớp đang dạy
-        /// </summary>
-        public IEnumerable<object> GetWithLopCount()
-        {
-            return _giaSuRepo.GetGiaSuWithLopCount();
-        }
-
-        /// <summary>
         /// Xóa gia sư (kiểm tra ràng buộc)
         /// </summary>
         private static string Gon(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
@@ -146,22 +138,6 @@ namespace DoAnWD.BLL.Services
         public IEnumerable<GiaSu> Search(string keyword)
         {
             return _giaSuRepo.Search(keyword);
-        }
-
-        /// <summary>
-        /// Đếm tổng gia sư
-        /// </summary>
-        public int CountAll()
-        {
-            return _giaSuRepo.Count();
-        }
-
-        /// <summary>
-        /// Số lớp đang hoạt động (chưa bắt đầu / đang diễn ra) của một gia sư
-        /// </summary>
-        public int CountActiveLopHoc(int maGS)
-        {
-            return _giaSuRepo.CountActiveLopHoc(maGS);
         }
 
         public void Dispose()

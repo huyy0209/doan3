@@ -5,8 +5,11 @@ using System.Windows.Forms;
 using DoAnWD.BLL.Dto;
 using DoAnWD.BLL.Services;
 using DoAnWD.Common;
+using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD.UI
+namespace DoAnWD.UI.Dialogs
 {
     /// <summary>
     /// Xếp lịch học bù cho một buổi vắng: chọn ngày, ca, gia sư dạy bù.

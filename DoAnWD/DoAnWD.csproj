@@ -65,6 +65,7 @@
     <Compile Include="BLL\Services\HocTapService.cs" />
     <Compile Include="BLL\Services\HocVienService.cs" />
     <Compile Include="BLL\Services\LopHocService.cs" />
+    <Compile Include="BLL\Services\MonHocService.cs" />
     <Compile Include="BLL\Services\NotificationService.cs" />
     <Compile Include="BLL\Services\TaiKhoanService.cs" />
     <Compile Include="BLL\Services\ThongKeService.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="Models\GiaSuContextDB.cs" />
     <Compile Include="Models\HocVien.cs" />
     <Compile Include="Models\LopHoc.cs" />
+    <Compile Include="Models\MonHocDanhMuc.cs" />
     <Compile Include="Models\sysdiagram.cs" />
     <Compile Include="Models\TaiKhoan.cs" />
     <Compile Include="Models\ThanhToan.cs" />
@@ -98,6 +100,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="UI\Controls\CuonTaiDan.cs" />
+    <Compile Include="UI\Dialogs\dlgMonHoc.cs" />
+    <Compile Include="UI\DieuHuong.cs" />
+    <Compile Include="UI\Pages\frmLopHoc.cs" />
     <Compile Include="UI\Controls\HoSoEditors.cs" />
     <Compile Include="UI\Dialogs\dlgHocBu.cs" />
     <Compile Include="UI\Dialogs\dlgHoSo.cs" />
@@ -121,12 +127,6 @@
     </Compile>
     <Compile Include="UI\Pages\frmCalendarView.Designer.cs">
       <DependentUpon>frmCalendarView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Pages\frmGhepLop.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Pages\frmGhepLop.Designer.cs">
-      <DependentUpon>frmGhepLop.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Pages\frmGiaSu.cs">
       <SubType>Form</SubType>

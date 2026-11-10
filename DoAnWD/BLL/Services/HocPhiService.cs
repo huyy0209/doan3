@@ -35,7 +35,7 @@ namespace DoAnWD.BLL.Services
                 var dong = db.LopHocs
                     .Select(l => new
                     {
-                        l.MaLop, l.MonHoc, l.HocPhi, l.TrangThai, l.ThoiGianBatDau, l.ThoiGianKetThuc,
+                        l.MaLop, l.TenLop, l.MonHoc, l.HocPhi, l.TrangThai, l.ThoiGianBatDau, l.ThoiGianKetThuc,
                         HocVien = l.HocVien.HoTen, l.HocVien.SDT, l.HocVien.SDTPhuHuynh,
                         GiaSu = l.GiaSu.HoTen,
                         DaDong = l.ThanhToans.Sum(t => (decimal?)t.SoTien) ?? 0
@@ -51,6 +51,7 @@ namespace DoAnWD.BLL.Services
                         return new CongNoLop
                         {
                             MaLop = x.MaLop,
+                            TenLop = x.TenLop ?? $"{x.MonHoc} - {x.HocVien}",
                             HocVien = x.HocVien,
                             SDTLienHe = string.IsNullOrWhiteSpace(x.SDTPhuHuynh) ? x.SDT : x.SDTPhuHuynh,
                             MonHoc = x.MonHoc,

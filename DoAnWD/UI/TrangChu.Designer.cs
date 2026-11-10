@@ -1,4 +1,4 @@
-﻿namespace DoAnWD
+﻿namespace DoAnWD.UI
 {
     partial class TrangChu
     {

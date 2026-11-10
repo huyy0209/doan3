@@ -6,6 +6,8 @@
    - Không tạo lớp trùng ca của cùng gia sư / học viên
    - Chạy lại nhiều lần được: bản ghi đã có thì bỏ qua
    =================================================================== */
+SET QUOTED_IDENTIFIER ON;   -- bảng có chỉ mục có điều kiện (04, 05)
+GO
 USE QuanLyGiaSu;
 GO
 

@@ -93,23 +93,6 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// ✨ Reset danh sách đã thông báo (chạy mỗi ngày)
-        /// </summary>
-        public void ResetNotifiedList()
-        {
-            _notifiedLopIds.Clear();
-            System.Diagnostics.Debug.WriteLine("[NOTIFICATION] Đã reset danh sách thông báo.");
-        }
-
-        /// <summary>
-        /// ✨ Xóa một lớp khỏi danh sách đã thông báo (để thông báo lại)
-        /// </summary>
-        public void RemoveFromNotified(int maLop)
-        {
-            _notifiedLopIds.Remove(maLop);
-        }
-
-        /// <summary>
         /// ✨ Lấy số lượng lớp sắp bắt đầu trong N giờ
         /// </summary>
         public int GetUpcomingClassCount(int hours = 24)

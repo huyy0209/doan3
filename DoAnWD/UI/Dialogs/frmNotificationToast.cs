@@ -3,8 +3,11 @@ using System.Drawing;
 using System.Windows.Forms;
 using DoAnWD.Common;
 using DoAnWD.Models;
+using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Pages;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Dialogs
 {
     /// <summary>
     /// ✨ Toast Notification - Thông báo popup nhẹ

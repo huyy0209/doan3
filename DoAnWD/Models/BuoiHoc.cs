@@ -41,6 +41,13 @@ namespace DoAnWD.Models
         /// <summary>Buổi vắng mà buổi này học bù cho; null = buổi thường</summary>
         public int? MaBuoiGoc { get; set; }
 
+        /// <summary>Buổi này là bài thi lên cấp (môn năng khiếu). Bổ sung ở 05_NangCap_v5.sql.</summary>
+        public bool ThiLenCap { get; set; }
+
+        /// <summary>Cấp thi lên; đạt khi điểm từ 8 trở lên</summary>
+        [StringLength(50)]
+        public string CapDoThi { get; set; }
+
         [NotMapped]
         public bool LaHocBu => MaBuoiGoc.HasValue;
 

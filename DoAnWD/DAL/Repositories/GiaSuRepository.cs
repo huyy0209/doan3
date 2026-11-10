@@ -17,18 +17,6 @@ namespace DoAnWD.DAL.Repositories
         }
 
         /// <summary>
-        /// Lấy gia sư rảnh hoặc sẵn sàng
-        /// </summary>
-        public IEnumerable<GiaSu> GetAvailableGiaSu()
-        {
-            return _dbSet.Where(g =>
-                g.TrangThai == Constants.GiaSuStatus.Ranh ||
-                g.TrangThai == Constants.GiaSuStatus.SanSang ||
-                g.TrangThai == null
-            ).ToList();
-        }
-
-        /// <summary>
         /// Lấy gia sư có thể nhận thêm lớp: mọi gia sư trừ "Tạm nghỉ".
         /// Gia sư đang bận vẫn nhận được lớp ở ca khác - xung đột được kiểm tra theo ca.
         /// </summary>
@@ -38,14 +26,6 @@ namespace DoAnWD.DAL.Repositories
                 .Where(g => g.TrangThai == null || g.TrangThai != Constants.GiaSuStatus.TamNghi)
                 .OrderBy(g => g.HoTen)
                 .ToList();
-        }
-
-        /// <summary>
-        /// Lấy gia sư đang dạy
-        /// </summary>
-        public IEnumerable<GiaSu> GetTeachingGiaSu()
-        {
-            return _dbSet.Where(g => g.TrangThai == Constants.GiaSuStatus.DangDay).ToList();
         }
 
         /// <summary>

@@ -9,8 +9,10 @@ using DoAnWD.BLL.Services;
 using DoAnWD.Common;
 using DoAnWD.Models;
 using DoAnWD.UI;
+using DoAnWD.UI.Controls;
+using DoAnWD.UI.Dialogs;
 
-namespace DoAnWD
+namespace DoAnWD.UI.Pages
 {
     /// <summary>
     /// Học phí: công nợ từng lớp (học phí, đã đóng, còn nợ) + ghi nhận các lần phụ huynh đóng tiền.
@@ -199,8 +201,8 @@ namespace DoAnWD
             string tt = cboTinhTrang.SelectedIndex > 0 ? cboTinhTrang.SelectedItem as string : null;
             var ds = _congNo
                 .Where(c => tt == null || (tt == CanThu ? c.TinhTrang != HocPhiService.DaDu : c.TinhTrang == tt))
-                .Where(c => TimKiem.Khop(txtTim.Text, c.HocVien, c.SDTLienHe, c.MonHoc, c.GiaSu))
-                .Select(c => new { c.MaLop, c.HocVien, SDT = c.SDTLienHe, c.MonHoc, c.GiaSu, c.HocPhi, DaDong = c.DaDong, ConNo = c.ConNo, c.TinhTrang })
+                .Where(c => TimKiem.Khop(txtTim.Text, c.TenLop, c.HocVien, c.SDTLienHe, c.MonHoc, c.GiaSu))
+                .Select(c => new { c.MaLop, c.TenLop, c.HocVien, SDT = c.SDTLienHe, c.MonHoc, c.GiaSu, c.HocPhi, DaDong = c.DaDong, ConNo = c.ConNo, c.TinhTrang })
                 .ToList();
             dgv.DataSource = pager.Cat(ds);
             if (dgv.Columns.Count > 0)
@@ -208,7 +210,9 @@ namespace DoAnWD
                 dgv.Columns["MaLop"].Visible = false;
                 dgv.Columns["HocVien"].HeaderText = "Học viên";
                 dgv.Columns["SDT"].HeaderText = "SĐT liên hệ";
+                dgv.Columns["TenLop"].HeaderText = "Lớp";
                 dgv.Columns["MonHoc"].HeaderText = "Môn";
+                dgv.Columns["MonHoc"].Visible = false;   // tên lớp đã có môn
                 dgv.Columns["GiaSu"].HeaderText = "Gia sư";
                 dgv.Columns["GiaSu"].Visible = false; // bớt cột cho dễ đọc; tìm kiếm vẫn theo tên gia sư
                 dgv.Columns["HocPhi"].HeaderText = "Học phí";
