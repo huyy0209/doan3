@@ -333,9 +333,23 @@ namespace DoAnWD.UI
             };
         }
 
+        /// <summary>Cột tiền ở mọi bảng: có dấu phân cách hàng nghìn, canh phải (kể cả bảng tự chia cột)</summary>
+        private static void DinhDangTien(DataGridView dgv)
+        {
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                string key = !string.IsNullOrEmpty(col.DataPropertyName) ? col.DataPropertyName : col.Name;
+                if (key != "HocPhi" && key != "DaDong" && key != "ConNo" && !key.StartsWith("TongHocPhi")) continue;
+                col.DefaultCellStyle.Format = "N0";
+                col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            }
+        }
+
         public static void SizeColumns(DataGridView dgv)
         {
             if (dgv.IsDisposed || dgv.Columns.Count == 0) return;
+            DinhDangTien(dgv);
             if (Equals(dgv.Tag, TuChiaCot)) return;   // bảng tự đặt độ rộng cột
 
             const int fillDesired = 150;
@@ -359,13 +373,6 @@ namespace DoAnWD.UI
 
                 // Cột tên người được ưu tiên rộng hơn khi phải co
                 bool laTen = key == "HoTen" || key == "HocVien" || key == "GiaSu" || key == "TenDangNhap";
-
-                if (key == "HocPhi" || key.StartsWith("TongHocPhi") || key == "DaDong" || key == "ConNo")
-                {
-                    col.DefaultCellStyle.Format = "N0";
-                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-                    col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-                }
 
                 plan.Add(System.Tuple.Create(col, width > 0 ? width : (laTen ? -190 : 0)));
                 total += width > 0 ? width : (laTen ? 190 : fillDesired);

@@ -99,7 +99,7 @@ namespace DoAnWD.UI.Pages
             dgv = Ui.Grid();
             dgv.SelectionChanged += (s, e) => HienLopChon();
             // Gia sư, môn, học viên, SĐT vẫn tìm được nhưng ẩn bớt để cột tiền đủ rộng (tên lớp đã có môn + học viên)
-            ThemeManager.TieuDeCot(dgv, "MaLop", null, "MonHoc", null, "GiaSu", null, "HocVien", null, "SDTLienHe", null, "TrangThaiLop", null, "TenLop", "Lớp",
+            ThemeManager.TieuDeCot(dgv, "MaLop", null, "MonHoc", null, "GiaSu", null, "HocVien", null, "SDT", null, "SDTLienHe", null, "TrangThaiLop", null, "TenLop", "Lớp",
                 "HocPhi", "Học phí", "DaDong", "Đã đóng", "ConNo", "Còn nợ", "TinhTrang", "Tình trạng");
             ThemeManager.ChiaCot(dgv, "TenLop", 240, "HocPhi", 104, "DaDong", 104, "ConNo", 104, "TinhTrang", 118);
             dgv.DataBindingComplete += (s, e) =>
