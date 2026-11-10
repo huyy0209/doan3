@@ -139,25 +139,25 @@ namespace DoAnWD
             indicatorTimer.Tick += IndicatorTimer_Tick;
         }
 
-        private NavButton btnHocTap, btnHocPhi, btnTaiKhoan, btnDoiMatKhau;
+        private NavButton btnHocPhi, btnTaiKhoan, btnDoiMatKhau;
 
         /// <summary>
         /// Thêm các mục menu mới và ẩn mục theo vai trò:
         ///  - Quản lý: mọi mục
-        ///  - Gia sư: Điểm danh &amp; điểm, Lịch học (chỉ lớp của mình)
+        ///  - Gia sư: Học viên (điểm danh, điểm, học bù), Lịch học (chỉ lớp của mình)
         /// </summary>
         private void TaoMenuMoi()
         {
-            btnHocTap = new NavButton { Text = "Điểm danh & điểm", Glyph = Glyph.Clipboard, Name = "btnHocTap" };
+            // Học viên gộp luôn điểm danh + điểm test + học bù
+            btnHocVien.Text = "Học viên & điểm";
+            btnHocVien.UseMnemonic = false;
             btnHocPhi = new NavButton { Text = "Học phí", Glyph = Glyph.Money, Name = "btnHocPhi" };
             btnTaiKhoan = new NavButton { Text = "Tài khoản", Glyph = Glyph.Key, Name = "btnTaiKhoan" };
-            btnHocTap.Click += (s, e) => { ChonMenu(btnHocTap); MoTrang<frmHocTap>(); };
             btnHocPhi.Click += (s, e) => { ChonMenu(btnHocPhi); MoTrang<frmHocPhi>(); };
             btnTaiKhoan.Click += (s, e) => { ChonMenu(btnTaiKhoan); MoTrang<frmTaiKhoan>(); };
-            btnHocTap.UseMnemonic = false;
 
             // Thứ tự hiển thị từ trên xuống (Dock Top: thêm sau nằm trên => thêm ngược)
-            var thuTu = new[] { btnThongKe, btnGhepLop, btnHocTap, btnCalendar, btnHocPhi, btnGiaSu, btnHocVien, btnTaiKhoan };
+            var thuTu = new[] { btnThongKe, btnGhepLop, btnHocVien, btnCalendar, btnHocPhi, btnGiaSu, btnTaiKhoan };
             panelNav.SuspendLayout();
             foreach (var b in thuTu) panelNav.Controls.Remove(b);
             for (int i = thuTu.Length - 1; i >= 0; i--) panelNav.Controls.Add(thuTu[i]);
@@ -180,7 +180,7 @@ namespace DoAnWD
             {
                 lblAppSub.Text = PhienDangNhap.TenHienThi;
                 if (!PhienDangNhap.LaQuanLy)
-                    foreach (var b in new[] { btnThongKe, btnGhepLop, btnHocPhi, btnGiaSu, btnHocVien, btnTaiKhoan })
+                    foreach (var b in new[] { btnThongKe, btnGhepLop, btnHocPhi, btnGiaSu, btnTaiKhoan })
                         b.Visible = false;
             }
         }
@@ -352,11 +352,14 @@ namespace DoAnWD
             lastUpdateTime = DateTime.Now;
             CapNhatThanhTrangThai();
 
-            // Màn hình mặc định: quản lý xem Tổng quan, gia sư vào thẳng Điểm danh
+            // Màn hình mặc định: quản lý xem Tổng quan, gia sư vào thẳng điểm danh theo ca
             if (!PhienDangNhap.DaDangNhap || PhienDangNhap.LaQuanLy)
                 btnThongKe_Click(btnThongKe, EventArgs.Empty);
             else
-                btnHocTap.PerformClick();
+            {
+                btnHocVien.PerformClick();
+                (activeChild as frmHocVien)?.MoTabDiemDanh();
+            }
         }
 
         private void TrangChu_FormClosing(object sender, FormClosingEventArgs e)

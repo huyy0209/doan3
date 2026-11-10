@@ -53,7 +53,7 @@ namespace DoAnWD.UI
 
         private int TabWidth(int i)
         {
-            return TextRenderer.MeasureText(_tabs.TabPages[i].Text, Theme.BodyStrong).Width + 40;
+            return TextRenderer.MeasureText(_tabs.TabPages[i].Text, Theme.BodyStrong, Size.Empty, TextFormatFlags.NoPrefix).Width + 40;
         }
 
         private Rectangle TabRect(int i)
@@ -122,7 +122,7 @@ namespace DoAnWD.UI
                 Color fore = selected ? Theme.Ink : i == _hover ? Theme.Text : Theme.TextMuted;
 
                 TextRenderer.DrawText(g, _tabs.TabPages[i].Text, selected ? Theme.BodyStrong : Theme.Body,
-                    r, fore, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+                    r, fore, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
 
                 if (selected)
                 {

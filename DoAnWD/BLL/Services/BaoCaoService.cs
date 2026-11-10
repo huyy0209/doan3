@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -73,20 +73,23 @@ namespace DoAnWD.BLL.Services
                 sb.AppendFormat("<div><b>{0}</b><span>xếp loại</span></div>", H(string.IsNullOrEmpty(kq.XepLoai) ? "–" : kq.XepLoai));
                 sb.AppendFormat("<div><b>{0}</b><span>bài test</span></div>", kq.SoBaiTest);
                 sb.AppendFormat("<div><b>{0}/{1}</b><span>buổi có mặt</span></div>", kq.SoBuoiCoMat, kq.SoBuoi);
+                if (kq.SoBuoiHocBu > 0)
+                    sb.AppendFormat("<div><b>{0}</b><span>buổi đã học bù</span></div>", kq.SoBuoiHocBu);
                 sb.Append("</div>");
 
                 sb.Append(BieuDo(kq.Buoi));
 
-                var coNoiDung = kq.Buoi.Where(b => b.Diem.HasValue || !string.IsNullOrEmpty(b.NhanXet)
-                                                   || !Common.Constants.DiemDanh.CoHoc(b.DiemDanh)).ToList();
+                // Bỏ buổi bù chưa tới ngày; buổi vắng hiện kèm ngày học bù
+                var coNoiDung = kq.Buoi.Where(b => !(b.LaHocBu && b.ChuaToiNgay))
+                    .Where(b => b.Diem.HasValue || !string.IsNullOrEmpty(b.NhanXet) || b.Vang || b.LaHocBu).ToList();
                 if (coNoiDung.Count > 0)
                 {
                     sb.Append("<table><tr><th>Ngày</th><th>Điểm danh</th><th class=\"num\">Điểm test</th><th>Nhận xét của gia sư</th></tr>");
                     foreach (var b in coNoiDung)
                     {
-                        bool vang = !Common.Constants.DiemDanh.CoHoc(b.DiemDanh);
+                        bool vang = b.Vang && !b.MaBuoiBu.HasValue;
                         sb.AppendFormat("<tr><td>{0:dd/MM/yyyy}</td><td{1}>{2}</td><td class=\"num\">{3}</td><td>{4}</td></tr>",
-                            b.NgayHoc, vang ? " class=\"vang\"" : "", H(b.DiemDanh),
+                            b.NgayHoc, vang ? " class=\"vang\"" : "", H(b.DiemDanhHienThi),
                             b.Diem.HasValue ? b.Diem.Value.ToString("0.##", Vi) : "", H(b.NhanXet));
                     }
                     sb.Append("</table>");

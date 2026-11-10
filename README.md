@@ -1,6 +1,6 @@
 # Hệ thống Quản lý Gia sư (DoAnWD)
 
-Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca học** cho một trung tâm gia sư: ghép lớp không trùng ca, điểm danh + điểm bài test cuối buổi, phiếu báo kết quả cho phụ huynh, học phí, lịch học, thống kê và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
+Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca học** cho một trung tâm gia sư: ghép lớp không trùng ca, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, phiếu báo kết quả cho phụ huynh, học phí, lịch học, thống kê và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
 
 > Chạy nhanh: bấm đúp `CaiDatCSDL.bat` (lần đầu) rồi `ChayNhanh.bat`.
 
@@ -39,7 +39,8 @@ doan3/
 │   ├── 01_QuanLyGiaSu.sql       #   tạo CSDL + bảng gốc
 │   ├── 02_NangCap_v2.sql        #   hồ sơ học viên, điểm danh, học phí, tài khoản
 │   ├── 03_NangCap_v3.sql        #   hồ sơ gia sư, chỉ mục
-│   └── 04_ … 06_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc)
+│   ├── 04_NangCap_v4.sql        #   học bù
+│   └── 05_ … 08_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc)
 └── DoAnWD/
     ├── Program.cs               # Điểm vào: kiểm tra CSDL, đăng nhập, mở trang chủ
     ├── App.config               # Connection string
@@ -52,8 +53,8 @@ doan3/
     │   └── Dto/                 # Dữ liệu trả về cho màn hình
     └── UI/
         ├── TrangChu.cs          # Khung chính: menu trái, thanh ca học, điều hướng giữa các trang
-        ├── Pages/               # Các trang trong khung chính (Tổng quan, Ghép lớp, Điểm danh, Lịch, Học phí, Gia sư, Học viên, Tài khoản)
-        ├── Dialogs/             # Cửa sổ bật ra: đăng nhập, ghép lớp, thêm hồ sơ, thông báo
+        ├── Pages/               # Các trang trong khung chính (Tổng quan, Ghép lớp, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản)
+        ├── Dialogs/             # Cửa sổ bật ra: đăng nhập, ghép lớp, thêm hồ sơ, xếp học bù, thông báo
         ├── Controls/            # Khung nhập hồ sơ học viên / gia sư dùng chung
         └── Theme/               # Màu, font, nút, bảng, lịch... dùng chung cho mọi màn hình
 ```
@@ -71,11 +72,13 @@ doan3/
    | `01_QuanLyGiaSu.sql` | Có | Tạo CSDL + dữ liệu mẫu nhỏ |
    | `02_NangCap_v2.sql` | Có | Hồ sơ học viên, điểm danh, học phí, tài khoản |
    | `03_NangCap_v3.sql` | Có | Hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú) + chỉ mục tăng tốc |
-   | `04_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
-   | `05_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
-   | `06_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
+   | `04_NangCap_v4.sql` | Có | Học bù: buổi học có ca, gia sư dạy bù, buổi vắng được bù |
+   | `05_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
+   | `06_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
+   | `07_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
+   | `08_DuLieuMau_HocBu.sql` | Không | Xếp học bù cho khoảng một nửa số buổi vắng gần đây |
 
-   Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
+   Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -I -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu dùng SQL Express, đổi thành `data source=.\SQLEXPRESS;`.
 4. Mở `DoAnWD.slnx` bằng Visual Studio 2022 → chuột phải solution → **Restore NuGet Packages** → **F5**.
 
@@ -100,6 +103,21 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 - **Gia sư** tự đồng bộ theo lịch dạy: có lớp đang diễn ra → `Đang dạy`; chỉ có lớp sắp học → `Bận`; không còn lớp → `Rảnh`. Quản lý có thể chọn `Tạm nghỉ` để ngừng nhận lớp mới.
 - Trạng thái được cập nhật khi mở app, mỗi 60 giây, và khi bấm **Làm mới**.
 
+### Điểm danh, điểm test và học bù
+- Mỗi buổi học: có mặt / đi trễ / vắng có phép / vắng không phép, điểm bài test 15 phút cuối giờ (thang 10, bỏ trống nếu hôm đó không kiểm tra), nhận xét. Vắng thì không có điểm.
+- **Học bù**: chọn một buổi vắng → chọn ngày, ca và gia sư dạy bù (mặc định gia sư của lớp, đổi được). Buổi bù vẫn tính cho lớp gốc; buổi vắng giữ nguyên trạng thái và ghi "Bù dd/MM, ca".
+
+| # | Luật học bù |
+|---|---|
+| 1 | Chỉ bù cho buổi vắng; mỗi buổi vắng tối đa 1 lịch bù |
+| 2 | Học viên không có lớp hoặc buổi bù khác **cùng ngày + cùng ca** (bị chặn) |
+| 3 | Gia sư dạy bù không được Tạm nghỉ; nếu đang dạy ca đó thì **hỏi xác nhận** (cho học chung) |
+| 4 | Ngày bù từ ngày lớp bắt đầu, tối đa 60 ngày tới; buổi bù chưa tới ngày chưa điểm danh được |
+| 5 | Buổi vắng đã có lịch bù không đổi sang có mặt được (hủy lịch bù trước) |
+
+- Chuyên cần: buổi vắng **đã học bù xong** tính là có mặt (theo điểm danh của buổi bù); buổi bù không cộng thêm vào số buổi của lớp. Điểm test của buổi bù tính vào điểm trung bình.
+- Gia sư thấy và điểm danh được học viên đến học bù vào ca mình dạy, kể cả học viên của lớp khác.
+
 ### Ràng buộc xóa
 - Không xóa gia sư/học viên đang có lớp hoạt động.
 - Không xóa gia sư/học viên đã có lịch sử lớp (để giữ số liệu thống kê) → dùng `Tạm nghỉ` cho gia sư.
@@ -111,11 +129,10 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 |---|---|---|
 | **Tổng quan** | Số gia sư/học viên/lớp, học phí đang thu, còn phải thu, trạng thái lớp, theo ca, lớp sắp bắt đầu/kết thúc | Quản lý |
 | **Ghép lớp** | Danh sách gia sư và lớp; ghép lớp 3 bước (tìm học viên, chọn ca, chọn gia sư còn trống ca); hủy/xóa lớp | Quản lý |
-| **Điểm danh & điểm** | Theo ngày + ca: có mặt / đi trễ / vắng, điểm bài test 15 phút (bỏ trống nếu không kiểm tra), nhận xét. Kết quả học viên: điểm TB, xếp loại, chuyên cần, biểu đồ điểm, **phiếu báo kết quả** cho phụ huynh | Quản lý, Gia sư (lớp của mình) |
 | **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
 | **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
 | **Gia sư** | Danh sách + hồ sơ (bấm **Thêm gia sư** để mở cửa sổ nhập riêng): email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
-| **Học viên** | Danh sách + hồ sơ (bấm **Thêm học viên** để mở cửa sổ nhập riêng): phụ huynh + SĐT, trường/lớp, trình độ, ghi chú; lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; phiếu báo; xuất CSV | Quản lý |
+| **Học viên & điểm** | Tab **Theo học viên**: danh sách (lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; xuất CSV) + học viên đang chọn với 2 tab: *Buổi học & điểm* (chọn lớp, chuyên cần, điểm TB, xếp loại, biểu đồ điểm; sửa trực tiếp điểm danh / điểm / nhận xét từng buổi, thêm buổi còn thiếu, **xếp / hủy học bù**) và *Hồ sơ* (phụ huynh + SĐT, trường/lớp, trình độ, ghi chú). **Thêm học viên** mở cửa sổ nhập riêng; **phiếu báo kết quả** cho phụ huynh. Tab **Điểm danh theo ca**: chọn ngày + ca → điểm danh cả ca, gồm cả học viên đến học bù; bấm đúp tên để mở trang học viên | Quản lý; Gia sư (học viên của mình, không sửa hồ sơ; mở thẳng tab Điểm danh theo ca khi đăng nhập) |
 | **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
 
 Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "chỉ hiện gia sư nhận và còn trống ca này") hoặc gắn nhãn "Không nhận ca này"; vẫn ghép được nếu đã thống nhất riêng.
@@ -178,9 +195,11 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 
 | `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
 
+Trang Học viên chia 3 file: `frmHocVien.cs` (khung trang, danh sách, hồ sơ), `frmHocVien.BuoiHoc.cs` (buổi học & điểm, học bù), `frmHocVien.DiemDanh.cs` (điểm danh theo ca). Cửa sổ xếp học bù: `UI/Dialogs/dlgHocBu.cs`.
+
 `UI/Controls/HoSoEditors.cs` chứa khung nhập hồ sơ học viên / gia sư dùng chung cho trang và cho cửa sổ "Thêm ..." (`UI/Dialogs/dlgHoSo.cs`).
 
-Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocTap`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
+Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
 
 ## Lịch sử nâng cấp
 
@@ -200,14 +219,16 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocTap`, `frmHocPhi`, `frmT
 | `feat: tutor profile…` | Trang Gia sư mới + hồ sơ, ca nhận dạy dùng khi ghép lớp, dữ liệu mẫu v3 |
 | `perf(ui): instant page switch…` | Giữ màn hình đã mở để chuyển trang không khựng; dòng chọn màu xanh, sao chép trong bảng; thêm học viên / gia sư bằng cửa sổ riêng; gộp code nhập hồ sơ, xóa hàm không dùng |
 | `fix(ui): grid borders, overview data; tidy project…` | Ô bảng điểm danh có khung ổn định; tab Lớp học ở Tổng quan đủ tiêu đề cột, đủ 6 ca, cột "Còn" dễ đọc; sắp xếp UI vào `Pages/`, `Dialogs/`, `Controls/`; đánh số script SQL; thêm `ChayNhanh.bat`, `CaiDatCSDL.bat` |
+| `feat: merge attendance into students, make-up classes…` | Gộp điểm danh + điểm vào trang Học viên (theo học viên và theo ca); học bù cho buổi vắng (ngày, ca, gia sư khác), kiểm tra trùng ca; CSDL v4, dữ liệu mẫu học bù |
 
 ## Dữ liệu mẫu
 
 | Script | Nội dung |
 |---|---|
 | `01_QuanLyGiaSu.sql` | Tạo CSDL + 6 gia sư (1 người Tạm nghỉ), 6 học viên, 6 lớp; gia sư *Nguyễn Văn An* dạy 2 lớp song song ở 2 ca khác nhau |
-| `04_DuLieuMau_ThemNhieu.sql` | Thêm 14 gia sư (nhiều môn, có Cờ vua, Lập trình Scratch; 1 người Tạm nghỉ), 30 học viên (vài cặp anh chị em dùng chung SĐT phụ huynh) và 46 lớp: đã kết thúc, đang diễn ra, chưa bắt đầu, 2 lớp bắt đầu trong 24 giờ tới (để thấy thông báo) và 3 lớp đã hủy |
-| `05_DuLieuMau_DiemDanh_HocPhi.sql` | Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống; điểm danh các buổi đã học trong 21 ngày gần nhất, khoảng 1/3 số buổi có bài test 15 phút; các lần đóng học phí (đủ, một phần, chưa đóng) |
-| `06_DuLieuMau_v3.sql` | Điền hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy), ghi chú học viên, tài khoản gia sư mẫu `gs<mã>` / `123456` |
+| `05_DuLieuMau_ThemNhieu.sql` | Thêm 14 gia sư (nhiều môn, có Cờ vua, Lập trình Scratch; 1 người Tạm nghỉ), 30 học viên (vài cặp anh chị em dùng chung SĐT phụ huynh) và 46 lớp: đã kết thúc, đang diễn ra, chưa bắt đầu, 2 lớp bắt đầu trong 24 giờ tới (để thấy thông báo) và 3 lớp đã hủy |
+| `06_DuLieuMau_DiemDanh_HocPhi.sql` | Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống; điểm danh các buổi đã học trong 21 ngày gần nhất, khoảng 1/3 số buổi có bài test 15 phút; các lần đóng học phí (đủ, một phần, chưa đóng) |
+| `07_DuLieuMau_v3.sql` | Điền hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy), ghi chú học viên, tài khoản gia sư mẫu `gs<mã>` / `123456` |
+| `08_DuLieuMau_HocBu.sql` | Khoảng một nửa số buổi vắng trong 21 ngày gần nhất được xếp học bù 2 ngày sau, vào ca đầu tiên trong ngày mà học viên và gia sư đều rảnh; buổi bù đã qua có điểm danh, một số có điểm test |
 
 Dữ liệu thêm được tính theo **ngày chạy script**, nên lịch, dải ca và thống kê luôn có số liệu "hôm nay". Script bỏ qua bản ghi đã có, không tạo lớp trùng ca của cùng gia sư/học viên, và cuối cùng đồng bộ lại trạng thái lớp + gia sư.

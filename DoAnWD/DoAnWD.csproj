@@ -99,6 +99,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="UI\Controls\HoSoEditors.cs" />
+    <Compile Include="UI\Dialogs\dlgHocBu.cs" />
     <Compile Include="UI\Dialogs\dlgHoSo.cs" />
     <Compile Include="UI\Dialogs\frmChucNangGhepLop.cs">
       <SubType>Form</SubType>
@@ -136,10 +137,15 @@
     <Compile Include="UI\Pages\frmHocPhi.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Pages\frmHocTap.cs">
+    <Compile Include="UI\Pages\frmHocVien.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Pages\frmHocVien.cs">
+    <Compile Include="UI\Pages\frmHocVien.BuoiHoc.cs">
+      <DependentUpon>frmHocVien.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Pages\frmHocVien.DiemDanh.cs">
+      <DependentUpon>frmHocVien.cs</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\Pages\frmHocVien.Designer.cs">

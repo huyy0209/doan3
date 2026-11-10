@@ -309,9 +309,13 @@ namespace DoAnWD.UI
         /// <summary>
         /// Độ rộng cột thống nhất: mã / số / ngày / trạng thái cố định, cột chữ (tên, môn...) co giãn
         /// </summary>
+        /// <summary>Gắn vào DataGridView.Tag để bảng tự chia cột, không dùng quy tắc chung</summary>
+        public const string TuChiaCot = "TuChiaCot";
+
         public static void SizeColumns(DataGridView dgv)
         {
             if (dgv.IsDisposed || dgv.Columns.Count == 0) return;
+            if (Equals(dgv.Tag, TuChiaCot)) return;   // bảng tự đặt độ rộng cột
 
             const int fillDesired = 150;
             var plan = new System.Collections.Generic.List<System.Tuple<DataGridViewColumn, int>>();
@@ -414,6 +418,12 @@ namespace DoAnWD.UI
                 var textRect = new Rectangle(b.X + 24, b.Y, b.Width - 28, b.Height);
                 TextRenderer.DrawText(g, text, e.CellStyle.Font ?? Theme.Body, textRect, e.CellStyle.ForeColor,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+            }
+            else if (cell is DataGridViewComboBoxCell)
+            {
+                // Ô chọn bị khóa: chỉ hiện chữ, không vẽ nút xổ xuống
+                TextRenderer.DrawText(g, text, e.CellStyle.Font ?? Theme.Body, new Rectangle(b.X + 8, b.Y, b.Width - 12, b.Height - 1),
+                    e.CellStyle.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
             }
             else
                 e.Paint(b, DataGridViewPaintParts.ContentBackground | DataGridViewPaintParts.ContentForeground |

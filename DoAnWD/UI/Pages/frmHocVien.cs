@@ -13,18 +13,34 @@ using DoAnWD.UI;
 namespace DoAnWD
 {
     /// <summary>
-    /// Học viên: danh sách có tìm kiếm + lọc bên trái, hồ sơ chi tiết bên phải.
-    /// Chọn một dòng để xem/sửa; "Thêm học viên" để nhập người mới.
+    /// Học viên (gộp cả điểm danh + điểm):
+    ///  - Tab "Theo học viên": danh sách bên trái; bên phải là buổi học & điểm của học viên đang chọn
+    ///    (sửa điểm danh / điểm / nhận xét, xếp học bù) và hồ sơ.
+    ///  - Tab "Điểm danh theo ca": điểm danh cả ca trong một ngày, gồm cả học viên đến học bù.
+    /// Gia sư đăng nhập chỉ thấy học viên của mình và không sửa hồ sơ.
+    /// File này: khung trang, danh sách, hồ sơ. Xem thêm frmHocVien.BuoiHoc.cs, frmHocVien.DiemDanh.cs.
     /// </summary>
     public partial class frmHocVien : Form, ITuGiaoDien, ILamMoi
     {
-        public void LamMoi() { NapDuLieu(_maDangSua); }
+        public void LamMoi()
+        {
+            NapDuLieu(_maDangSua);
+            NapDiemDanh();
+        }
+
+        /// <summary>Gia sư đăng nhập: chỉ học viên / lớp của mình; quản lý = null</summary>
+        private readonly int? _gioiHanGS = PhienDangNhap.GioiHanGiaSu;
+        private bool LaQuanLy => !_gioiHanGS.HasValue;
+
+        private TabControl tabsTrang, tabsChiTiet;
+        private Label lblLienHe;
 
         private const string TatCa = "Tất cả";
         private const string DangHoc = "Đang học";
         private const string ChuaCoLop = "Chưa có lớp";
         private const string DaNghi = "Đã nghỉ";
 
+        private readonly HocTapService _hocTap = new HocTapService();
         private List<HocVien> _hocViens = new List<HocVien>();
         private List<LopHoc> _lops = new List<LopHoc>();
         private int? _maDangSua;   // null = đang thêm mới
@@ -43,7 +59,18 @@ namespace DoAnWD
         {
             InitializeComponent();
             BuildUi();
-            Load += (s, e) => { NapDuLieu(); if (!_maDangSua.HasValue) ChuaChon(); };
+            Load += (s, e) =>
+            {
+                NapDuLieu();
+                if (!_maDangSua.HasValue) ChuaChon();
+                NapDiemDanh();
+            };
+        }
+
+        /// <summary>Mở thẳng tab điểm danh theo ca (màn hình mặc định của gia sư)</summary>
+        public void MoTabDiemDanh()
+        {
+            if (tabsTrang != null) tabsTrang.SelectedIndex = 1;
         }
 
         // ===================================================================
@@ -59,11 +86,11 @@ namespace DoAnWD
             // ---- Danh sách ----
             txtTim = Ui.Input("Tìm tên, SĐT, phụ huynh, trường... (không cần dấu)");
             txtTim.TextChanged += (s, e) => ApDungLoc();
-            cboTinhTrang = Ui.Combo(false, 150);
+            cboTinhTrang = Ui.Combo(false, 130);
             cboTinhTrang.Items.AddRange(new object[] { TatCa, DangHoc, ChuaCoLop, DaNghi });
             cboTinhTrang.SelectedIndex = 0;
             cboTinhTrang.SelectedIndexChanged += (s, e) => ApDungLoc();
-            cboTrinhDoLoc = Ui.Combo(false, 150);
+            cboTrinhDoLoc = Ui.Combo(false, 130);
             cboTrinhDoLoc.SelectedIndexChanged += (s, e) => ApDungLoc();
 
             var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true, Margin = new Padding(0) };
@@ -100,47 +127,92 @@ namespace DoAnWD
             secDs.Controls.Add(stackDs);
 
             // ---- Hồ sơ ----
-            lblTieuDeForm = new Label { Font = Theme.Section, ForeColor = Theme.Ink, AutoSize = true, Margin = new Padding(0, 0, 0, 4) };
+            lblTieuDeForm = new Label { Font = Theme.Section, ForeColor = Theme.Ink, AutoSize = true, Margin = new Padding(0, 0, 0, 2) };
+            lblLienHe = Ui.Text("", true);
+            lblLienHe.Margin = new Padding(0, 0, 0, 4);
             editor = new HoSoHocVienEditor();
             lblLop = Ui.Text("", true);
-            lblLop.MaximumSize = new Size(420, 0);
+            lblLop.MaximumSize = new Size(560, 0);
 
             btnThemMoi = Ui.Button("Thêm học viên", ButtonKind.Secondary, Glyph.Plus);
             btnThemMoi.Click += (s, e) => MoCuaSoThem();
-            btnLuu = Ui.Button("Lưu thay đổi", ButtonKind.Primary, Glyph.Check, 150);
+            btnThemMoi.Visible = LaQuanLy;
+            btnLuu = Ui.Button("Lưu hồ sơ", ButtonKind.Primary, Glyph.Check, 130);
             btnLuu.Click += (s, e) => Luu();
-            btnXoa = Ui.Button("Xóa", ButtonKind.Danger, Glyph.Trash, 96);
+            btnXoa = Ui.Button("Xóa học viên", ButtonKind.Danger, Glyph.Trash, 130);
             btnXoa.Click += (s, e) => Xoa();
             btnPhieuBao = Ui.Button("Phiếu báo kết quả", ButtonKind.Ghost, Glyph.Chart);
             btnPhieuBao.Click += (s, e) => TaoPhieuBao();
 
-            var secHs = Ui.Section("Hồ sơ");
-            secHs.Margin = new Padding(0);
-            secHs.Controls.Add(Ui.Stack(false,
-                lblTieuDeForm,
-                editor,
-                lblLop,
-                Ui.Row(btnLuu, btnXoa, btnPhieuBao)));
+            var hoSo = Ui.Stack(false, editor, lblLop, Ui.Row(btnLuu, btnXoa));
+            hoSo.Dock = DockStyle.Fill;
+            hoSo.AutoScroll = true;
+            hoSo.Padding = new Padding(0, 8, 8, 0);
+            if (!LaQuanLy)
+            {
+                // Gia sư xem hồ sơ (liên hệ phụ huynh) nhưng không sửa / xóa
+                btnLuu.Visible = btnXoa.Visible = false;
+            }
 
-            // ---- Trang ----
+            // ---- Bên phải: tên học viên + 2 tab (Buổi học & điểm, Hồ sơ) ----
+            tabsChiTiet = new TabControl { Dock = DockStyle.Fill };
+            var tBuoi = new TabPage("Buổi học & điểm") { BackColor = Theme.Surface, Padding = new Padding(0, 8, 0, 0) };
+            var tHoSo = new TabPage("Hồ sơ") { BackColor = Theme.Surface, Padding = new Padding(0, 8, 0, 0) };
+            tBuoi.Controls.Add(BuildBuoiHoc());
+            tHoSo.Controls.Add(hoSo);
+            tabsChiTiet.TabPages.Add(tBuoi);
+            tabsChiTiet.TabPages.Add(tHoSo);
+            var hostCT = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0), BackColor = Theme.Surface };
+            hostCT.Controls.Add(tabsChiTiet);
+
+            var dauCT = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
+            dauCT.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            dauCT.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            dauCT.Controls.Add(Ui.Stack(false, lblTieuDeForm, lblLienHe), 0, 0);
+            dauCT.Controls.Add(btnPhieuBao, 1, 0);
+
+            var secCT = Ui.Section("Học viên đang chọn");
+            secCT.Margin = new Padding(0);
+            var stCT = Ui.Stack(false, dauCT, hostCT);
+            stCT.RowStyles[1] = new RowStyle(SizeType.Percent, 100);
+            hostCT.Dock = DockStyle.Fill;
+            secCT.Controls.Add(stCT);
+
+            var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = new Padding(0) };
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 63));
+            cot.Controls.Add(secDs, 0, 0);
+            cot.Controls.Add(secCT, 1, 0);
+
+            // ---- Trang: 2 tab ----
+            tabsTrang = new TabControl { Dock = DockStyle.Fill };
+            var tab1 = new TabPage("Theo học viên") { BackColor = Theme.Paper, Padding = new Padding(0, 10, 0, 0) };
+            var tab2 = new TabPage("Điểm danh theo ca") { BackColor = Theme.Paper, Padding = new Padding(0, 10, 0, 0) };
+            tab1.Controls.Add(cot);
+            tab2.Controls.Add(BuildDiemDanh());
+            tabsTrang.TabPages.Add(tab1);
+            tabsTrang.TabPages.Add(tab2);
+            // Vừa điểm danh theo ca xong, quay lại tab học viên thì thấy ngay dữ liệu mới
+            tabsTrang.SelectedIndexChanged += (s, e) => { if (tabsTrang.SelectedIndex == 0) HienBuoiHoc(); };
+            var hostTrang = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 4, 0, 0) };
+            hostTrang.Controls.Add(tabsTrang);
+
             var tieuDe = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
             tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tieuDe.Controls.Add(Ui.Title("Học viên"), 0, 0);
+            tieuDe.Controls.Add(Ui.Stack(false, Ui.Title("Học viên"),
+                Ui.Text("Chọn học viên để sửa điểm danh, điểm test, xếp học bù. Điểm danh cả ca ở tab \"Điểm danh theo ca\".", true)), 0, 0);
             tieuDe.Controls.Add(btnThemMoi, 1, 0);
-
-            var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = new Padding(0, 10, 0, 0) };
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
-            cot.Controls.Add(secDs, 0, 0);
-            cot.Controls.Add(secHs, 1, 0);
 
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1 };
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             root.Controls.Add(tieuDe, 0, 0);
-            root.Controls.Add(cot, 0, 1);
+            root.Controls.Add(hostTrang, 0, 1);
             Controls.Add(root);
+            TabStrip.Attach(tabsTrang);
+            var stripCT = TabStrip.Attach(tabsChiTiet);
+            if (stripCT != null) { stripCT.BackColor = Theme.Surface; stripCT.Padding = new Padding(0); }
         }
 
         // ===================================================================
@@ -162,9 +234,18 @@ namespace DoAnWD
         {
             try
             {
-                using (var hvs = new HocVienService()) _hocViens = hvs.GetAll().ToList();
-                // GetAll đã kèm gia sư + học viên trong một truy vấn
+                // GetAll của lớp đã kèm gia sư + học viên trong một truy vấn
                 using (var ls = new LopHocService()) _lops = ls.GetAll().ToList();
+                if (LaQuanLy)
+                {
+                    using (var hvs = new HocVienService()) _hocViens = hvs.GetAll().ToList();
+                }
+                else
+                {
+                    // Gia sư: học viên của mình (kể cả học viên mình dạy bù), lớp của mình
+                    _hocViens = _hocTap.GetHocVienCoLop(_gioiHanGS);
+                    _lops = _lops.Where(l => l.MaGS == _gioiHanGS).ToList();
+                }
 
                 string tdChon = cboTrinhDoLoc.SelectedIndex > 0 ? cboTrinhDoLoc.SelectedItem as string : null;
                 cboTrinhDoLoc.Items.Clear();
@@ -240,8 +321,9 @@ namespace DoAnWD
             dgv.Columns["HoTen"].HeaderText = "Họ tên";
             dgv.Columns["SDT"].HeaderText = "SĐT liên hệ";
             dgv.Columns["PhuHuynh"].HeaderText = "Phụ huynh";
-            dgv.Columns["TruongLop"].HeaderText = "Trường / lớp";
-            dgv.Columns["TrinhDo"].HeaderText = "Trình độ";
+            // Trường / lớp, trình độ đã hiện ở phần đầu bên phải => ẩn cho bảng gọn (vẫn tìm / lọc được)
+            dgv.Columns["TruongLop"].Visible = false;
+            dgv.Columns["TrinhDo"].Visible = false;
             dgv.Columns["DangHocMon"].HeaderText = "Đang học";
         }
 
@@ -253,9 +335,16 @@ namespace DoAnWD
             var hv = _hocViens.FirstOrDefault(h => h.MaHV == ma);
             if (hv == null) return;
 
+            bool doiNguoi = _maDangSua != hv.MaHV;
+            if (doiNguoi && !HoiLuuBuoiHoc()) return;
             _maDangSua = hv.MaHV;
             lblTieuDeForm.Text = hv.HoTen;
-            editor.Enabled = true;
+            lblLienHe.Text = string.Join(" · ", new[]
+            {
+                string.IsNullOrEmpty(hv.TenPhuHuynh) && string.IsNullOrEmpty(hv.SDTPhuHuynh) ? null : $"PH {hv.TenPhuHuynh} {hv.SDTPhuHuynh}".Trim(),
+                hv.SDT, hv.TrinhDo, hv.TruongLop
+            }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            editor.Enabled = LaQuanLy;
             editor.Nap(hv);
 
             var lop = _lops.Where(l => l.MaHV == hv.MaHV).OrderByDescending(l => l.ThoiGianBatDau).ToList();
@@ -266,6 +355,7 @@ namespace DoAnWD
 
             btnLuu.Enabled = btnXoa.Enabled = true;
             btnPhieuBao.Enabled = lop.Count > 0;
+            if (doiNguoi) NapBuoiHoc(); else HienBuoiHoc();
         }
 
         /// <summary>Chưa chọn ai: khung hồ sơ để trống và khóa lại</summary>
@@ -274,10 +364,12 @@ namespace DoAnWD
             _maDangSua = null;
             dgv.ClearSelection();
             lblTieuDeForm.Text = "Chưa chọn học viên";
+            lblLienHe.Text = "";
             editor.XoaTrang();
             editor.Enabled = false;
             lblLop.Text = "Chọn một dòng ở danh sách để xem và sửa hồ sơ.\nBấm \"Thêm học viên\" để nhập người mới.";
             btnLuu.Enabled = btnXoa.Enabled = btnPhieuBao.Enabled = false;
+            NapBuoiHoc();
         }
 
         /// <summary>Bật cửa sổ nhập học viên mới; lưu xong thì chọn luôn người vừa thêm</summary>
@@ -359,7 +451,7 @@ namespace DoAnWD
             var hv = _hocViens.First(h => h.MaHV == _maDangSua.Value);
             try
             {
-                var kq = new HocTapService().GetKetQuaHocVien(hv.MaHV);
+                var kq = _hocTap.GetKetQuaHocVien(hv.MaHV, _gioiHanGS);
                 string path = new BaoCaoService().TaoPhieuBao(hv, kq);
                 Process.Start(path);
             }

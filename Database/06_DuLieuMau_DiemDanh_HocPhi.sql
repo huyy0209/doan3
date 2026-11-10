@@ -1,12 +1,15 @@
 ﻿/* ===================================================================
    QuanLyGiaSu - DỮ LIỆU MẪU: HỒ SƠ HỌC VIÊN, ĐIỂM DANH, ĐIỂM TEST, HỌC PHÍ
-   Chạy SAU 02_NangCap_v2.sql (và sau các script dữ liệu mẫu khác nếu có).
+   Chạy SAU 04_NangCap_v4.sql (và sau 05_DuLieuMau_ThemNhieu.sql nếu có).
    - Bổ sung phụ huynh / trường lớp / trình độ cho học viên còn trống
    - Tạo điểm danh cho các buổi đã học trong 21 ngày gần nhất,
      khoảng 1/3 số buổi có bài test 15 phút
    - Tạo các lần đóng học phí: đóng đủ, đóng một phần, chưa đóng
    Chạy lại nhiều lần được (chỉ thêm phần còn thiếu).
    =================================================================== */
+SET QUOTED_IDENTIFIER ON;   -- bảng BuoiHoc có chỉ mục có điều kiện (04_NangCap_v4.sql)
+SET ANSI_NULLS ON;
+GO
 USE QuanLyGiaSu;
 GO
 
@@ -67,7 +70,7 @@ SELECT MaLop, NgayHoc,
                        WHEN 2 THEN N'Tiến bộ so với tuần trước' WHEN 3 THEN N'Làm bài nhanh, còn sai sót nhỏ'
                        ELSE N'Tập trung tốt' END END
 FROM ngau_nhien
-WHERE NOT EXISTS (SELECT 1 FROM dbo.BuoiHoc b WHERE b.MaLop = ngau_nhien.MaLop AND b.NgayHoc = ngau_nhien.NgayHoc);
+WHERE NOT EXISTS (SELECT 1 FROM dbo.BuoiHoc b WHERE b.MaLop = ngau_nhien.MaLop AND b.NgayHoc = ngau_nhien.NgayHoc AND b.MaBuoiGoc IS NULL);
 
 PRINT N'Đã thêm ' + CAST(@@ROWCOUNT AS NVARCHAR(10)) + N' buổi học.';
 GO

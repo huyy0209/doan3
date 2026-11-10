@@ -19,7 +19,7 @@ where sqlcmd >nul 2>nul
 if errorlevel 1 (
     echo [X] Khong tim thay lenh sqlcmd.
     echo     Cai "SQL Server Command Line Utilities" hoac mo SSMS va chay lan luot
-    echo     cac file 01 -^> 06 trong thu muc Database.
+    echo     cac file 01 -^> 08 trong thu muc Database.
     pause
     exit /b 1
 )
@@ -27,18 +27,18 @@ if errorlevel 1 (
 echo Server: %SERVER%
 echo.
 echo [1/2] Tao CSDL va nang cap cau truc...
-for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3) do (
+for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4) do (
     echo     - %%f.sql
-    sqlcmd -S "%SERVER%" -E -C -b -f 65001 -i "Database\%%f.sql" >nul
+    sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
     if errorlevel 1 goto loi
 )
 
 echo.
 choice /c CK /n /m "[2/2] Them du lieu mau de chay thu? (C = co, K = khong): "
 if errorlevel 2 goto xong
-for %%f in (04_DuLieuMau_ThemNhieu 05_DuLieuMau_DiemDanh_HocPhi 06_DuLieuMau_v3) do (
+for %%f in (05_DuLieuMau_ThemNhieu 06_DuLieuMau_DiemDanh_HocPhi 07_DuLieuMau_v3 08_DuLieuMau_HocBu) do (
     echo     - %%f.sql
-    sqlcmd -S "%SERVER%" -E -C -b -f 65001 -i "Database\%%f.sql" >nul
+    sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
     if errorlevel 1 goto loi
 )
 
