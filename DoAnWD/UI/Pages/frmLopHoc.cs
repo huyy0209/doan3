@@ -102,6 +102,7 @@ namespace DoAnWD.UI.Pages
             cboMon.Items.Add("Mọi môn");
             cboMon.SelectedIndex = 0;
             foreach (var c in new[] { cboTrangThai, cboCa, cboMon }) c.SelectedIndexChanged += (s, e) => ApDungLoc();
+            Ui.DanhDauBoLoc(cboTrangThai, cboCa, cboMon);
 
             var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 4, AutoSize = true, Margin = new Padding(0) };
             loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

@@ -81,6 +81,7 @@ namespace DoAnWD.UI.Pages
             cboTinhTrang = Ui.Combo(false, 230);
             cboTinhTrang.Items.AddRange(new object[] { "Tất cả", CanThu, HocPhiService.ConNo, HocPhiService.ChuaDong, HocPhiService.DaDu });
             cboTinhTrang.SelectedIndex = 1; // mặc định chỉ hiện lớp còn phải thu => ít dòng hơn
+            Ui.DanhDauBoLoc(cboTinhTrang);
             cboTinhTrang.SelectedIndexChanged += (s, e) => ApDungLoc();
             var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
             loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

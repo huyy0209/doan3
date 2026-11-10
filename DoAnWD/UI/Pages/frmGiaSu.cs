@@ -79,6 +79,7 @@ namespace DoAnWD.UI.Pages
             cboLocCa.Items.Add("Nhận mọi ca");
             cboLocCa.Items.AddRange(Constants.CaHoc.TatCaCaHoc.Select(c => (object)("Nhận ca " + Constants.CaHoc.TenNgan(c))).ToArray());
             cboLocCa.SelectedIndex = 0;
+            Ui.DanhDauBoLoc(cboLocMon, cboLocTrangThai, cboLocCa);
             foreach (var c in new[] { cboLocMon, cboLocTrangThai, cboLocCa })
                 c.SelectedIndexChanged += (s, e) => ApDungLoc();
 

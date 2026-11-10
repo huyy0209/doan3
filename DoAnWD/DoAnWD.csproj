@@ -183,6 +183,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\Theme\Theme.cs" />
+    <Compile Include="UI\Theme\ThemedComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Theme\ThemedButton.cs">
       <SubType>Component</SubType>
     </Compile>

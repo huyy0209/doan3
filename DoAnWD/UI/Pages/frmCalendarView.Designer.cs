@@ -11,7 +11,7 @@
         private DoAnWD.UI.ThemedButton btnToday;
         private DoAnWD.UI.ThemedButton btnNextMonth;
         private System.Windows.Forms.Label lblMonth;
-        private System.Windows.Forms.ComboBox cboGiaSu;
+        private DoAnWD.UI.ThemedComboBox cboGiaSu;
         private DoAnWD.UI.MonthGrid monthGrid;
 
         protected override void Dispose(bool disposing)
@@ -32,7 +32,7 @@
             this.btnToday = new DoAnWD.UI.ThemedButton();
             this.btnNextMonth = new DoAnWD.UI.ThemedButton();
             this.lblMonth = new System.Windows.Forms.Label();
-            this.cboGiaSu = new System.Windows.Forms.ComboBox();
+            this.cboGiaSu = new DoAnWD.UI.ThemedComboBox();
             this.monthGrid = new DoAnWD.UI.MonthGrid();
             this.panelTop.SuspendLayout();
             this.panelNav.SuspendLayout();

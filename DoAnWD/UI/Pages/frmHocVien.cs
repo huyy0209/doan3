@@ -94,6 +94,7 @@ namespace DoAnWD.UI.Pages
             cboTinhTrang.SelectedIndexChanged += (s, e) => ApDungLoc();
             cboTrinhDoLoc = Ui.Combo(false, 130);
             cboTrinhDoLoc.SelectedIndexChanged += (s, e) => ApDungLoc();
+            Ui.DanhDauBoLoc(cboTinhTrang, cboTrinhDoLoc);
 
             var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true, Margin = new Padding(0) };
             loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

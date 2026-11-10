@@ -68,6 +68,7 @@ namespace DoAnWD.UI.Pages
 
                 cboGiaSu.DisplayMember = "Text";
                 cboGiaSu.SelectedIndex = 0;
+                Ui.DanhDauBoLoc(cboGiaSu);
 
                 // Gia sư đăng nhập: chỉ xem lịch của mình
                 if (!BLL.Services.PhienDangNhap.LaQuanLy && BLL.Services.PhienDangNhap.MaGS.HasValue)

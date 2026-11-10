@@ -58,14 +58,23 @@ namespace DoAnWD.UI
 
         public static ComboBox Combo(bool editable = false, int width = 0)
         {
-            var c = new ComboBox
+            var c = new ThemedComboBox
             {
-                Font = Theme.Body, FlatStyle = FlatStyle.Flat,
                 DropDownStyle = editable ? ComboBoxStyle.DropDown : ComboBoxStyle.DropDownList,
                 Margin = new Padding(0, 0, 0, 4)
             };
             if (width > 0) c.Width = width; else c.Dock = DockStyle.Top;
             return c;
+        }
+
+        /// <summary>
+        /// Đánh dấu các ô chọn là bộ lọc: mục đang chọn lúc gọi là mặc định;
+        /// chọn khác mặc định thì ô tô nền tím nhạt, chữ đậm để biết danh sách đang bị lọc.
+        /// </summary>
+        public static void DanhDauBoLoc(params ComboBox[] cacO)
+        {
+            foreach (var c in cacO)
+                (c as ThemedComboBox)?.DatLaBoLoc();
         }
 
         public static DateTimePicker Date(int width = 150)

@@ -95,6 +95,7 @@ namespace DoAnWD.UI.Dialogs
 
             // ---- Bước 2: lớp học ----
             cboMonLop = Ui.Combo(false);
+            ((ThemedComboBox)cboMonLop).GoiY = "Chọn môn học...";
             cboMonLop.Format += (s, e) =>
             {
                 var m = e.ListItem as MonHocDanhMuc;
