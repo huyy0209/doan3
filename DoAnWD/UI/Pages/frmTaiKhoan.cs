@@ -36,6 +36,13 @@ namespace DoAnWD.UI.Pages
         private void BuildUi()
         {
             dgv = Ui.Grid();
+            ThemeManager.TieuDeCot(dgv, "MaTK", null, "MaGS", null, "TenDangNhap", "Tên đăng nhập", "VaiTro", "Vai trò",
+                "GiaSu", "Gia sư", "TrangThai", "Trạng thái", "NgayTao", "Ngày tạo");
+            dgv.DataBindingComplete += (s, e) =>
+            {
+                if (dgv.Columns.Contains("NgayTao")) dgv.Columns["NgayTao"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            };
+            new SapXepLoc(dgv);   // bấm tiêu đề cột để sắp xếp
             var btnDatLai = Ui.Button("Đặt lại mật khẩu", ButtonKind.Secondary, Glyph.Key);
             btnDatLai.Click += (s, e) => DatLai();
             var btnKhoa = Ui.Button("Khóa / mở khóa", ButtonKind.Danger, Glyph.Close);
@@ -93,17 +100,6 @@ namespace DoAnWD.UI.Pages
             try
             {
                 dgv.DataSource = _service.GetAll();
-                if (dgv.Columns.Count > 0)
-                {
-                    dgv.Columns["MaTK"].Visible = false;
-                    dgv.Columns["TenDangNhap"].HeaderText = "Tên đăng nhập";
-                    dgv.Columns["VaiTro"].HeaderText = "Vai trò";
-                    dgv.Columns["GiaSu"].HeaderText = "Gia sư";
-                    dgv.Columns["TrangThai"].HeaderText = "Trạng thái";
-                    dgv.Columns["NgayTao"].HeaderText = "Ngày tạo";
-                    if (dgv.Columns.Contains("MaGS")) dgv.Columns["MaGS"].Visible = false;
-                    dgv.Columns["NgayTao"].DefaultCellStyle.Format = "dd/MM/yyyy";
-                }
                 cboGiaSu.Items.Clear();
                 cboGiaSu.Items.AddRange(_service.GetGiaSuChuaCoTaiKhoan().Select(g => (object)new MucGiaSu { GS = g }).ToArray());
                 if (cboGiaSu.Items.Count > 0) cboGiaSu.SelectedIndex = 0;

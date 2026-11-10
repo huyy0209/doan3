@@ -44,6 +44,7 @@ namespace DoAnWD.UI.Pages
         private const string DaNghi = "Đã nghỉ";
 
         private readonly HocTapService _hocTap = new HocTapService();
+        private SapXepLoc _sx;
         private List<HocVien> _hocViens = new List<HocVien>();
         private List<LopHoc> _lops = new List<LopHoc>();
         private int? _maDangSua;   // null = đang thêm mới
@@ -96,19 +97,15 @@ namespace DoAnWD.UI.Pages
             cboTrinhDoLoc.SelectedIndexChanged += (s, e) => ApDungLoc();
             Ui.DanhDauBoLoc(cboTinhTrang, cboTrinhDoLoc);
 
-            var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true, Margin = new Padding(0) };
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            txtTim.Margin = new Padding(0, 2, 10, 4);
-            cboTinhTrang.Margin = new Padding(0, 2, 10, 4);
-            cboTrinhDoLoc.Margin = new Padding(0, 2, 0, 4);
-            loc.Controls.Add(txtTim, 0, 0);
-            loc.Controls.Add(cboTinhTrang, 1, 0);
-            loc.Controls.Add(cboTrinhDoLoc, 2, 0);
+            var loc = Ui.HangLoc(txtTim, cboTinhTrang, cboTrinhDoLoc);
 
             dgv = Ui.Grid();
             dgv.SelectionChanged += (s, e) => HienHoSoDangChon();
+            // Trường / lớp, trình độ đã hiện ở phần đầu bên phải => ẩn cho bảng gọn (vẫn tìm / lọc được)
+            ThemeManager.TieuDeCot(dgv, "MaHV", null, "TruongLop", null, "TrinhDo", null, "HoTen", "Họ tên",
+                "SDT", "SĐT liên hệ", "PhuHuynh", "Phụ huynh", "DangHocMon", "Đang học");
+            // Mặc định A-Z theo tên gọi; bấm tiêu đề cột để đổi cách sắp xếp
+            _sx = new SapXepLoc(dgv, () => ApDungLoc(), "HoTen");
             lblDem = Ui.Text("", true);
             btnXuat = Ui.Button("Xuất CSV", ButtonKind.Ghost, Glyph.None, 110);
             btnXuat.Click += (s, e) => XuatCsv();
@@ -294,7 +291,6 @@ namespace DoAnWD.UI.Pages
                         default: return true;
                     }
                 })
-                .OrderBy(h => h.HoTen)
                 .Select(h => new Dong
                 {
                     MaHV = h.MaHV,
@@ -305,12 +301,12 @@ namespace DoAnWD.UI.Pages
                     TrinhDo = h.TrinhDo,
                     DangHocMon = string.Join(", ", LopDangHoc(h.MaHV).Select(l => l.MonHoc).Distinct())
                 })
-                .ToList();
+                ;
+            var dsSap = (_sx != null ? _sx.Ap(ds) : ds).ToList();
 
             int? giu = chonMaHV ?? _maDangSua;
-            int tong = ds.Count;
-            dgv.DataSource = pager.Cat(ds);   // chỉ đưa 1 trang vào lưới
-            DatCot();
+            int tong = dsSap.Count;
+            dgv.DataSource = pager.Cat(dsSap);   // chỉ đưa 1 trang vào lưới
             lblDem.Text = $"{tong} / {_hocViens.Count} học viên";
 
             if (giu.HasValue)
@@ -318,19 +314,6 @@ namespace DoAnWD.UI.Pages
                 foreach (DataGridViewRow r in dgv.Rows)
                     if ((int)r.Cells["MaHV"].Value == giu.Value) { dgv.CurrentCell = r.Cells["HoTen"]; break; }
             }
-        }
-
-        private void DatCot()
-        {
-            if (dgv.Columns.Count == 0) return;
-            dgv.Columns["MaHV"].Visible = false;
-            dgv.Columns["HoTen"].HeaderText = "Họ tên";
-            dgv.Columns["SDT"].HeaderText = "SĐT liên hệ";
-            dgv.Columns["PhuHuynh"].HeaderText = "Phụ huynh";
-            // Trường / lớp, trình độ đã hiện ở phần đầu bên phải => ẩn cho bảng gọn (vẫn tìm / lọc được)
-            dgv.Columns["TruongLop"].Visible = false;
-            dgv.Columns["TrinhDo"].Visible = false;
-            dgv.Columns["DangHocMon"].HeaderText = "Đang học";
         }
 
         private void HienHoSoDangChon()

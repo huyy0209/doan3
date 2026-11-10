@@ -22,6 +22,8 @@ namespace DoAnWD.UI.Pages
         /// <summary>Mục lọc gộp "Bận" + "Đang dạy"</summary>
         public const string DangCoLop = "Đang có lớp";
 
+        private SapXepLoc _sx;
+
         /// <summary>Lọc theo trạng thái (null = mọi trạng thái); dùng khi bấm ô ở trang Tổng quan</summary>
         public void LocTrangThai(string trangThai)
         {
@@ -83,18 +85,16 @@ namespace DoAnWD.UI.Pages
             foreach (var c in new[] { cboLocMon, cboLocTrangThai, cboLocCa })
                 c.SelectedIndexChanged += (s, e) => ApDungLoc();
 
-            var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 4, AutoSize = true, Margin = new Padding(0) };
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for (int i = 0; i < 3; i++) loc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            txtTim.Margin = new Padding(0, 2, 8, 4);
-            cboLocMon.Margin = cboLocTrangThai.Margin = new Padding(0, 2, 8, 4);
-            cboLocCa.Margin = new Padding(0, 2, 0, 4);
-            loc.Controls.Add(txtTim, 0, 0);
-            loc.Controls.Add(cboLocMon, 1, 0);
-            loc.Controls.Add(cboLocTrangThai, 2, 0);
-            loc.Controls.Add(cboLocCa, 3, 0);
+            var loc = Ui.HangLoc(txtTim, cboLocMon, cboLocTrangThai, cboLocCa);
 
             dgv = Ui.Grid();
+
+            ThemeManager.TieuDeCot(dgv, "MaGS", null, "HoTen", "Họ tên", "SDT", "Số ĐT", "ChuyenMon", "Chuyên môn",
+                "KinhNghiem", "Kinh nghiệm", "CaNhanDay", "Ca nhận dạy", "SoLop", "Lớp đang dạy", "TrangThai", "Trạng thái");
+            // A-Z theo tên gọi; bấm ô Trạng thái / Chuyên môn để lọc theo giá trị đó
+            _sx = new SapXepLoc(dgv, () => ApDungLoc(), "HoTen")
+                .LocKhiBam("TrangThai", cboLocTrangThai)
+                .LocKhiBam("ChuyenMon", cboLocMon);
             dgv.SelectionChanged += (s, e) => HienHoSoDangChon();
             lblDem = Ui.Text("", true);
             pager = new Pager { PageSize = 50 };
@@ -210,14 +210,13 @@ namespace DoAnWD.UI.Pages
             string tt = cboLocTrangThai.SelectedIndex > 0 ? cboLocTrangThai.SelectedItem as string : null;
             string ca = cboLocCa.SelectedIndex > 0 ? Constants.CaHoc.TatCaCaHoc[cboLocCa.SelectedIndex - 1] : null;
 
-            var ds = _giaSus
+            var loc = _giaSus
                 .Where(g => TimKiem.Khop(txtTim.Text, g.HoTen, g.SDT, g.Email, g.ChuyenMon, g.HocVan))
                 .Where(g => mon == null || g.ChuyenMon == mon)
                 .Where(g => tt == null || (tt == DangCoLop
                     ? g.TrangThai == Constants.GiaSuStatus.Ban || g.TrangThai == Constants.GiaSuStatus.DangDay
                     : (g.TrangThai ?? Constants.GiaSuStatus.Ranh) == tt))
                 .Where(g => ca == null || g.NhanCa(ca))
-                .OrderBy(g => g.HoTen)
                 .Select(g => new Dong
                 {
                     MaGS = g.MaGS,
@@ -228,23 +227,12 @@ namespace DoAnWD.UI.Pages
                     CaNhanDay = string.IsNullOrWhiteSpace(g.CaNhanDay) ? "Mọi ca" : g.CaNhanDay.Replace(",", ", "),
                     SoLop = _lopHoatDong.Count(l => l.MaGS == g.MaGS),
                     TrangThai = g.TrangThai ?? Constants.GiaSuStatus.Ranh
-                })
-                .ToList();
+                });
+            var ds = (_sx != null ? _sx.Ap(loc) : loc).ToList();
 
             int? giu = chon ?? _maDangSua;
             int tong = ds.Count;
             dgv.DataSource = pager.Cat(ds);
-            if (dgv.Columns.Count > 0)
-            {
-                dgv.Columns["MaGS"].Visible = false;
-                dgv.Columns["HoTen"].HeaderText = "Họ tên";
-                dgv.Columns["SDT"].HeaderText = "Số ĐT";
-                dgv.Columns["ChuyenMon"].HeaderText = "Chuyên môn";
-                dgv.Columns["KinhNghiem"].HeaderText = "Kinh nghiệm";
-                dgv.Columns["CaNhanDay"].HeaderText = "Ca nhận dạy";
-                dgv.Columns["SoLop"].HeaderText = "Lớp đang dạy";
-                dgv.Columns["TrangThai"].HeaderText = "Trạng thái";
-            }
             lblDem.Text = $"{tong} / {_giaSus.Count} gia sư";
 
             if (giu.HasValue)

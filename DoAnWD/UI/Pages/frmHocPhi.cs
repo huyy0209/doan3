@@ -83,15 +83,21 @@ namespace DoAnWD.UI.Pages
             cboTinhTrang.SelectedIndex = 1; // mặc định chỉ hiện lớp còn phải thu => ít dòng hơn
             Ui.DanhDauBoLoc(cboTinhTrang);
             cboTinhTrang.SelectedIndexChanged += (s, e) => ApDungLoc();
-            var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            txtTim.Margin = new Padding(0, 2, 10, 4);
-            loc.Controls.Add(txtTim, 0, 0);
-            loc.Controls.Add(cboTinhTrang, 1, 0);
+            var loc = Ui.HangLoc(txtTim, cboTinhTrang);
 
             dgv = Ui.Grid();
             dgv.SelectionChanged += (s, e) => HienLopChon();
+            // Gia sư, môn vẫn tìm được nhưng ẩn bớt cho bảng dễ đọc (tên lớp đã có môn)
+            ThemeManager.TieuDeCot(dgv, "MaLop", null, "MonHoc", null, "GiaSu", null, "TenLop", "Lớp", "HocVien", "Học viên",
+                "SDT", "SĐT liên hệ", "HocPhi", "Học phí", "DaDong", "Đã đóng", "ConNo", "Còn nợ", "TinhTrang", "Tình trạng");
+            dgv.DataBindingComplete += (s, e) =>
+            {
+                if (!dgv.Columns.Contains("ConNo")) return;
+                dgv.Columns["ConNo"].DefaultCellStyle.ForeColor = Theme.Warning;
+                dgv.Columns["ConNo"].DefaultCellStyle.Font = Theme.BodyStrong;
+            };
+            // Bấm tiêu đề cột để sắp xếp; bấm ô "Tình trạng" để lọc theo tình trạng đó
+            _sx = new SapXepLoc(dgv, () => ApDungLoc()).LocKhiBam("TinhTrang", cboTinhTrang);
             var btnXuat = Ui.Button("Xuất CSV", ButtonKind.Ghost, Glyph.None, 110);
             btnXuat.Click += (s, e) => XuatCsv();
             pager = new Pager { PageSize = 50 };
@@ -194,6 +200,8 @@ namespace DoAnWD.UI.Pages
             }
         }
 
+        private SapXepLoc _sx;
+
         private const string CanThu = "Cần thu (còn nợ + chưa đóng)";
 
         private void ApDungLoc(int? chonMaLop = null, bool veTrangDau = true)
@@ -203,31 +211,9 @@ namespace DoAnWD.UI.Pages
             var ds = _congNo
                 .Where(c => tt == null || (tt == CanThu ? c.TinhTrang != HocPhiService.DaDu : c.TinhTrang == tt))
                 .Where(c => TimKiem.Khop(txtTim.Text, c.TenLop, c.HocVien, c.SDTLienHe, c.MonHoc, c.GiaSu))
-                .Select(c => new { c.MaLop, c.TenLop, c.HocVien, SDT = c.SDTLienHe, c.MonHoc, c.GiaSu, c.HocPhi, DaDong = c.DaDong, ConNo = c.ConNo, c.TinhTrang })
-                .ToList();
-            dgv.DataSource = pager.Cat(ds);
-            if (dgv.Columns.Count > 0)
-            {
-                dgv.Columns["MaLop"].Visible = false;
-                dgv.Columns["HocVien"].HeaderText = "Học viên";
-                dgv.Columns["SDT"].HeaderText = "SĐT liên hệ";
-                dgv.Columns["TenLop"].HeaderText = "Lớp";
-                dgv.Columns["MonHoc"].HeaderText = "Môn";
-                dgv.Columns["MonHoc"].Visible = false;   // tên lớp đã có môn
-                dgv.Columns["GiaSu"].HeaderText = "Gia sư";
-                dgv.Columns["GiaSu"].Visible = false; // bớt cột cho dễ đọc; tìm kiếm vẫn theo tên gia sư
-                dgv.Columns["HocPhi"].HeaderText = "Học phí";
-                foreach (var c in new[] { "DaDong", "ConNo" })
-                {
-                    dgv.Columns[c].DefaultCellStyle.Format = "N0";
-                    dgv.Columns[c].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-                }
-                dgv.Columns["DaDong"].HeaderText = "Đã đóng";
-                dgv.Columns["ConNo"].HeaderText = "Còn nợ";
-                dgv.Columns["ConNo"].DefaultCellStyle.ForeColor = Theme.Warning;
-                dgv.Columns["ConNo"].DefaultCellStyle.Font = Theme.BodyStrong;
-                dgv.Columns["TinhTrang"].HeaderText = "Tình trạng";
-            }
+                .Select(c => new { c.MaLop, c.TenLop, c.HocVien, SDT = c.SDTLienHe, c.MonHoc, c.GiaSu, c.HocPhi, DaDong = c.DaDong, ConNo = c.ConNo, c.TinhTrang });
+            var dsSap = (_sx != null ? _sx.Ap(ds) : ds).ToList();
+            dgv.DataSource = pager.Cat(dsSap);
             if (chonMaLop.HasValue)
                 foreach (DataGridViewRow r in dgv.Rows)
                     if ((int)r.Cells["MaLop"].Value == chonMaLop.Value) { dgv.CurrentCell = r.Cells["HocVien"]; break; }

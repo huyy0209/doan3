@@ -101,6 +101,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="UI\Controls\CuonTaiDan.cs" />
+    <Compile Include="UI\Controls\SapXepLoc.cs" />
     <Compile Include="UI\Dialogs\dlgMonHoc.cs" />
     <Compile Include="UI\DieuHuong.cs" />
     <Compile Include="UI\Pages\frmLopHoc.cs" />

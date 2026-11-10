@@ -190,6 +190,7 @@ Giao diện dựa trên hình ảnh **vở ô li**: nền giấy trắng xanh, m
 | Thanh tiêu đề | Ngày hôm nay, ca đang diễn ra, **dải 6 ca học** (ca hiện tại tô đặc, kèm số lớp học hôm nay), số lớp bắt đầu trong 24 giờ |
 | Menu trái | Nền tím đậm; vạch đỏ chỉ mục đang mở và trượt theo khi chuyển màn hình (tắt nếu Windows tắt hiệu ứng) |
 | Bảng | Mọi ô được tự vẽ nên hiển thị đồng nhất. Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang. Dòng đang chọn tô **xanh dương nhạt** kèm vạch xanh đầu dòng, không còn khung chấm chấm khi click |
+| Sắp xếp + lọc nhanh | Ở mọi bảng danh sách: **bấm tiêu đề cột để sắp xếp** (bấm lần nữa đảo chiều, có mũi tên ở tiêu đề). Cột tên người xếp theo **tên gọi** kiểu Việt Nam (An, Bình, Cường... rồi tới họ đệm); Học viên, Gia sư mặc định A-Z theo tên. **Bấm vào ô trạng thái / ca / chuyên môn / tình trạng để lọc ngay theo giá trị đó**, bấm lại để bỏ lọc (Lớp học: Trạng thái, Ca học; Gia sư: Trạng thái, Chuyên môn; Học phí: Tình trạng) |
 | Ô chọn (ComboBox) | `ThemedComboBox` tự vẽ: viền xám đậm, rê chuột / đang chọn thì viền tím, nút mũi tên rõ ràng; chữ đang chọn không bị tô xanh. **Bộ lọc** đang khác mặc định thì nền tím nhạt + chữ đậm để biết danh sách đang bị lọc |
 | Bảng nhập liệu | Ở bảng điểm danh, ô sửa được (điểm danh, điểm test, nhận xét) có khung như ô nhập; ô đang chọn viền xanh. Khung không mất khi click |
 | Tiêu đề cột | Khai báo một lần bằng `ThemeManager.TieuDeCot(...)`, tự áp lại mỗi khi bảng nạp dữ liệu (kể cả bảng ở tab chưa mở) nên không còn tiêu đề kiểu `GiaSu`, `HocVien` |
@@ -243,6 +244,7 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `fr
 | `feat: merge attendance into students, make-up classes…` | Gộp điểm danh + điểm vào trang Học viên (theo học viên và theo ca); học bù cho buổi vắng (ngày, ca, gia sư khác), kiểm tra trùng ca; CSDL v4, dữ liệu mẫu học bù |
 | `feat: subject catalog, levels, class names; overview links…` | Danh mục môn học (môn chính / năng khiếu), đánh giá theo xếp loại hoặc cấp độ + thi lên cấp; tên lớp khi ghép lớp; trang Lớp học mới thay trang Ghép lớp cũ; bấm ô Tổng quan để mở trang đã lọc; cuộn tới đâu tải tới đó; gộp truy vấn Tổng quan, xóa hàm không dùng; UI chia namespace theo thư mục; CSDL v5 |
 | `style(ui): clearer dropdowns…` | Ô chọn / bộ lọc tự vẽ cho rõ (viền, mũi tên, tô màu khi đang lọc) |
+| `feat(ui): sort by column, click a value to filter…` | Sắp xếp theo cột (tên theo tên gọi), bấm ô trạng thái để lọc; gom code: tiêu đề cột khai báo một chỗ (`TieuDeCot`), hàng lọc dùng chung (`Ui.HangLoc`), Tổng quan bỏ ~170 dòng cấu hình cột lặp lại |
 
 ## Dữ liệu mẫu
 

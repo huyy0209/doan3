@@ -33,6 +33,7 @@ namespace DoAnWD.UI.Pages
         private ComboBox cboTrangThai, cboCa, cboMon;
         private DataGridView dgv;
         private CuonTaiDan<LopHocDong> _cuon;
+        private SapXepLoc _sx;
         private Label lblDem;
 
         private Label lblTenHienTai, lblThongTin, lblDanhGia;
@@ -104,15 +105,7 @@ namespace DoAnWD.UI.Pages
             foreach (var c in new[] { cboTrangThai, cboCa, cboMon }) c.SelectedIndexChanged += (s, e) => ApDungLoc();
             Ui.DanhDauBoLoc(cboTrangThai, cboCa, cboMon);
 
-            var loc = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 4, AutoSize = true, Margin = new Padding(0) };
-            loc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for (int i = 0; i < 3; i++) loc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            txtTim.Margin = cboTrangThai.Margin = cboCa.Margin = new Padding(0, 2, 8, 4);
-            cboMon.Margin = new Padding(0, 2, 0, 4);
-            loc.Controls.Add(txtTim, 0, 0);
-            loc.Controls.Add(cboTrangThai, 1, 0);
-            loc.Controls.Add(cboCa, 2, 0);
-            loc.Controls.Add(cboMon, 3, 0);
+            var loc = Ui.HangLoc(txtTim, cboTrangThai, cboCa, cboMon);
 
             // ---- Danh sách ----
             dgv = Ui.Grid();
@@ -131,6 +124,10 @@ namespace DoAnWD.UI.Pages
                 if (col == "DanhGia") e.CellStyle.Font = Theme.BodyStrong;
             };
             _cuon = new CuonTaiDan<LopHocDong>(dgv, 40);
+            // Bấm tiêu đề cột để sắp xếp; bấm ô Trạng thái / Ca học để lọc theo giá trị đó
+            _sx = new SapXepLoc(dgv, () => ApDungLoc())
+                .LocKhiBam("TrangThai", cboTrangThai)
+                .LocKhiBam("CaHoc", cboCa);
             _cuon.DaTaiThem += (s, e) => CapNhatDem();
             lblDem = Ui.Text("", true);
 
@@ -220,12 +217,12 @@ namespace DoAnWD.UI.Pages
             string ca = caIdx >= 0 ? Constants.CaHoc.TatCaCaHoc[caIdx] : null;
             string mon = cboMon.SelectedIndex > 0 ? cboMon.SelectedItem as string : null;
 
-            var ds = _tatCa
+            IEnumerable<LopHocDong> ds = _tatCa
                 .Where(l => tt == TatCa || (tt == ConHoatDong ? Constants.LopHocStatus.LaHoatDong(l.TrangThai) : l.TrangThai == tt))
                 .Where(l => ca == null || l.CaHoc == ca)
                 .Where(l => mon == null || string.Equals(l.MonHoc, mon, StringComparison.OrdinalIgnoreCase))
-                .Where(l => TimKiem.Khop(txtTim.Text, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc))
-                .ToList();
+                .Where(l => TimKiem.Khop(txtTim.Text, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc));
+            ds = (_sx != null ? _sx.Ap(ds) : ds).ToList();
 
             int? giu = chonMaLop ?? _maDangChon;
             _cuon.Nap(ds);
@@ -235,7 +232,7 @@ namespace DoAnWD.UI.Pages
                 if (i >= 0 && i < dgv.Rows.Count && dgv.Columns.Contains("TenLop"))
                     dgv.CurrentCell = dgv.Rows[i].Cells["TenLop"];
             }
-            if (ds.Count == 0) HienChiTiet();
+            if (_cuon.TongSo == 0) HienChiTiet();
         }
 
         private void CapNhatDem()

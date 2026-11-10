@@ -331,7 +331,7 @@ namespace DoAnWD.UI
                 else if (key == "TrangThai" || key == "TrangThaiTheoThoiGian") width = 124;
                 else if (key == "CaHoc") width = 156;
                 else if (key == "SDT") width = 112;
-                else if (key == "HocPhi" || key.StartsWith("TongHocPhi") || key.StartsWith("DoanhThu")) width = 108;
+                else if (key == "HocPhi" || key == "DaDong" || key == "ConNo" || key.StartsWith("TongHocPhi") || key.StartsWith("DoanhThu")) width = 108;
                 else if (key.StartsWith("BatDau") || key.StartsWith("KetThuc") || key.StartsWith("ThoiGian") || key.StartsWith("Ngay")) width = 98;
                 else if (key == "SoNgayConLai") width = 86;
                 else if (key.StartsWith("So")) width = 70;
@@ -339,7 +339,7 @@ namespace DoAnWD.UI
                 // Cột tên người được ưu tiên rộng hơn khi phải co
                 bool laTen = key == "HoTen" || key == "HocVien" || key == "GiaSu" || key == "TenDangNhap";
 
-                if (key == "HocPhi" || key.StartsWith("TongHocPhi"))
+                if (key == "HocPhi" || key.StartsWith("TongHocPhi") || key == "DaDong" || key == "ConNo")
                 {
                     col.DefaultCellStyle.Format = "N0";
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;

@@ -67,6 +67,23 @@ namespace DoAnWD.UI
             return c;
         }
 
+        /// <summary>Hàng lọc: ô tìm kiếm giãn hết chỗ còn lại, các ô chọn xếp bên phải</summary>
+        public static TableLayoutPanel HangLoc(TextBox tim, params ComboBox[] cacO)
+        {
+            var hang = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = cacO.Length + 1, AutoSize = true, Margin = new Padding(0) };
+            hang.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            foreach (var _ in cacO) hang.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            tim.Margin = new Padding(0, 2, 8, 4);
+            tim.Dock = DockStyle.Fill;
+            hang.Controls.Add(tim, 0, 0);
+            for (int i = 0; i < cacO.Length; i++)
+            {
+                cacO[i].Margin = new Padding(0, 2, i == cacO.Length - 1 ? 0 : 8, 4);
+                hang.Controls.Add(cacO[i], i + 1, 0);
+            }
+            return hang;
+        }
+
         /// <summary>
         /// Đánh dấu các ô chọn là bộ lọc: mục đang chọn lúc gọi là mặc định;
         /// chọn khác mặc định thì ô tô nền tím nhạt, chữ đậm để biết danh sách đang bị lọc.
