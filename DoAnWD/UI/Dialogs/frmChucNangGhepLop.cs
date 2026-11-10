@@ -17,7 +17,7 @@ namespace DoAnWD.UI.Dialogs
     /// <summary>
     /// Ghép lớp mới theo 3 bước:
     ///   1. Tìm và chọn học viên (gõ tên, SĐT, tên phụ huynh, trường... không cần dấu)
-    ///   2. Lớp học: môn (danh mục), cấp độ đầu vào (môn năng khiếu), ca + khoảng ngày, học phí
+    ///   2. Lớp học: môn (danh mục), cấp độ đầu vào (môn năng khiếu), ca + thứ học + khoảng ngày, học phí
     ///   3. Chọn gia sư: mặc định chỉ hiện người dạy môn đã chọn và còn trống ca
     /// Tên lớp tự gợi ý "Môn - Học viên - Ca", sửa được (sửa rồi thì không tự đổi nữa).
     /// Kiểm tra trùng lịch được tính ngay trong bộ nhớ; khi lưu, LopHocService kiểm tra lại lần cuối.
@@ -41,7 +41,8 @@ namespace DoAnWD.UI.Dialogs
         // Bước 2
         private ComboBox cboMonLop, cboCapDo;
         private Control khungCapDo;
-        private ListBox lstCa;
+        private ChonCa chonCa;
+        private ChonThu chonThu;
         private DateTimePicker dtpBatDau, dtpKetThuc;
         private TextBox txtHocPhi;
         private Label lblCanhBao;
@@ -49,7 +50,7 @@ namespace DoAnWD.UI.Dialogs
         private TextBox txtTimGS;
         private CheckBox chkCungMon, chkChiTrong;
         private ListBox lstGS;
-        private Label lblLichGS;
+        private Label lblLichGS, lblHVTrong, lblGSTrong;
         // Chân
         private TextBox txtTenLop;
         private Label lblTomTat;
@@ -90,7 +91,8 @@ namespace DoAnWD.UI.Dialogs
             lblHVInfo = Ui.Text("", true);
             lblHVInfo.MaximumSize = new Size(330, 0);
             var sec1 = Ui.Section("1. Học viên");
-            sec1.Controls.Add(Ui.Stack(false, txtTimHV, KhungList(lstHV), lblHVInfo));
+            lblHVTrong = NhanTrong();
+            sec1.Controls.Add(Ui.Stack(false, txtTimHV, KhungList(lstHV, lblHVTrong), lblHVInfo));
             ((TableLayoutPanel)sec1.Controls[0]).RowStyles[1] = new RowStyle(SizeType.Percent, 100);
 
             // ---- Bước 2: lớp học ----
@@ -116,11 +118,14 @@ namespace DoAnWD.UI.Dialogs
             hangMon.Controls.Add(oMon, 0, 0);
             hangMon.Controls.Add(khungCapDo, 1, 0);
 
-            lstCa = Ui.List(34, VeCa);
-            lstCa.Items.AddRange(Constants.CaHoc.TatCaCaHoc);
-            lstCa.Height = 34 * 6 + 2;
-            lstCa.Dock = DockStyle.Top;
-            lstCa.SelectedIndexChanged += (s, e) => { LocGiaSu(); GoiYTenLop(); CapNhat(); };
+            chonCa = new ChonCa
+            {
+                // Ca học viên đã có lớp trùng lịch (xét cả thứ học và khoảng ngày đang chọn)
+                Ban = ca => HocVienChon != null && LopTrung(l => l.MaHV == HocVienChon.MaHV, ca) != null
+            };
+            chonCa.ThayDoi += (s, e) => { LocGiaSu(); GoiYTenLop(); CapNhat(); };
+            chonThu = new ChonThu();
+            chonThu.ThayDoi += (s, e) => { CapNhatCa(); LocGiaSu(); CapNhat(); };
 
             dtpBatDau = Ui.Date(140);
             dtpKetThuc = Ui.Date(140);
@@ -153,12 +158,13 @@ namespace DoAnWD.UI.Dialogs
             lblCanhBao.MaximumSize = new Size(300, 0);
 
             var sec2 = Ui.Section("2. Lớp học");
-            sec2.Controls.Add(Ui.Stack(false,
+            sec2.Controls.Add(CuonDoc(Ui.Stack(false,
                 hangMon,
-                Ui.FieldLabel("Ca học"), lstCa,
+                Ui.FieldLabel("Ca học"), chonCa,
+                Ui.FieldLabel("Học vào các thứ"), chonThu,
                 Ui.FieldLabel("Từ ngày – đến ngày"), Ui.Row(dtpBatDau, dtpKetThuc), nhanh,
                 Ui.FieldLabel("Học phí cả khóa (đ)"), txtHocPhi,
-                lblCanhBao));
+                lblCanhBao)));
 
             // ---- Bước 3: gia sư ----
             txtTimGS = Ui.Input("Tìm tên, SĐT gia sư...");
@@ -189,23 +195,23 @@ namespace DoAnWD.UI.Dialogs
             lblLichGS.MaximumSize = new Size(380, 0);
 
             var sec3 = Ui.Section("3. Gia sư");
-            var stack3 = Ui.Stack(false, txtTimGS, chkCungMon, chkChiTrong, KhungList(lstGS), lblLichGS);
+            lblGSTrong = NhanTrong();
+            var stack3 = Ui.Stack(false, txtTimGS, chkCungMon, chkChiTrong, KhungList(lstGS, lblGSTrong), lblLichGS);
             stack3.RowStyles[3] = new RowStyle(SizeType.Percent, 100);
             sec3.Controls.Add(stack3);
 
             // ---- Ba cột ----
             var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = new Padding(0, 12, 0, 12) };
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31));
             cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29));
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
             cot.Controls.Add(sec1, 0, 0);
             cot.Controls.Add(sec2, 1, 0);
             cot.Controls.Add(sec3, 2, 0);
             sec3.Margin = new Padding(0);
 
             // ---- Tiêu đề + chân ----
-            var header = Ui.Stack(false, Ui.Title("Ghép lớp mới"),
-                Ui.Text("Chọn học viên, môn và ca học rồi gia sư còn trống. Tên lớp tự gợi ý, sửa được.", true));
+            var header = Ui.DauTrang("Ghép lớp mới", "Chọn học viên, rồi môn, ca và thứ học, cuối cùng là gia sư còn trống lịch. Tên lớp tự gợi ý, sửa được.");
 
             lblTomTat = new Label { AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = Theme.BodyStrong, ForeColor = Theme.Text };
             btnHuy = Ui.Button("Hủy", ButtonKind.Secondary, Glyph.Close, 110);
@@ -254,12 +260,38 @@ namespace DoAnWD.UI.Dialogs
             ThemeManager.EnableDoubleBuffer(this);
         }
 
+        /// <summary>Cho cột cuộn dọc khi cửa sổ thấp (laptop 768p) thay vì bị cắt mất ô cuối</summary>
+        private static Control CuonDoc(TableLayoutPanel noiDung)
+        {
+            noiDung.AutoScroll = true;
+            return noiDung;
+        }
+
         /// <summary>Bọc ListBox trong khung viền mảnh</summary>
-        private static Control KhungList(ListBox l)
+        private static Control KhungList(ListBox l, Label khiTrong = null)
         {
             var p = new Panel { Dock = DockStyle.Fill, Padding = new Padding(1), BackColor = Theme.Rule, Margin = new Padding(0, 4, 0, 4), MinimumSize = new Size(0, 160) };
             p.Controls.Add(l);
+            if (khiTrong != null) p.Controls.Add(khiTrong);
             return p;
+        }
+
+        /// <summary>Dòng chữ hiện thay danh sách khi không có mục nào (nói rõ vì sao và làm gì tiếp)</summary>
+        private static Label NhanTrong()
+        {
+            return new Label
+            {
+                Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Font = Theme.Body, ForeColor = Theme.TextMuted,
+                BackColor = Theme.Surface, Padding = new Padding(24, 0, 24, 0), Visible = false, UseMnemonic = false
+            };
+        }
+
+        private static void HienTrong(ListBox l, Label nhan, string chu)
+        {
+            bool trong = l.Items.Count == 0;
+            nhan.Text = chu;
+            nhan.Visible = trong;
+            l.Visible = !trong;
         }
 
         // ===================================================================
@@ -325,7 +357,7 @@ namespace DoAnWD.UI.Dialogs
             _dangGoiYTen = false;
         }
         private GiaSu GiaSuChon => lstGS.SelectedItem as GiaSu;
-        private string CaChon => lstCa.SelectedItem as string;
+        private string CaChon => chonCa.GiaTri;
 
         private void LayKhoang(string ca, out DateTime bd, out DateTime kt)
         {
@@ -342,13 +374,13 @@ namespace DoAnWD.UI.Dialogs
             }
         }
 
-        /// <summary>Lớp đang hoạt động trùng ca + trùng ngày với khoảng đang chọn</summary>
+        /// <summary>Lớp đang hoạt động trùng ca + trùng ngày + có chung thứ học với lựa chọn hiện tại</summary>
         private LopHoc LopTrung(Func<LopHoc, bool> cuaAi, string ca)
         {
             if (ca == null) return null;
             DateTime bd, kt;
             LayKhoang(ca, out bd, out kt);
-            var moi = new LopHoc { CaHoc = ca, ThoiGianBatDau = bd, ThoiGianKetThuc = kt };
+            var moi = new LopHoc { CaHoc = ca, ThoiGianBatDau = bd, ThoiGianKetThuc = kt, ThuHoc = chonThu.GiaTri };
             return _lopHoatDong.FirstOrDefault(l => cuaAi(l) && l.TrungLich(moi));
         }
 
@@ -364,6 +396,9 @@ namespace DoAnWD.UI.Dialogs
             if (chon != null && ds.Contains(chon)) lstHV.SelectedItem = chon;
             else if (ds.Count == 1) lstHV.SelectedIndex = 0;
             lstHV.EndUpdate();
+            HienTrong(lstHV, lblHVTrong, _hocViens.Count == 0
+                ? "Chưa có học viên nào.\nThêm học viên ở trang Học viên trước."
+                : "Không tìm thấy học viên khớp từ khóa.");
             if (lstHV.SelectedIndex < 0) { CapNhatCa(); CapNhat(); }
         }
 
@@ -388,6 +423,9 @@ namespace DoAnWD.UI.Dialogs
             lstGS.Items.AddRange(ds.Cast<object>().ToArray());
             if (chon != null && ds.Contains(chon)) lstGS.SelectedItem = chon;
             lstGS.EndUpdate();
+            HienTrong(lstGS, lblGSTrong, chkCungMon.Checked || chkChiTrong.Checked
+                ? "Không có gia sư nào dạy môn này mà còn trống ca và thứ đã chọn.\n\nBỏ dấu ở hai ô lọc phía trên để xem mọi gia sư, hoặc đổi ca / thứ học."
+                : "Không tìm thấy gia sư khớp từ khóa.");
             HienLichGiaSu();
             CapNhat();
         }
@@ -405,7 +443,7 @@ namespace DoAnWD.UI.Dialogs
                     ? "Chưa có lớp nào đang học."
                     : "Đang học: " + string.Join("; ", lop.Select(l => $"{l.MonHoc} ({Constants.CaHoc.TenNgan(l.CaHoc)})"));
             }
-            lstCa.Invalidate();
+            chonCa.Invalidate();
         }
 
         private void HienLichGiaSu()
@@ -442,6 +480,11 @@ namespace DoAnWD.UI.Dialogs
             bool khongNhanCa = loi == null && ca != null && gs != null && !gs.NhanCa(ca);
             if (loi == null && dtpKetThuc.Value.Date <= dtpBatDau.Value.Date)
                 loi = "Ngày kết thúc phải sau ngày bắt đầu.";
+            if (loi == null && !chonThu.HopLe)
+                loi = "Chọn ít nhất một thứ học trong tuần.";
+            int soBuoi = new LopHoc { ThoiGianBatDau = dtpBatDau.Value.Date, ThoiGianKetThuc = dtpKetThuc.Value.Date, ThuHoc = chonThu.GiaTri }.DemSoBuoi();
+            if (loi == null && soBuoi == 0)
+                loi = "Khoảng ngày này không có buổi nào rơi vào các thứ đã chọn.";
             if (loi == null && !string.IsNullOrWhiteSpace(txtHocPhi.Text) && !coHocPhi)
                 loi = "Học phí phải là số, ví dụ 1.500.000.";
             string tenLop = txtTenLop.Text.Trim();
@@ -462,8 +505,7 @@ namespace DoAnWD.UI.Dialogs
             {
                 DateTime bd, kt;
                 LayKhoang(ca, out bd, out kt);
-                int soNgay = (kt.Date - bd.Date).Days + 1;
-                lblCanhBao.Text = $"{soNgay} buổi, {bd:HH:mm}–{kt:HH:mm} mỗi ngày.";
+                lblCanhBao.Text = $"{soBuoi} buổi ({chonThu.MoTa}), {bd:HH:mm}–{kt:HH:mm}.";
                 lblCanhBao.ForeColor = Theme.Success;
             }
             else
@@ -488,7 +530,7 @@ namespace DoAnWD.UI.Dialogs
             else
             {
                 string cap = khungCapDo.Visible && cboCapDo.SelectedItem != null ? $" ({cboCapDo.SelectedItem})" : "";
-                lblTomTat.Text = $"{hv.HoTen} học {MonChon.TenMon}{cap} với {gs.HoTen}, ca {Constants.CaHoc.TenNgan(ca)}, " +
+                lblTomTat.Text = $"{hv.HoTen} học {MonChon.TenMon}{cap} với {gs.HoTen}, {chonThu.MoTa} ca {Constants.CaHoc.TenNgan(ca)}, " +
                                  $"{dtpBatDau.Value:dd/MM} – {dtpKetThuc.Value:dd/MM/yyyy}, {hp.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))} đ";
                 lblTomTat.ForeColor = loi == null ? Theme.Text : Theme.Margin;
             }
@@ -520,25 +562,6 @@ namespace DoAnWD.UI.Dialogs
             if (!string.IsNullOrWhiteSpace(hv.SDTLienHe)) phu.Add(hv.SDTLienHe);
             if (!string.IsNullOrWhiteSpace(hv.TrinhDo)) phu.Add(hv.TrinhDo);
             TextRenderer.DrawText(g, string.Join(", ", phu), Theme.Small, line2, Theme.TextMuted,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-        }
-
-        private void VeCa(object sender, DrawItemEventArgs e)
-        {
-            if (e.Index < 0) return;
-            string ca = (string)lstCa.Items[e.Index];
-            var hv = HocVienChon;
-            var trung = hv != null ? LopTrung(l => l.MaHV == hv.MaHV, ca) : null;
-
-            var r = Ui.DrawListItemBackground(e, trung != null);
-            var g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using (var b = new SolidBrush(trung != null ? Theme.Rule : Theme.ShiftColor(ca)))
-                g.FillEllipse(b, r.X, r.Y + r.Height / 2f - 5, 10, 10);
-
-            int tagW = trung != null ? Ui.DrawTag(g, "HV đã có lớp", r, Theme.Margin, Theme.MarginSoft) : 0;
-            TextRenderer.DrawText(g, ca, Theme.Body, new Rectangle(r.X + 18, r.Y, r.Width - 18 - tagW, r.Height),
-                trung != null ? Theme.TextFaint : Theme.Text,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
@@ -586,16 +609,12 @@ namespace DoAnWD.UI.Dialogs
                 var lop = _lopHocService.GhepLop(new GhepLopYeuCau
                 {
                     MaHV = hv.MaHV, MaGS = gs.MaGS, MonHoc = MonChon.TenMon, HocPhi = hp,
-                    BatDau = bd, KetThuc = kt, CaHoc = ca,
+                    BatDau = bd, KetThuc = kt, CaHoc = ca, ThuHoc = chonThu.GiaTri,
                     TenLop = txtTenLop.Text, CapDoDauVao = khungCapDo.Visible ? cboCapDo.SelectedItem as string : null
                 });
                 MaLopVuaGhep = lop.MaLop;
 
-                MessageBox.Show(
-                    $"Đã ghép lớp \"{lop.TenLop}\".\n\nHọc viên: {hv.HoTen}\nGia sư: {gs.HoTen}\nMôn: {lop.MonHoc}" +
-                    (lop.CapDoDauVao != null ? $" (vào cấp {lop.CapDoDauVao})" : "") + $"\nCa: {ca}\n" +
-                    $"Từ {bd:dd/MM/yyyy} đến {kt:dd/MM/yyyy}\nHọc phí: {hp:N0} đ\nTrạng thái: {lop.TrangThai}",
-                    Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ThongBao.ThanhCong($"Đã ghép lớp \"{lop.TenLop}\"");
 
                 DialogResult = DialogResult.OK;
                 Close();

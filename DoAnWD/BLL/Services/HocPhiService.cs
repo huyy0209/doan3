@@ -80,6 +80,7 @@ namespace DoAnWD.BLL.Services
         /// <summary>Ghi nhận một lần đóng học phí</summary>
         public ThanhToan ThemThanhToan(int maLop, decimal soTien, DateTime ngayDong, string hinhThuc, string ghiChu)
         {
+            PhienDangNhap.YeuCauQuanLy();
             if (soTien <= 0)
                 throw new ArgumentException("Số tiền phải lớn hơn 0.");
             if (ngayDong.Date > DateTime.Now.Date)
@@ -115,6 +116,7 @@ namespace DoAnWD.BLL.Services
 
         public void XoaThanhToan(int maTT)
         {
+            PhienDangNhap.YeuCauQuanLy();
             using (var db = new GiaSuContextDB())
             {
                 var tt = db.ThanhToans.Find(maTT);

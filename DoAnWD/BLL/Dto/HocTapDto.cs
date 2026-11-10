@@ -158,6 +158,19 @@ namespace DoAnWD.BLL.Dto
         public string TenLop { get; set; }
         /// <summary>Môn năng khiếu: cấp lúc vào lớp (bỏ trống = cấp thấp nhất)</summary>
         public string CapDoDauVao { get; set; }
+        /// <summary>Thứ học trong tuần "2,4,6"; null = hằng ngày</summary>
+        public string ThuHoc { get; set; }
+    }
+
+    /// <summary>Thay đổi một lớp đã ghép: học phí, gia hạn / rút ngắn, thứ học, đổi gia sư</summary>
+    public class SuaLopYeuCau
+    {
+        public decimal HocPhi { get; set; }
+        public DateTime KetThuc { get; set; }
+        public string ThuHoc { get; set; }
+        public int MaGS { get; set; }
+        /// <summary>Tên lớp mới; null = giữ tên cũ</summary>
+        public string TenLop { get; set; }
     }
 
     /// <summary>Một dòng trên trang Lớp học</summary>
@@ -172,6 +185,10 @@ namespace DoAnWD.BLL.Dto
         public string MonHoc { get; set; }
         public string LoaiMon { get; set; }
         public string CaHoc { get; set; }
+        /// <summary>"T2-T4-T6" hoặc "Hằng ngày"</summary>
+        public string ThuHoc { get; set; }
+        public string ThuHocGoc { get; set; }
+        public int SoBuoi { get; set; }
         public DateTime? BatDau { get; set; }
         public DateTime? KetThuc { get; set; }
         public string TrangThai { get; set; }

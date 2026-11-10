@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using DoAnWD.Common;
@@ -60,6 +60,7 @@ namespace DoAnWD.BLL.Services
         /// <summary>Thêm (maMon = null) hoặc sửa một môn. Trả về môn đã lưu.</summary>
         public MonHocDanhMuc Luu(int? maMon, string ten, string loai, IList<string> capDo, bool ngungDay)
         {
+            PhienDangNhap.YeuCauQuanLy();
             string loi = KiemTra(ten, loai, capDo);
             if (loi != null) throw new ArgumentException(loi);
             ten = ten.Trim();
@@ -115,6 +116,7 @@ namespace DoAnWD.BLL.Services
 
         public void Xoa(int maMon)
         {
+            PhienDangNhap.YeuCauQuanLy();
             using (var db = new GiaSuContextDB())
             {
                 var mon = db.MonHocs.FirstOrDefault(m => m.MaMon == maMon);

@@ -168,7 +168,7 @@ namespace DoAnWD.UI
             var cell = dgv.DefaultCellStyle;
             cell.BackColor = Theme.Surface;
             cell.ForeColor = Theme.Text;
-            cell.Font = Theme.Body;
+            cell.Font = Theme.Cell;
             cell.SelectionBackColor = Theme.RowSelect;
             cell.SelectionForeColor = Theme.Text;
             dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = Theme.RowSelect;
@@ -312,6 +312,27 @@ namespace DoAnWD.UI
         /// <summary>Gắn vào DataGridView.Tag để bảng tự chia cột, không dùng quy tắc chung</summary>
         public const string TuChiaCot = "TuChiaCot";
 
+        /// <summary>
+        /// Chia bề rộng cột theo tỉ lệ khai báo (tên thuộc tính, trọng số, ...); bảng luôn vừa khung, không cuộn ngang.
+        /// Dùng cho bảng có cột cần rộng hẳn hơn cột khác (ví dụ tên lớp).
+        /// </summary>
+        public static void ChiaCot(DataGridView dgv, params object[] cap)
+        {
+            dgv.Tag = TuChiaCot;
+            dgv.ScrollBars = ScrollBars.Vertical;
+            dgv.DataBindingComplete += (s, e) =>
+            {
+                for (int i = 0; i + 1 < cap.Length; i += 2)
+                {
+                    var col = dgv.Columns[(string)cap[i]];
+                    if (col == null) continue;
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    col.FillWeight = Convert.ToSingle(cap[i + 1]);
+                    col.MinimumWidth = 40;
+                }
+            };
+        }
+
         public static void SizeColumns(DataGridView dgv)
         {
             if (dgv.IsDisposed || dgv.Columns.Count == 0) return;
@@ -423,6 +444,9 @@ namespace DoAnWD.UI
                 using (var brush = new SolidBrush(Theme.ShiftColor(text)))
                     g.FillEllipse(brush, b.X + 10, b.Y + b.Height / 2f - 4, 8, 8);
                 var textRect = new Rectangle(b.X + 24, b.Y, b.Width - 28, b.Height);
+                // Cột hẹp: bỏ phần giờ "(9h-11h)", chỉ giữ tên ca
+                if (TextRenderer.MeasureText(g, text, e.CellStyle.Font ?? Theme.Cell).Width > textRect.Width)
+                    text = Common.Constants.CaHoc.TenNgan(text);
                 TextRenderer.DrawText(g, text, e.CellStyle.Font ?? Theme.Body, textRect, e.CellStyle.ForeColor,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
             }
@@ -431,6 +455,23 @@ namespace DoAnWD.UI
                 // Ô chọn bị khóa: chỉ hiện chữ, không vẽ nút xổ xuống
                 TextRenderer.DrawText(g, text, e.CellStyle.Font ?? Theme.Body, new Rectangle(b.X + 8, b.Y, b.Width - 12, b.Height - 1),
                     e.CellStyle.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+            }
+            else if (cell is DataGridViewTextBoxCell)
+            {
+                // Tự vẽ chữ: luôn một dòng, dài quá thì "..." (không để mỗi máy xuống dòng một kiểu)
+                var co = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
+                var canh = e.CellStyle.Alignment;
+                if (canh == DataGridViewContentAlignment.MiddleCenter) co |= TextFormatFlags.HorizontalCenter;
+                else if (canh == DataGridViewContentAlignment.MiddleRight) co |= TextFormatFlags.Right;
+                var le = e.CellStyle.Padding;
+                var font = e.CellStyle.Font ?? Theme.Cell;
+                var vung = new Rectangle(b.X + le.Left + 2, b.Y, b.Width - le.Horizontal - 4, b.Height - 1);
+                // Chữ canh phải / giữa mà không đủ chỗ sẽ bị cắt mất phần ĐẦU (số tiền mất chữ số lớn nhất)
+                // => khi đó canh trái để phần đầu luôn hiện, phần cuối thành "..."
+                if ((co & (TextFormatFlags.Right | TextFormatFlags.HorizontalCenter)) != 0 &&
+                    TextRenderer.MeasureText(g, text, font, vung.Size, TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width > vung.Width)
+                    co &= ~(TextFormatFlags.Right | TextFormatFlags.HorizontalCenter);
+                TextRenderer.DrawText(g, text, font, vung, e.CellStyle.ForeColor, co);
             }
             else
                 e.Paint(b, DataGridViewPaintParts.ContentBackground | DataGridViewPaintParts.ContentForeground |
@@ -625,7 +666,7 @@ namespace DoAnWD.UI
             }
             else
             {
-                l.Font = l.Font.Italic ? new Font(Theme.Family, 9F, FontStyle.Italic) : Theme.Body;
+                l.Font = l.Font.Italic ? Theme.Small : Theme.Body;
                 l.ForeColor = Theme.Text;
             }
         }

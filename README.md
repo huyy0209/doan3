@@ -1,8 +1,10 @@
 # Hệ thống Quản lý Gia sư (DoAnWD)
 
-Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca học** cho một trung tâm gia sư: ghép lớp không trùng ca, đặt tên lớp, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả cho phụ huynh, học phí, lịch học, thống kê và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
+Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho một trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả cho phụ huynh, học phí, lịch học, trang tổng quan "hôm nay làm gì" và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
 
-> Chạy nhanh: bấm đúp `CaiDatCSDL.bat` (lần đầu) rồi `ChayNhanh.bat`.
+> Chạy nhanh: bấm đúp `CaiDatCSDL.bat` (lần đầu **và sau mỗi lần `git pull`**) rồi `ChayNhanh.bat`.
+>
+> Bản này cần **CSDL v6**. Nếu mở app thấy báo thiếu cột / bảng, chạy lại `CaiDatCSDL.bat` (không mất dữ liệu).
 
 ## Công nghệ
 
@@ -24,7 +26,9 @@
 - `ChayNhanh.bat` chỉ build lại phần thay đổi nên lần sau mở rất nhanh. Máy không có Visual Studio thì nó mở bản đã build trước đó (`DoAnWD/bin/Release/DoAnWD.exe`).
 - Có thể tạo shortcut của `ChayNhanh.bat` ra Desktop để mở như một ứng dụng bình thường.
 
-**Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Vào **Đổi mật khẩu** ngay sau đó, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
+- **`SaoLuuCSDL.bat`**: sao lưu CSDL ra file `.bak` có ngày giờ trong tên. Nên chạy mỗi tuần một lần và trước khi nâng cấp.
+
+**Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Đăng nhập bằng mật khẩu mặc định thì ứng dụng **bắt đặt mật khẩu mới ngay** rồi mới cho vào. Sau đó vào **Cài đặt trung tâm** (cuối menu trái) nhập tên, địa chỉ, số điện thoại trung tâm, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
 
 Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã gia sư>` / `123456` (ví dụ `gs3`) để thử vai trò Gia sư. Đây là mật khẩu mẫu, đổi hoặc khóa trước khi dùng thật.
 
@@ -34,6 +38,7 @@ Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã
 doan3/
 ├── ChayNhanh.bat                # Build + mở ứng dụng
 ├── CaiDatCSDL.bat               # Tạo / nâng cấp CSDL, thêm dữ liệu mẫu
+├── SaoLuuCSDL.bat               # Sao lưu CSDL ra file .bak
 ├── DoAnWD.slnx                  # Solution (Visual Studio 2022 17.13+)
 ├── Database/                    # Script SQL, đánh số theo thứ tự chạy
 │   ├── 01_QuanLyGiaSu.sql       #   tạo CSDL + bảng gốc
@@ -41,23 +46,25 @@ doan3/
 │   ├── 03_NangCap_v3.sql        #   hồ sơ gia sư, chỉ mục
 │   ├── 04_NangCap_v4.sql        #   học bù
 │   ├── 05_NangCap_v5.sql        #   danh mục môn học, tên lớp, thi lên cấp
-│   └── 11_ … 15_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc; số 1x để script nâng cấp sau này không làm đổi số)
+│   ├── 06_NangCap_v6.sql        #   thứ học của lớp, khóa đăng nhập sai, cài đặt trung tâm
+│   └── 11_ … 16_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc; số 1x để script nâng cấp sau này không làm đổi số)
 └── DoAnWD/
     ├── Program.cs               # Điểm vào: kiểm tra CSDL, đăng nhập, mở trang chủ
     ├── App.config               # Connection string
-    ├── Common/                  # Hằng số (ca học, trạng thái), tìm kiếm không dấu, đọc số tiền
+    ├── Fonts/                   # Font Be Vietnam Pro (giấy phép OFL), chép kèm bản build
+    ├── Common/                  # Hằng số (ca học, thứ học, trạng thái), tìm kiếm không dấu, đọc số tiền
     ├── Models/                  # Entity EF + DbContext
     ├── DAL/                     # Repository
     ├── BLL/
-    │   ├── Services/            # Nghiệp vụ: gia sư, học viên, lớp, môn học, điểm danh + học bù + cấp độ, học phí, tài khoản, báo cáo
+    │   ├── Services/            # Nghiệp vụ: gia sư, học viên, lớp, môn học, điểm danh + học bù + cấp độ, học phí, tài khoản, báo cáo, tổng quan, cài đặt
     │   ├── Validators/          # Kiểm tra dữ liệu nhập
     │   └── Dto/                 # Dữ liệu trả về cho màn hình
     └── UI/
-        ├── TrangChu.cs          # Khung chính: menu trái, thanh ca học, giữ các trang đã mở
+        ├── TrangChu.cs          # Khung chính: menu trái (tên trung tâm, người đăng nhập), thanh ca học, giữ các trang đã mở
         ├── DieuHuong.cs         # Trang này mở trang khác (vd. bấm ô Tổng quan => trang đã lọc sẵn)
         ├── Pages/               # namespace DoAnWD.UI.Pages: Tổng quan, Lớp học, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản
-        ├── Dialogs/             # namespace DoAnWD.UI.Dialogs: đăng nhập, ghép lớp, môn học, thêm hồ sơ, xếp học bù, thông báo
-        ├── Controls/            # namespace DoAnWD.UI.Controls: khung nhập hồ sơ, cuộn tới đâu tải tới đó
+        ├── Dialogs/             # namespace DoAnWD.UI.Dialogs: đăng nhập, ghép lớp, sửa lớp, môn học, thêm hồ sơ, xếp học bù, cài đặt trung tâm
+        ├── Controls/            # namespace DoAnWD.UI.Controls: khung nhập hồ sơ, chọn ca / chọn thứ, bảng "Hôm nay", ô số, biểu đồ thu, thông báo tự tắt, cuộn tải dần
         └── Theme/               # Màu, font, nút, bảng, lịch... dùng chung cho mọi màn hình
 ```
 
@@ -76,11 +83,13 @@ doan3/
    | `03_NangCap_v3.sql` | Có | Hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú) + chỉ mục tăng tốc |
    | `04_NangCap_v4.sql` | Có | Học bù: buổi học có ca, gia sư dạy bù, buổi vắng được bù |
    | `05_NangCap_v5.sql` | Có | Danh mục môn học (môn chính / năng khiếu + cấp độ), tên lớp, cấp đầu vào, bài thi lên cấp; tự đặt tên cho lớp cũ |
+   | `06_NangCap_v6.sql` | Có | Thứ học trong tuần của lớp, đếm lần đăng nhập sai + khóa tạm, bảng cài đặt (thông tin trung tâm) |
    | `11_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
    | `12_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
    | `13_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
    | `14_DuLieuMau_HocBu.sql` | Không | Xếp học bù cho khoảng một nửa số buổi vắng gần đây |
    | `15_DuLieuMau_CapDo.sql` | Không | Tên lớp + cấp đầu vào cho lớp mẫu, bài thi lên cấp mẫu ở lớp năng khiếu |
+   | `16_DuLieuMau_v6.sql` | Không | Một phần lớp mẫu học theo thứ (2-4-6, 3-5-7), dọn điểm danh mẫu rơi vào ngày không học, thông tin trung tâm mẫu |
 
    Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -I -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu dùng SQL Express, đổi thành `data source=.\SQLEXPRESS;`.
@@ -90,17 +99,31 @@ Nếu không kết nối được CSDL hoặc CSDL chưa nâng cấp, ứng dụ
 
 ## Nghiệp vụ chính
 
-### Ca học
-Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều (14h-16h), Chiều muộn (16h-18h), Tối (18h-20h), Tối muộn (20h-22h). Một lớp học = **một ca cố định mỗi ngày** trong khoảng từ ngày bắt đầu đến ngày kết thúc. Giờ học lấy theo ca.
+### Ca học và thứ học
+Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều (14h-16h), Chiều muộn (16h-18h), Tối (18h-20h), Tối muộn (20h-22h). Một lớp học = **một ca cố định** + **các thứ học trong tuần** (ví dụ T2-T4-T6, hoặc hằng ngày) trong khoảng từ ngày bắt đầu đến ngày kết thúc. Giờ học lấy theo ca. Lớp tạo từ các bản trước (chưa có thứ học) được hiểu là học hằng ngày.
+
+Mô hình hiện tại: **một lớp = một học viên + một gia sư** (kèm 1-1). Lớp nhóm nhiều học viên chưa hỗ trợ.
 
 ### Luật ghép lớp
 | # | Luật |
 |---|---|
 | 1 | Gia sư đang **Tạm nghỉ** không nhận lớp mới |
-| 2 | Gia sư không có 2 lớp **cùng ca** trong khoảng ngày giao nhau (khác ca thì dạy song song được) |
-| 3 | Học viên không có 2 lớp **cùng ca** trong khoảng ngày giao nhau |
+| 2 | Gia sư không có 2 lớp **cùng ca, có chung thứ học** trong khoảng ngày giao nhau (khác ca, hoặc cùng ca nhưng khác thứ như 2-4-6 và 3-5-7, thì dạy được cả hai) |
+| 3 | Học viên không có 2 lớp **cùng ca, có chung thứ học** trong khoảng ngày giao nhau |
 | 4 | Học viên không học trùng môn với cùng gia sư khi lớp cũ còn hoạt động |
 | 5 | Ngày bắt đầu không ở quá khứ, phải trước ngày kết thúc; học phí > 0 và ≤ 100 triệu |
+| 6 | Phải chọn ít nhất một thứ và khoảng ngày phải có ít nhất một buổi rơi vào các thứ đó |
+
+### Sửa lớp đã ghép
+Trang Lớp học → **Sửa lớp**: đổi tên, học phí, ngày kết thúc (gia hạn / rút ngắn), thứ học, gia sư. Ca và ngày bắt đầu không đổi (đã gắn với điểm danh); muốn đổi thì hủy lớp rồi ghép lớp mới.
+
+| # | Luật sửa lớp |
+|---|---|
+| 1 | Học phí mới không thấp hơn số đã đóng |
+| 2 | Ngày kết thúc mới sau ngày bắt đầu và không sớm hơn buổi đã điểm danh gần nhất |
+| 3 | Gia sư mới không Tạm nghỉ; lịch mới (thứ, ngày, gia sư) được kiểm tra trùng lại **từ hôm nay trở đi** |
+| 4 | Tên mới không trùng lớp khác; có lỗi thì không thay đổi nào được lưu |
+| 5 | Hủy lớp sẽ xóa luôn các buổi học bù **chưa tới ngày** của lớp đó |
 
 ### Trạng thái
 - **Lớp học** tính theo thời gian: `Chưa bắt đầu` → `Đang diễn ra` → `Đã kết thúc`. Lớp có thể bị `Đã hủy` (giữ lại lịch sử, giải phóng lịch).
@@ -143,13 +166,14 @@ Trung tâm có 6 ca cố định: Sáng (7h-9h), Sáng muộn (9h-11h), Chiều 
 
 | Màn hình | Chức năng | Ai dùng |
 |---|---|---|
-| **Tổng quan** | Số gia sư/học viên/lớp, học phí đang thu, còn phải thu, trạng thái gia sư / lớp, học viên đang học, theo ca, lớp sắp bắt đầu/kết thúc. **Bấm vào ô số liệu để mở trang liên quan đã lọc sẵn** (vd. "Rảnh" → Gia sư đang rảnh, "Đang diễn ra" → Lớp học đang diễn ra, ô học phí → Học phí) | Quản lý |
-| **Lớp học** | Mọi lớp: tìm theo tên lớp / học viên / gia sư / môn, lọc trạng thái, ca, môn; **cuộn tới đâu tải tới đó**. Lớp đang chọn: đổi tên, đánh giá (xếp loại hoặc cấp độ + lịch sử thi lên cấp), mở trang học viên, hủy / xóa lớp. **Ghép lớp mới** 3 bước (học viên → môn, cấp đầu vào, ca, ngày, học phí → gia sư dạy môn đó và còn trống ca) + tên lớp. **Môn học**: danh mục môn | Quản lý |
+| **Tổng quan** | Trả lời ba câu khi mở máy: **hôm nay dạy gì** (tấm bảng 6 ca, mỗi dòng một lớp, chấm vàng = đã điểm danh; bấm một ca để mở điểm danh ca đó), **việc nào còn tồn** (hôm qua chưa điểm danh, buổi vắng 30 ngày gần đây chưa xếp học bù, lớp còn nợ học phí, lớp kết thúc / bắt đầu trong 7 ngày; bấm vào là mở đúng trang, đúng học viên), **tiền thu ra sao** (4 ô số + biểu đồ 6 tháng). Nút nhanh *Điểm danh hôm nay*, *Ghép lớp mới* | Quản lý |
+| **Lớp học** | Mọi lớp: tìm theo tên lớp / học viên / gia sư / môn, lọc trạng thái, ca, môn; **cuộn tới đâu tải tới đó**. Lớp đang chọn: lịch học (thứ, ca, số buổi), đánh giá (xếp loại hoặc cấp độ + lịch sử thi lên cấp), **sửa lớp** (tên, học phí, gia hạn, thứ học, đổi gia sư), mở trang học viên, hủy / xóa lớp. **Ghép lớp mới** 3 bước (học viên → môn, cấp đầu vào, ca, **thứ học**, ngày, học phí → gia sư dạy môn đó và còn trống lịch) + tên lớp; ca học viên đang bận hiện chữ "Bận". **Môn học**: danh mục môn | Quản lý |
 | **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
 | **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
 | **Gia sư** | Danh sách + hồ sơ (bấm **Thêm gia sư** để mở cửa sổ nhập riêng): email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
 | **Học viên & điểm** | Tab **Theo học viên**: danh sách (lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; xuất CSV) + học viên đang chọn với 2 tab: *Buổi học & điểm* (chọn lớp, chuyên cần, điểm TB, xếp loại, biểu đồ điểm; sửa trực tiếp điểm danh / điểm / nhận xét từng buổi, thêm buổi còn thiếu, **xếp / hủy học bù**) và *Hồ sơ* (phụ huynh + SĐT, trường/lớp, trình độ, ghi chú). **Thêm học viên** mở cửa sổ nhập riêng; **phiếu báo kết quả** cho phụ huynh. Tab **Điểm danh theo ca**: chọn ngày + ca → điểm danh cả ca, gồm cả học viên đến học bù; bấm đúp tên để mở trang học viên | Quản lý; Gia sư (học viên của mình, không sửa hồ sơ; mở thẳng tab Điểm danh theo ca khi đăng nhập) |
 | **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
+| **Cài đặt trung tâm** | Tên, địa chỉ, số điện thoại trung tâm: hiện ở màn hình đăng nhập, menu trái, tiêu đề cửa sổ và đầu phiếu báo kết quả | Quản lý |
 
 Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "chỉ hiện gia sư nhận và còn trống ca này") hoặc gắn nhãn "Không nhận ca này"; vẫn ghép được nếu đã thống nhất riêng.
 
@@ -178,30 +202,31 @@ Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra
 
 ### Tài khoản và bảo mật
 - Mật khẩu lưu dạng băm **PBKDF2-SHA256** (salt ngẫu nhiên, 100.000 vòng), không lưu mật khẩu gốc.
-- Đăng nhập sai không cho biết sai tên hay sai mật khẩu; sai từ lần thứ 3 phải chờ vài giây mới thử lại được.
+- Đăng nhập sai không cho biết sai tên hay sai mật khẩu; sai từ lần thứ 3 phải chờ vài giây mới thử lại được. Sai **5 lần liên tiếp thì tài khoản bị khóa 5 phút** (lưu trong CSDL nên đóng mở lại app không lách được); quản lý đặt lại mật khẩu thì mở khóa luôn.
+- Đăng nhập bằng mật khẩu mặc định `admin123` bị buộc đặt mật khẩu mới; không đặt lại được về mật khẩu mặc định.
+- **Phân quyền kiểm tra ở tầng nghiệp vụ**, không chỉ ẩn nút: ghép / sửa / hủy / xóa lớp, lưu / xóa hồ sơ, học phí, danh mục môn, tài khoản, cài đặt đều từ chối khi người đăng nhập không phải quản lý.
 - Luôn còn ít nhất một quản lý đang hoạt động; không tự khóa tài khoản đang dùng.
+- Sao lưu: `SaoLuuCSDL.bat`. Khôi phục bằng SSMS (Restore Database → chọn file `.bak`).
 
 ## Giao diện
 
-Giao diện dựa trên hình ảnh **vở ô li**: nền giấy trắng xanh, màu chính là mực tím, có đường lề đỏ chạy dọc vùng nội dung. Mỗi ca học có một màu riêng theo thời điểm trong ngày, từ vàng nắng buổi sáng đến tím đêm, và màu này dùng thống nhất ở mọi nơi: dải ca, lịch, bảng, toast.
+Chủ đề **"Bảng xanh"**: khung ứng dụng màu xanh bảng viết, điểm nhấn vàng phấn, đỏ bút chấm chỉ dành cho lỗi và việc gấp, nội dung nằm trên các thẻ trắng nền giấy xanh rất nhạt. Chữ dùng **Be Vietnam Pro** (font thiết kế cho tiếng Việt, đi kèm trong thư mục `Fonts/`, không cần cài vào máy; không nạp được thì tự dùng Segoe UI). Mỗi ca học có một màu chấm riêng dùng thống nhất ở lịch, bảng và ô chọn ca.
 
 | Thành phần | Mô tả |
 |---|---|
-| Thanh tiêu đề | Ngày hôm nay, ca đang diễn ra, **dải 6 ca học** (ca hiện tại tô đặc, kèm số lớp học hôm nay), số lớp bắt đầu trong 24 giờ |
-| Menu trái | Nền tím đậm; vạch đỏ chỉ mục đang mở và trượt theo khi chuyển màn hình (tắt nếu Windows tắt hiệu ứng) |
-| Bảng | Mọi ô được tự vẽ nên hiển thị đồng nhất. Không kẻ dọc, dòng cao 36px, trạng thái hiện thành nhãn màu, ca học có chấm màu, cột tự co theo bề ngang. Dòng đang chọn tô **xanh dương nhạt** kèm vạch xanh đầu dòng, không còn khung chấm chấm khi click |
-| Sắp xếp + lọc nhanh | Ở mọi bảng danh sách: **bấm tiêu đề cột để sắp xếp** (bấm lần nữa đảo chiều, có mũi tên ở tiêu đề). Cột tên người xếp theo **tên gọi** kiểu Việt Nam (An, Bình, Cường... rồi tới họ đệm); Học viên, Gia sư mặc định A-Z theo tên. **Bấm vào ô trạng thái / ca / chuyên môn / tình trạng để lọc ngay theo giá trị đó**, bấm lại để bỏ lọc (Lớp học: Trạng thái, Ca học; Gia sư: Trạng thái, Chuyên môn; Học phí: Tình trạng) |
-| Ô chọn (ComboBox) | `ThemedComboBox` tự vẽ: viền xám đậm, rê chuột / đang chọn thì viền tím, nút mũi tên rõ ràng; chữ đang chọn không bị tô xanh. **Bộ lọc** đang khác mặc định thì nền tím nhạt + chữ đậm để biết danh sách đang bị lọc |
-| Bảng nhập liệu | Ở bảng điểm danh, ô sửa được (điểm danh, điểm test, nhận xét) có khung như ô nhập; ô đang chọn viền xanh. Khung không mất khi click |
-| Tiêu đề cột | Khai báo một lần bằng `ThemeManager.TieuDeCot(...)`, tự áp lại mỗi khi bảng nạp dữ liệu (kể cả bảng ở tab chưa mở) nên không còn tiêu đề kiểu `GiaSu`, `HocVien` |
-| Sao chép | Ở mọi bảng: **Ctrl+C** chép dòng đang chọn; **chuột phải** để "Sao chép ô", "Sao chép dòng" hoặc "Sao chép cả bảng" (dán thẳng vào Excel) |
-| Thêm mới | "Thêm học viên" / "Thêm gia sư" mở **cửa sổ nhập riêng**; lưu xong tự chọn người vừa thêm. Khung bên phải trang chỉ để xem / sửa người đang chọn |
-| Lịch học | Control tự vẽ, co giãn theo cửa sổ; mỗi lớp hiện ở **mọi ngày** trong khoảng học (trước đây chỉ hiện ở ngày bắt đầu) |
-| Nút bấm | Có icon (thêm, sửa, xóa, lưu, làm mới...) và 4 kiểu màu: chính (tím đặc), phụ (tím nhạt), xóa (đỏ), nhẹ (chữ tím); hành động chính của trang đặt ở góc phải tiêu đề |
-| Ô số liệu | Mỗi loại một màu: gia sư tím, học viên xanh lá, lớp học cam; số trạng thái tô theo màu trạng thái |
-| Ô nhập | Nền tím rất nhạt khi đang gõ để biết con trỏ ở đâu |
-| Chuyển trang | Hiện ngay trang đã mở trước đó (bỏ hiệu ứng chụp ảnh màn hình gây khựng ~0,5 giây) |
-| Chống nháy | Double buffering cho bảng/panel |
+| Đăng nhập | Nửa trái là tấm bảng xanh mang tên, địa chỉ, số điện thoại trung tâm; nửa phải là ô nhập. Lỗi hiện ngay dưới ô nhập |
+| Menu trái | Tên trung tâm ở trên cùng; mục đang mở có nền sáng hơn + vạch vàng phấn; cuối menu là *Làm mới dữ liệu*, *Cài đặt trung tâm* và ô người đang đăng nhập (bấm để đổi mật khẩu / đăng xuất) |
+| Thanh trên | Ngày hôm nay, **dải 6 ca** (ca đang diễn ra tô xanh đặc, ca có lớp hiện số lớp), số lớp bắt đầu trong 24 giờ |
+| Tổng quan | Tấm bảng "Hôm nay" là phần chính của trang; bên cạnh là danh sách việc cần xử lý, bên dưới là 4 ô số và biểu đồ thu 6 tháng |
+| Thông báo | Lưu / ghép / xóa thành công hiện **bảng báo nhỏ tự tắt** ở cuối cửa sổ, không phải bấm OK. Lỗi và câu hỏi xác nhận vẫn là hộp thoại; hộp thoại Sửa lớp và Đăng nhập báo lỗi ngay trong khung |
+| Danh sách trống | Nói rõ vì sao trống và làm gì tiếp (vd. ghép lớp không có gia sư trống lịch: gợi ý bỏ ô lọc hoặc đổi ca / thứ) |
+| Bảng | Mọi ô tự vẽ: chữ luôn một dòng, dài thì "…"; số tiền không bao giờ bị cắt mất chữ số đầu. Cột chia theo tỉ lệ khai báo (`ThemeManager.ChiaCot`), bảng không cuộn ngang. Không kẻ dọc, trạng thái là nhãn màu, ca học có chấm màu. Dòng đang chọn tô xanh dương nhạt |
+| Sắp xếp + lọc nhanh | **Bấm tiêu đề cột để sắp xếp** (bấm lần nữa đảo chiều). Cột tên người xếp theo **tên gọi** kiểu Việt Nam. **Bấm ô trạng thái / chuyên môn / tình trạng để lọc ngay theo giá trị đó**, bấm lại để bỏ lọc |
+| Ô chọn, ô nhập | `ThemedComboBox`, `ThemedTextBox`: viền xám mảnh, đang gõ / đang chọn thì viền xanh. Bộ lọc đang khác mặc định thì tô nền để biết danh sách đang bị lọc |
+| Chọn ca, chọn thứ | Ô bấm thay cho danh sách: 6 ca (ca học viên bận ghi "Bận"), 7 thứ T2…CN |
+| Nút bấm | Có icon, 4 kiểu: chính (xanh đặc), phụ (trắng viền), xóa (đỏ nhạt), nhẹ (chỉ chữ). Mỗi trang một nút chính ở góc phải tiêu đề |
+| Sao chép | Ở mọi bảng: **Ctrl+C** chép dòng đang chọn; **chuột phải** để chép ô, dòng hoặc cả bảng (dán thẳng vào Excel) |
+| Co giãn | Các form dùng tỉ lệ theo DPI (không theo font) nên bố cục giống nhau trên mọi máy; chuyển trang hiện ngay trang đã mở trước đó |
 
 Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 
@@ -210,10 +235,10 @@ Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
 | `Theme.cs` | Token màu, font, màu theo ca và theo trạng thái |
 | `ThemeManager.cs` | Áp giao diện lên mọi control của một form lúc chạy (`ThemeManager.Apply(form)`) |
 | `ThemedButton.cs` | Nút bo góc: Primary / Secondary / Danger / Ghost |
-| `SectionBox.cs` | Thay GroupBox: khung mảnh, tiêu đề nằm trong khung |
+| `SectionBox.cs` | Thẻ trắng bo góc có tiêu đề (thay GroupBox) |
 | `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
 | `Icons.cs` | Bộ icon nét mảnh vẽ bằng GDI+, không cần file ảnh |
-| `Ui.cs`, `ScoreChart.cs` | Hàm dựng control cho các màn hình mới (bố cục TableLayoutPanel tự co giãn), biểu đồ điểm |
+| `Ui.cs`, `ScoreChart.cs` | Hàm dựng control dùng chung (`DauTrang`, `Section`, `HangLoc`, `LocHaiHang`, `Grid`...), biểu đồ điểm |
 
 | `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
 
@@ -245,6 +270,13 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `fr
 | `feat: subject catalog, levels, class names; overview links…` | Danh mục môn học (môn chính / năng khiếu), đánh giá theo xếp loại hoặc cấp độ + thi lên cấp; tên lớp khi ghép lớp; trang Lớp học mới thay trang Ghép lớp cũ; bấm ô Tổng quan để mở trang đã lọc; cuộn tới đâu tải tới đó; gộp truy vấn Tổng quan, xóa hàm không dùng; UI chia namespace theo thư mục; CSDL v5 |
 | `style(ui): clearer dropdowns…` | Ô chọn / bộ lọc tự vẽ cho rõ (viền, mũi tên, tô màu khi đang lọc) |
 | `feat(ui): sort by column, click a value to filter…` | Sắp xếp theo cột (tên theo tên gọi), bấm ô trạng thái để lọc; gom code: tiêu đề cột khai báo một chỗ (`TieuDeCot`), hàng lọc dùng chung (`Ui.HangLoc`), Tổng quan bỏ ~170 dòng cấu hình cột lặp lại |
+| `feat: weekday schedule, edit class, today dashboard, redesign…` | CSDL v6: thứ học của lớp (trùng lịch xét cả thứ), sửa lớp, hủy lớp dọn buổi bù, khóa đăng nhập sai + buộc đổi mật khẩu mặc định, phân quyền ở tầng nghiệp vụ, cài đặt trung tâm, sao lưu. Giao diện mới "Bảng xanh" + font Be Vietnam Pro, trang Tổng quan mới, đăng nhập mới, thông báo tự tắt |
+
+## Kiểm thử và giới hạn đã biết
+
+- Luật nghiệp vụ (ghép lớp theo thứ, sửa lớp, học bù, cấp độ, học phí, khóa đăng nhập, phân quyền, số liệu tổng quan) có **116 phép kiểm tự động** chạy trên kho dữ liệu giả lập trong bộ nhớ; giao diện được chụp kiểm tra bằng Mono trên Linux.
+- Chưa chạy kiểm trên **Windows + SQL Server thật** trong quá trình phát triển bản này. Các điểm chỉ có trên Windows nên xem lại khi chạy lần đầu: nạp font Be Vietnam Pro, viền ô nhập `ThemedTextBox`, script `06` / `16` và `SaoLuuCSDL.bat`.
+- Một lớp chỉ có một học viên (kèm 1-1). Chưa có: lớp nhóm, nhắc học phí tự động, xuất Excel (hiện xuất CSV), nhiều chi nhánh.
 
 ## Dữ liệu mẫu
 
@@ -256,5 +288,6 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `fr
 | `13_DuLieuMau_v3.sql` | Điền hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy), ghi chú học viên, tài khoản gia sư mẫu `gs<mã>` / `123456` |
 | `14_DuLieuMau_HocBu.sql` | Khoảng một nửa số buổi vắng trong 21 ngày gần nhất được xếp học bù 2 ngày sau, vào ca đầu tiên trong ngày mà học viên và gia sư đều rảnh; buổi bù đã qua có điểm danh, một số có điểm test |
 | `15_DuLieuMau_CapDo.sql` | Đặt tên + cấp đầu vào cho các lớp mẫu; ở mỗi lớp năng khiếu đang học, bài test gần nhất được đánh dấu là bài thi lên cấp kế tiếp |
+| `16_DuLieuMau_v6.sql` | Khoảng 2/3 lớp mẫu chuyển sang học theo thứ (2-4-6 hoặc 3-5-7), xóa điểm danh mẫu rơi vào ngày không học, thêm thông tin trung tâm mẫu |
 
 Dữ liệu thêm được tính theo **ngày chạy script**, nên lịch, dải ca và thống kê luôn có số liệu "hôm nay". Script bỏ qua bản ghi đã có, không tạo lớp trùng ca của cùng gia sư/học viên, và cuối cùng đồng bộ lại trạng thái lớp + gia sư.

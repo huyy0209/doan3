@@ -47,17 +47,28 @@ namespace DoAnWD.UI.Pages
             Load += (s, e) => NapDuLieu();
         }
 
+        /// <summary>Ô tổng tiền: thẻ trắng bo góc, nhãn mờ phía trên, con số màu theo ý nghĩa</summary>
         private Control O(string nhan, Label so, Color mau)
         {
             so.Font = Theme.NumberSmall;
             so.ForeColor = mau;
             so.AutoSize = true;
             so.Margin = new Padding(0);
-            var p = new Panel { BackColor = Theme.Blend(mau, Color.White, 0.9f), Height = 78, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 12, 0), Padding = new Padding(16, 10, 10, 8) };
-            p.Paint += (s, e) => { using (var b = new SolidBrush(mau)) e.Graphics.FillRectangle(b, 0, 0, 5, p.Height); };
-            var l = new Label { Text = nhan, Font = Theme.Label, ForeColor = Theme.Text, AutoSize = true, Location = new Point(16, 8), BackColor = Color.Transparent };
-            so.Location = new Point(14, 32);
-            so.BackColor = Color.Transparent;
+            so.BackColor = Theme.Surface;
+            so.Location = new Point(16, 36);
+            var p = new Panel { BackColor = Theme.Paper, Height = 84, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 14, 0) };
+            ThemeManager.EnableDoubleBuffer(p);
+            p.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (var path = Theme.RoundedRect(new RectangleF(0.5f, 0.5f, p.Width - 1, p.Height - 1), Theme.RadiusCard))
+                {
+                    using (var b = new SolidBrush(Theme.Surface)) e.Graphics.FillPath(b, path);
+                    using (var pen = new Pen(Theme.Rule)) e.Graphics.DrawPath(pen, path);
+                }
+            };
+            p.Resize += (s, e) => p.Invalidate();
+            var l = new Label { Text = nhan, Font = Theme.Label, ForeColor = Theme.TextMuted, AutoSize = true, Location = new Point(18, 12), BackColor = Theme.Surface };
             p.Controls.Add(l);
             p.Controls.Add(so);
             return p;
@@ -66,9 +77,9 @@ namespace DoAnWD.UI.Pages
         private void BuildUi()
         {
             lblTong = new Label(); lblDaThu = new Label(); lblConNo = new Label();
-            var tiles = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, Height = 82, Margin = new Padding(0, 6, 0, 10) };
+            var tiles = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, Height = 88, Margin = new Padding(0, 8, 0, 12) };
             for (int i = 0; i < 3; i++) tiles.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3f));
-            tiles.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+            tiles.RowStyles.Add(new RowStyle(SizeType.Absolute, 86));
             tiles.Controls.Add(O("Tổng học phí các lớp", lblTong, Theme.Ink), 0, 0);
             tiles.Controls.Add(O("Đã thu", lblDaThu, Theme.Success), 1, 0);
             var oNo = O("Còn phải thu", lblConNo, Theme.Warning);
@@ -87,14 +98,15 @@ namespace DoAnWD.UI.Pages
 
             dgv = Ui.Grid();
             dgv.SelectionChanged += (s, e) => HienLopChon();
-            // Gia sư, môn vẫn tìm được nhưng ẩn bớt cho bảng dễ đọc (tên lớp đã có môn)
-            ThemeManager.TieuDeCot(dgv, "MaLop", null, "MonHoc", null, "GiaSu", null, "TenLop", "Lớp", "HocVien", "Học viên",
-                "SDT", "SĐT liên hệ", "HocPhi", "Học phí", "DaDong", "Đã đóng", "ConNo", "Còn nợ", "TinhTrang", "Tình trạng");
+            // Gia sư, môn, học viên, SĐT vẫn tìm được nhưng ẩn bớt để cột tiền đủ rộng (tên lớp đã có môn + học viên)
+            ThemeManager.TieuDeCot(dgv, "MaLop", null, "MonHoc", null, "GiaSu", null, "HocVien", null, "SDTLienHe", null, "TrangThaiLop", null, "TenLop", "Lớp",
+                "HocPhi", "Học phí", "DaDong", "Đã đóng", "ConNo", "Còn nợ", "TinhTrang", "Tình trạng");
+            ThemeManager.ChiaCot(dgv, "TenLop", 240, "HocPhi", 104, "DaDong", 104, "ConNo", 104, "TinhTrang", 118);
             dgv.DataBindingComplete += (s, e) =>
             {
                 if (!dgv.Columns.Contains("ConNo")) return;
                 dgv.Columns["ConNo"].DefaultCellStyle.ForeColor = Theme.Warning;
-                dgv.Columns["ConNo"].DefaultCellStyle.Font = Theme.BodyStrong;
+                dgv.Columns["ConNo"].DefaultCellStyle.Font = Theme.CellStrong;
             };
             // Bấm tiêu đề cột để sắp xếp; bấm ô "Tình trạng" để lọc theo tình trạng đó
             _sx = new SapXepLoc(dgv, () => ApDungLoc()).LocKhiBam("TinhTrang", cboTinhTrang);
@@ -165,7 +177,7 @@ namespace DoAnWD.UI.Pages
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            root.Controls.Add(Ui.Title("Học phí"), 0, 0);
+            root.Controls.Add(Ui.DauTrang("Học phí", "Công nợ từng lớp và các lần đóng tiền. Chọn một lớp rồi ghi nhận ở khung bên phải."), 0, 0);
             root.Controls.Add(tiles, 0, 1);
             root.Controls.Add(cot, 0, 2);
             Controls.Add(root);
@@ -232,7 +244,8 @@ namespace DoAnWD.UI.Pages
                 return;
             }
 
-            lblLopChon.Text = $"{c.HocVien}, {c.MonHoc}: còn nợ {c.ConNo.ToString("N0", Vi)} đ";
+            lblLopChon.Text = $"{c.HocVien}, {c.MonHoc}: còn nợ {c.ConNo.ToString("N0", Vi)} đ"
+                            + (string.IsNullOrWhiteSpace(c.SDTLienHe) ? "" : $"\nLiên hệ: {c.SDTLienHe}");
             txtSoTien.Text = c.ConNo > 0 ? c.ConNo.ToString("N0", Vi) : "";
             btnGhiNhan.Enabled = c.ConNo > 0;
 
@@ -257,8 +270,7 @@ namespace DoAnWD.UI.Pages
                 _service.ThemThanhToan(c.MaLop, tien, dtpNgay.Value.Date.Add(DateTime.Now.TimeOfDay), cboHinhThuc.Text, txtGhiChu.Text);
                 txtGhiChu.Clear();
                 NapDuLieu(c.MaLop);
-                MessageBox.Show($"Đã ghi nhận {tien.ToString("N0", Vi)} đ cho {c.HocVien}.", Constants.Messages.SuccessTitle,
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ThongBao.ThanhCong($"Đã ghi nhận {tien.ToString("N0", Vi)} đ cho {c.HocVien}.");
             }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
@@ -297,7 +309,7 @@ namespace DoAnWD.UI.Pages
                 try
                 {
                     new BaoCaoService().XuatCsv(dgv, dlg.FileName);
-                    MessageBox.Show("Đã xuất danh sách công nợ.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ThongBao.ThanhCong("Đã xuất danh sách công nợ.");
                 }
                 catch (Exception ex)
                 {

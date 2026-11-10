@@ -48,6 +48,34 @@ namespace DoAnWD.Models
         [StringLength(50)]
         public string CapDoDauVao { get; set; }
 
+        /// <summary>Thứ học trong tuần, ví dụ "2,4,6"; null = hằng ngày. Bổ sung ở 06_NangCap_v6.sql.</summary>
+        [StringLength(20)]
+        public string ThuHoc { get; set; }
+
+        /// <summary>Lớp có buổi học vào ngày này không (trong thời gian lớp + đúng thứ học)</summary>
+        public bool HocNgay(DateTime ngay)
+        {
+            var d = ngay.Date;
+            if (ThoiGianBatDau.HasValue && d < ThoiGianBatDau.Value.Date) return false;
+            if (ThoiGianKetThuc.HasValue && d > ThoiGianKetThuc.Value.Date) return false;
+            return Common.Constants.ThuHoc.CoHoc(ThuHoc, d);
+        }
+
+        /// <summary>Số buổi theo lịch từ ngày bắt đầu đến ngày kết thúc</summary>
+        public int DemSoBuoi()
+        {
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue) return 0;
+            DateTime a = ThoiGianBatDau.Value.Date, b = ThoiGianKetThuc.Value.Date;
+            if (b < a) return 0;
+            var thu = Common.Constants.ThuHoc.Doc(ThuHoc);
+            int tong = (b - a).Days + 1;
+            if (thu.Count == 0) return tong;
+            int dem = tong / 7 * thu.Count;
+            for (var d = a.AddDays(tong / 7 * 7); d <= b; d = d.AddDays(1))
+                if (thu.Contains(Common.Constants.ThuHoc.Cua(d))) dem++;
+            return dem;
+        }
+
         /// <summary>Tên để hiển thị: tên lớp nếu đã đặt, không thì "Môn - Học viên"</summary>
         [NotMapped]
         public string TenHienThi => !string.IsNullOrWhiteSpace(TenLop) ? TenLop : $"{MonHoc} - {HocVien?.HoTen}";
@@ -207,7 +235,19 @@ namespace DoAnWD.Models
         /// </summary>
         public bool TrungLich(LopHoc other)
         {
-            return TrungCaHoc(other) && TrungThoiGian(other);
+            if (!TrungCaHoc(other) || !TrungThoiGian(other)) return false;
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue ||
+                !other.ThoiGianBatDau.HasValue || !other.ThoiGianKetThuc.HasValue) return true;
+
+            // Cùng ca + giao ngày: chỉ trùng khi có ít nhất MỘT ngày cả hai lớp cùng học (xét thứ trong tuần)
+            DateTime tu = ThoiGianBatDau.Value.Date > other.ThoiGianBatDau.Value.Date ? ThoiGianBatDau.Value.Date : other.ThoiGianBatDau.Value.Date;
+            DateTime den = ThoiGianKetThuc.Value.Date < other.ThoiGianKetThuc.Value.Date ? ThoiGianKetThuc.Value.Date : other.ThoiGianKetThuc.Value.Date;
+            for (int i = 0; i < 7 && tu.AddDays(i) <= den; i++)
+            {
+                var d = tu.AddDays(i);
+                if (Common.Constants.ThuHoc.CoHoc(ThuHoc, d) && Common.Constants.ThuHoc.CoHoc(other.ThuHoc, d)) return true;
+            }
+            return false;
         }
 
         /// <summary>

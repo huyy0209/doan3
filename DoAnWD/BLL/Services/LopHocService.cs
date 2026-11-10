@@ -104,6 +104,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public LopHoc GhepLop(Dto.GhepLopYeuCau y)
         {
+            PhienDangNhap.YeuCauQuanLy();
             // 1. Validate dữ liệu nhập
             string errorMessage;
             if (!LopHocValidator.Validate(y.MaHV, y.MaGS, y.MonHoc, y.HocPhi, out errorMessage))
@@ -143,7 +144,8 @@ namespace DoAnWD.BLL.Services
             if (TrungTenLop(tenLop)) throw new ArgumentException($"Đã có lớp tên \"{tenLop}\". Hãy đặt tên khác.");
 
             // 4. Kiểm tra trùng lịch (gia sư + học viên)
-            string xungDot = TimXungDot(y.MaGS, y.MaHV, mon.TenMon, y.CaHoc, y.BatDau, y.KetThuc);
+            string thuHoc = Constants.ThuHoc.Ghi(Constants.ThuHoc.Doc(y.ThuHoc));
+            string xungDot = TimXungDot(y.MaGS, y.MaHV, mon.TenMon, y.CaHoc, y.BatDau, y.KetThuc, thuHoc);
             if (xungDot != null)
                 throw new InvalidOperationException(xungDot);
 
@@ -158,8 +160,11 @@ namespace DoAnWD.BLL.Services
                 HocPhi = y.HocPhi,
                 ThoiGianBatDau = y.BatDau,
                 ThoiGianKetThuc = y.KetThuc,
-                CaHoc = y.CaHoc
+                CaHoc = y.CaHoc,
+                ThuHoc = thuHoc
             };
+            if (lopHoc.DemSoBuoi() == 0)
+                throw new ArgumentException("Khoảng ngày đã chọn không có buổi nào rơi vào các thứ học.");
             lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
 
             _lopHocRepo.Add(lopHoc);
@@ -175,6 +180,7 @@ namespace DoAnWD.BLL.Services
         /// <summary>Đổi tên lớp (không trùng, không rỗng)</summary>
         public void DoiTenLop(int maLop, string ten)
         {
+            PhienDangNhap.YeuCauQuanLy();
             ten = (ten ?? "").Trim();
             if (ten.Length == 0) throw new ArgumentException("Nhập tên lớp.");
             if (ten.Length > 150) throw new ArgumentException("Tên lớp tối đa 150 ký tự.");
@@ -183,6 +189,84 @@ namespace DoAnWD.BLL.Services
             if (TrungTenLop(ten, maLop)) throw new ArgumentException($"Đã có lớp tên \"{ten}\".");
             lop.TenLop = ten;
             _lopHocRepo.SaveChanges();
+        }
+
+        /// <summary>
+        /// Sửa lớp đã ghép: tên lớp, học phí, ngày kết thúc (gia hạn / rút ngắn), thứ học, đổi gia sư.
+        ///  - Không sửa lớp đã hủy.
+        ///  - Học phí mới không nhỏ hơn số đã đóng.
+        ///  - Ngày kết thúc không trước buổi đã điểm danh gần nhất, không trước ngày bắt đầu.
+        ///  - Đổi gia sư / thứ / ngày kết thúc: kiểm tra trùng lịch như khi ghép lớp.
+        /// </summary>
+        public LopHoc SuaLop(int maLop, Dto.SuaLopYeuCau y)
+        {
+            PhienDangNhap.YeuCauQuanLy();
+            var lop = _lopHocRepo.QueryDayDu().FirstOrDefault(l => l.MaLop == maLop);
+            if (lop == null) throw new InvalidOperationException("Không tìm thấy lớp học.");
+            if (lop.TrangThai == Constants.LopHocStatus.DaHuy) throw new InvalidOperationException("Lớp đã hủy, không sửa được.");
+            if (!lop.ThoiGianBatDau.HasValue || !lop.MaHV.HasValue) throw new InvalidOperationException("Lớp thiếu thông tin, không sửa được.");
+
+            string loi;
+            if (!LopHocValidator.Validate(lop.MaHV, y.MaGS, lop.MonHoc, y.HocPhi, out loi)) throw new ArgumentException(loi);
+
+            decimal daDong = _context.ThanhToans.Where(t => t.MaLop == maLop).Sum(t => (decimal?)t.SoTien) ?? 0;
+            if (y.HocPhi < daDong)
+                throw new ArgumentException($"Lớp đã đóng {daDong:N0} đ, học phí mới không được nhỏ hơn số đã đóng.");
+
+            // Giữ giờ kết thúc theo ca
+            int gioBD, gioKT;
+            DateTime ketThuc = Constants.CaHoc.TryGetGio(lop.CaHoc, out gioBD, out gioKT)
+                ? y.KetThuc.Date.AddHours(gioKT) : y.KetThuc.Date.AddDays(1).AddTicks(-1);
+            if (ketThuc <= lop.ThoiGianBatDau.Value) throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
+            var buoiCuoi = _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc == null)
+                .OrderByDescending(b => b.NgayHoc).Select(b => (DateTime?)b.NgayHoc).FirstOrDefault();
+            if (buoiCuoi.HasValue && ketThuc.Date < buoiCuoi.Value.Date)
+                throw new ArgumentException($"Lớp đã điểm danh đến {buoiCuoi:dd/MM/yyyy}, ngày kết thúc không được trước ngày đó.");
+
+            string tenMoi = y.TenLop == null ? null : y.TenLop.Trim();
+            if (tenMoi != null && tenMoi != lop.TenLop)
+            {
+                if (tenMoi.Length == 0) throw new ArgumentException("Nhập tên lớp.");
+                if (tenMoi.Length > 150) throw new ArgumentException("Tên lớp tối đa 150 ký tự.");
+                if (TrungTenLop(tenMoi, maLop)) throw new ArgumentException($"Đã có lớp tên \"{tenMoi}\".");
+            }
+
+            string thuHoc = Constants.ThuHoc.Ghi(Constants.ThuHoc.Doc(y.ThuHoc));
+            bool doiGiaSu = y.MaGS != lop.MaGS;
+            int? gsCu = lop.MaGS;
+            if (doiGiaSu)
+            {
+                var gs = _giaSuRepo.GetById(y.MaGS);
+                if (gs == null) throw new InvalidOperationException("Không tìm thấy gia sư.");
+                if (gs.TrangThai == Constants.GiaSuStatus.TamNghi) throw new InvalidOperationException(Constants.Messages.GiaSuTamNghi);
+            }
+
+            // Lớp đã kết thúc mà không gia hạn / đổi lịch thì khỏi kiểm tra trùng
+            bool doiLich = doiGiaSu || thuHoc != lop.ThuHoc || ketThuc != lop.ThoiGianKetThuc;
+            if (doiLich && ketThuc >= DateTime.Now)
+            {
+                // Chỉ xét phần lịch từ hôm nay trở đi (quá khứ đã xảy ra rồi)
+                DateTime tu = lop.ThoiGianBatDau.Value > DateTime.Now ? lop.ThoiGianBatDau.Value : DateTime.Today;
+                string xungDot = TimXungDot(y.MaGS, lop.MaHV.Value, null, lop.CaHoc, tu, ketThuc, thuHoc, maLop);
+                if (xungDot != null) throw new InvalidOperationException(xungDot);
+            }
+
+            // Thử trước trên bản sao: không còn buổi nào thì báo lỗi mà chưa đụng tới lớp thật
+            if (new LopHoc { ThoiGianBatDau = lop.ThoiGianBatDau, ThoiGianKetThuc = ketThuc, ThuHoc = thuHoc }.DemSoBuoi() == 0)
+                throw new ArgumentException("Khoảng ngày của lớp không có buổi nào rơi vào các thứ học.");
+
+            if (tenMoi != null) lop.TenLop = tenMoi;
+            lop.HocPhi = y.HocPhi;
+            lop.ThoiGianKetThuc = ketThuc;
+            lop.ThuHoc = thuHoc;
+            lop.MaGS = y.MaGS;
+            lop.TrangThai = lop.TrangThaiTheoThoiGian;   // gia hạn lớp đã kết thúc => học tiếp
+            _lopHocRepo.SaveChanges();
+
+            foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
+                _giaSuRepo.UpdateStatusBasedOnLopHoc(ma);
+            _giaSuRepo.SaveChanges();
+            return lop;
         }
 
         /// <summary>
@@ -225,6 +309,9 @@ namespace DoAnWD.BLL.Services
                     MonHoc = l.MonHoc,
                     LoaiMon = nk ? Constants.LoaiMon.NangKhieu : Constants.LoaiMon.Chinh,
                     CaHoc = l.CaHoc,
+                    ThuHoc = Constants.ThuHoc.MoTa(l.ThuHoc),
+                    ThuHocGoc = l.ThuHoc,
+                    SoBuoi = l.DemSoBuoi(),
                     BatDau = l.ThoiGianBatDau,
                     KetThuc = l.ThoiGianKetThuc,
                     TrangThai = l.TrangThaiTheoThoiGian,
@@ -244,19 +331,23 @@ namespace DoAnWD.BLL.Services
         /// Tìm xung đột lịch khi ghép lớp. Trả về thông báo lỗi, hoặc null nếu hợp lệ.
         /// Dùng chung cho Service (khi lưu) và UI (kiểm tra real-time).
         /// </summary>
+        /// <param name="thuHoc">Thứ học "2,4,6"; null = hằng ngày. Hai lớp cùng ca chỉ trùng khi có ngày cùng học.</param>
+        /// <param name="boQuaMaLop">Lớp đang sửa (không tự so với chính nó)</param>
         public string TimXungDot(int maGS, int maHV, string monHoc, string caHoc,
-            DateTime batDau, DateTime ketThuc)
+            DateTime batDau, DateTime ketThuc, string thuHoc = null, int? boQuaMaLop = null)
         {
             var lopMoi = new LopHoc
             {
                 MaGS = maGS,
                 MaHV = maHV,
                 CaHoc = caHoc,
+                ThuHoc = thuHoc,
                 ThoiGianBatDau = batDau,
                 ThoiGianKetThuc = ketThuc
             };
 
-            var lopLienQuan = _lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV);
+            var lopLienQuan = _lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV)
+                .Where(l => l.MaLop != (boQuaMaLop ?? 0)).ToList();
 
             var trungGiaSu = lopLienQuan.FirstOrDefault(l => l.MaGS == maGS && l.TrungLich(lopMoi));
             if (trungGiaSu != null)
@@ -337,14 +428,14 @@ namespace DoAnWD.BLL.Services
             var ngayMai = homNay.AddDays(1);
             var huy = Constants.LopHocStatus.DaHuy;
 
-            // Đếm ngay trong SQL, chỉ trả về 6 dòng (ca, số lớp)
+            // Chỉ lấy 2 cột của các lớp đang trong thời gian học, rồi bỏ lớp không học vào thứ hôm nay
             var q = _context.LopHocs.Where(l => l.TrangThai != huy && l.CaHoc != null &&
                                                 l.ThoiGianBatDau < ngayMai && l.ThoiGianKetThuc >= homNay);
             if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
-            return q.GroupBy(l => l.CaHoc)
-                    .Select(g => new { Ca = g.Key, SoLop = g.Count() })
-                    .ToList()
-                    .ToDictionary(x => x.Ca, x => x.SoLop);
+            return q.Select(l => new { l.CaHoc, l.ThuHoc }).ToList()
+                    .Where(x => Constants.ThuHoc.CoHoc(x.ThuHoc, homNay))
+                    .GroupBy(x => x.CaHoc)
+                    .ToDictionary(g => g.Key, g => g.Count());
         }
 
         // ===================================================================
@@ -357,6 +448,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public void HuyLop(int maLop)
         {
+            PhienDangNhap.YeuCauQuanLy();
             var lopHoc = _lopHocRepo.GetById(maLop);
             if (lopHoc == null)
                 throw new InvalidOperationException("Không tìm thấy lớp học.");
@@ -368,6 +460,10 @@ namespace DoAnWD.BLL.Services
                 throw new InvalidOperationException("Lớp đã kết thúc, không thể hủy.");
 
             lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
+            // Buổi học bù đã xếp nhưng chưa tới ngày thì bỏ luôn (lớp đã hủy không học bù nữa)
+            var homNay = DateTime.Today;
+            foreach (var bu in _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc != null && b.NgayHoc > homNay).ToList())
+                _context.BuoiHocs.Remove(bu);
             _lopHocRepo.SaveChanges();
 
             if (lopHoc.MaGS.HasValue)
@@ -382,6 +478,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public void Delete(int maLop)
         {
+            PhienDangNhap.YeuCauQuanLy();
             var lopHoc = _lopHocRepo.GetById(maLop);
             if (lopHoc == null)
                 throw new InvalidOperationException("Không tìm thấy lớp học.");

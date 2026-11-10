@@ -94,6 +94,7 @@ namespace DoAnWD.UI.Pages
             dgvBuoi.EditMode = DataGridViewEditMode.EditOnEnter;
             dgvBuoi.SelectionMode = DataGridViewSelectionMode.CellSelect;
             dgvBuoi.MultiSelect = false;
+            dgvBuoi.ScrollBars = ScrollBars.Vertical;
             dgvBuoi.Tag = ThemeManager.TuChiaCot;   // cột chia theo tỉ lệ bên dưới, luôn vừa khung
             Func<string, string, int, bool, DataGridViewTextBoxColumn> cot = (prop, header, w, ro) =>
                 new DataGridViewTextBoxColumn
@@ -437,7 +438,7 @@ namespace DoAnWD.UI.Pages
                     return false;
                 }
                 if (baoThanhCong)
-                    MessageBox.Show($"Đã lưu {rows.Count} buổi.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ThongBao.ThanhCong($"Đã lưu {rows.Count} buổi.");
                 return true;
             }
             catch (Exception ex)

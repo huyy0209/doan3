@@ -27,7 +27,7 @@ if errorlevel 1 (
 echo Server: %SERVER%
 echo.
 echo [1/2] Tao CSDL va nang cap cau truc...
-for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_v5) do (
+for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_v5 06_NangCap_v6) do (
     echo     - %%f.sql
     sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
     if errorlevel 1 goto loi
@@ -36,7 +36,7 @@ for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_
 echo.
 choice /c CK /n /m "[2/2] Them du lieu mau de chay thu? (C = co, K = khong): "
 if errorlevel 2 goto xong
-for %%f in (11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 14_DuLieuMau_HocBu 15_DuLieuMau_CapDo) do (
+for %%f in (11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6) do (
     echo     - %%f.sql
     sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
     if errorlevel 1 goto loi

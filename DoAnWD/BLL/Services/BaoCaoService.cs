@@ -29,24 +29,30 @@ namespace DoAnWD.BLL.Services
             sb.Append(@"<!DOCTYPE html><html lang=""vi""><head><meta charset=""utf-8"">
 <title>Phiếu báo kết quả học tập</title>
 <style>
-  body{font-family:'Segoe UI',Arial,sans-serif;color:#23233A;background:#F6F7FB;margin:0;padding:32px}
-  .page{max-width:820px;margin:auto;background:#fff;padding:36px 44px 40px 64px;position:relative;border:1px solid #DCDDEB}
-  .page:before{content:'';position:absolute;left:36px;top:0;bottom:0;width:2px;background:#C8414B}
-  h1{font-weight:600;font-size:24px;margin:0 0 4px;color:#4B3F9E}
-  .sub{color:#6B6F86;margin:0 0 24px}
+  body{font-family:'Be Vietnam Pro','Segoe UI',Arial,sans-serif;color:#1B2A26;background:#F2F5F3;margin:0;padding:32px}
+  .page{max-width:820px;margin:auto;background:#fff;padding:36px 48px 40px;border:1px solid #DFE6E2;border-top:6px solid #1D4A40}
+  .tt{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:1px solid #DFE6E2;padding-bottom:14px;margin-bottom:22px}
+  .tt b{font-size:18px;font-weight:600;color:#1D4A40}.tt span{color:#5C6C66;font-size:13px;text-align:right}
+  h1{font-weight:600;font-size:24px;margin:0 0 4px;color:#1B7A5E}
+  .sub{color:#5C6C66;margin:0 0 24px}
   table{border-collapse:collapse;width:100%;margin:8px 0 20px}
-  th{text-align:left;color:#4B3F9E;font-weight:600;font-size:13px;border-bottom:2px solid #DCDDEB;padding:8px 6px}
-  td{border-bottom:1px solid #ECEDF4;padding:7px 6px;font-size:14px}
+  th{text-align:left;color:#1B7A5E;font-weight:600;font-size:13px;border-bottom:2px solid #DFE6E2;padding:8px 6px}
+  td{border-bottom:1px solid #E9EEEB;padding:7px 6px;font-size:14px}
   .info td{border:none;padding:3px 12px 3px 0}
-  .info td:first-child{color:#6B6F86;width:150px}
-  h2{font-size:17px;font-weight:600;margin:28px 0 4px;padding-left:10px;border-left:3px solid #4B3F9E}
+  .info td:first-child{color:#5C6C66;width:150px}
+  h2{font-size:17px;font-weight:600;margin:28px 0 4px;padding-left:10px;border-left:3px solid #1B7A5E}
   .tong{display:flex;gap:28px;margin:8px 0 6px;flex-wrap:wrap}
-  .tong div{min-width:120px}.tong b{display:block;font-size:22px;font-weight:600;color:#4B3F9E}
-  .tong span{color:#6B6F86;font-size:13px}
-  .vang{color:#C8414B}.num{text-align:right}
-  .ky{display:flex;justify-content:space-between;margin-top:40px;color:#6B6F86}
+  .tong div{min-width:120px}.tong b{display:block;font-size:22px;font-weight:600;color:#1B7A5E}
+  .tong span{color:#5C6C66;font-size:13px}
+  .vang{color:#C4403C}.num{text-align:right}
+  .ky{display:flex;justify-content:space-between;margin-top:40px;color:#5C6C66}
   @media print{body{background:#fff;padding:0}.page{border:none}}
 </style></head><body><div class=""page"">");
+
+            // Đầu phiếu: tên trung tâm + liên hệ (lấy từ Cài đặt trung tâm)
+            var tt = CaiDatService.TrungTam;
+            sb.AppendFormat("<div class=\"tt\"><b>{0}</b><span>{1}</span></div>", H(tt.TenHienThi),
+                string.Join("<br>", new[] { tt.DiaChi, tt.SDT }.Where(x => !string.IsNullOrWhiteSpace(x)).Select(H)));
 
             sb.Append("<h1>Phiếu báo kết quả học tập</h1>");
             sb.AppendFormat("<p class=\"sub\">Ngày lập: {0:dd/MM/yyyy}</p>", DateTime.Now);
@@ -132,7 +138,7 @@ namespace DoAnWD.BLL.Services
             {
                 double y = pad + (10 - muc) / 10.0 * (h - 2 * pad);
                 sb.AppendFormat(CultureInfo.InvariantCulture,
-                    "<line x1=\"30\" x2=\"{0}\" y1=\"{1:0.#}\" y2=\"{1:0.#}\" stroke=\"#ECEDF4\"/><text x=\"0\" y=\"{2:0.#}\" font-size=\"11\" fill=\"#9A9DB2\">{3}</text>",
+                    "<line x1=\"30\" x2=\"{0}\" y1=\"{1:0.#}\" y2=\"{1:0.#}\" stroke=\"#E9EEEB\"/><text x=\"0\" y=\"{2:0.#}\" font-size=\"11\" fill=\"#93A192\">{3}</text>",
                     w, y, y + 4, muc);
             }
             var pts = new List<string>();
@@ -142,13 +148,13 @@ namespace DoAnWD.BLL.Services
                 double y = pad + (10 - (double)diem[i].Diem.Value) / 10.0 * (h - 2 * pad);
                 pts.Add(string.Format(CultureInfo.InvariantCulture, "{0:0.#},{1:0.#}", x, y));
                 sb.AppendFormat(CultureInfo.InvariantCulture,
-                    "<circle cx=\"{0:0.#}\" cy=\"{1:0.#}\" r=\"4\" fill=\"#4B3F9E\"><title>{2:dd/MM}: {3}</title></circle>",
+                    "<circle cx=\"{0:0.#}\" cy=\"{1:0.#}\" r=\"4\" fill=\"#1B7A5E\"><title>{2:dd/MM}: {3}</title></circle>",
                     x, y, diem[i].NgayHoc, diem[i].Diem.Value.ToString("0.##", Vi));
                 if (i == 0 || i == diem.Count - 1)
                     sb.AppendFormat(CultureInfo.InvariantCulture,
-                        "<text x=\"{0:0.#}\" y=\"{1}\" font-size=\"11\" fill=\"#6B6F86\" text-anchor=\"middle\">{2:dd/MM}</text>", x, h + 16, diem[i].NgayHoc);
+                        "<text x=\"{0:0.#}\" y=\"{1}\" font-size=\"11\" fill=\"#5C6C66\" text-anchor=\"middle\">{2:dd/MM}</text>", x, h + 16, diem[i].NgayHoc);
             }
-            sb.AppendFormat("<polyline points=\"{0}\" fill=\"none\" stroke=\"#4B3F9E\" stroke-width=\"2\"/>", string.Join(" ", pts));
+            sb.AppendFormat("<polyline points=\"{0}\" fill=\"none\" stroke=\"#1B7A5E\" stroke-width=\"2\"/>", string.Join(" ", pts));
             sb.Append("</svg>");
             return sb.ToString();
         }

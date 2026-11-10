@@ -37,6 +37,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public HocVien LuuHoSo(int? maHV, HoSoHocVien hs)
         {
+            PhienDangNhap.YeuCauQuanLy();
             string loi = HocVienValidator.KiemTraHoSo(hs);
             if (loi != null) throw new ArgumentException(loi);
 
@@ -67,6 +68,7 @@ namespace DoAnWD.BLL.Services
 
         public void Delete(int maHV)
         {
+            PhienDangNhap.YeuCauQuanLy();
             var hocVien = _hocVienRepo.GetById(maHV);
             if (hocVien == null)
             {

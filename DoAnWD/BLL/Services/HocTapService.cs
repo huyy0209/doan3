@@ -18,14 +18,16 @@ namespace DoAnWD.BLL.Services
     /// </summary>
     public class HocTapService
     {
-        /// <summary>Ném lỗi nếu CSDL chưa chạy đủ script nâng cấp (thiếu cột học bù v4, môn học / tên lớp v5)</summary>
+        /// <summary>Ném lỗi nếu CSDL chưa chạy đủ script nâng cấp (thiếu cột học bù v4, môn học / tên lớp v5, thứ học / cài đặt v6)</summary>
         public static void KiemTraCauTrucCSDL()
         {
             using (var db = new GiaSuContextDB())
             {
                 db.BuoiHocs.Select(b => new { b.MaBuoiGoc, b.CaHoc, b.MaGSDay, b.ThiLenCap, b.CapDoThi }).Take(1).ToList();
-                db.LopHocs.Select(l => new { l.TenLop, l.CapDoDauVao }).Take(1).ToList();
+                db.LopHocs.Select(l => new { l.TenLop, l.CapDoDauVao, l.ThuHoc }).Take(1).ToList();
                 db.MonHocs.Take(1).ToList();
+                db.TaiKhoans.Select(t => new { t.SoLanSai, t.KhoaDen }).Take(1).ToList();
+                db.CaiDats.Take(1).ToList();
             }
         }
 
@@ -102,7 +104,8 @@ namespace DoAnWD.BLL.Services
                     .Where(l => l.TrangThai != huy && l.ThoiGianBatDau < dSau && l.ThoiGianKetThuc >= d);
                 if (!string.IsNullOrEmpty(caHoc)) q = q.Where(l => l.CaHoc == caHoc);
                 if (maGS.HasValue) q = q.Where(l => l.MaGS == maGS.Value);
-                var lops = q.ToList();
+                // Bỏ lớp không học vào thứ này (lớp 2-4-6 không hiện vào thứ 3)
+                var lops = q.ToList().Where(l => Constants.ThuHoc.CoHoc(l.ThuHoc, d)).ToList();
 
                 var maLops = lops.Select(l => l.MaLop).ToList();
                 var nangKhieu = MonNangKhieu(db);
@@ -162,7 +165,7 @@ namespace DoAnWD.BLL.Services
                     foreach (var b in dsBu)
                     {
                         LopHoc l;
-                        if (!lopBu.TryGetValue(b.MaLop, out l)) continue;
+                        if (!lopBu.TryGetValue(b.MaLop, out l) || l.TrangThai == huy) continue;   // lớp đã hủy không còn học bù
                         string ten; tenGS.TryGetValue(b.MaGSDay ?? 0, out ten);
                         DateTime goc; ngayGoc.TryGetValue(b.MaBuoiGoc.Value, out goc);
                         ketQua.Add(new DiemDanhRow
@@ -478,6 +481,7 @@ namespace DoAnWD.BLL.Services
             var ds = db.LopHocs.Include(l => l.HocVien)
                 .Where(l => l.TrangThai != huy && l.CaHoc == ca && l.ThoiGianBatDau < dSau && l.ThoiGianKetThuc >= d)
                 .ToList()
+                .Where(l => Constants.ThuHoc.CoHoc(l.ThuHoc, d))
                 .Select(l => new LichBan
                 {
                     MaHV = l.MaHV, MaGS = l.MaGS, MaLop = l.MaLop,

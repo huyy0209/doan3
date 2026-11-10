@@ -236,8 +236,7 @@ namespace DoAnWD.UI.Pages
                 var loi = _hocTap.LuuNgay(dtpNgay.Value, rows, _gioiHanGS);
                 NapDiemDanh();
                 if (loi.Count == 0)
-                    MessageBox.Show($"Đã lưu điểm danh ngày {dtpNgay.Value:dd/MM/yyyy}.", Constants.Messages.SuccessTitle,
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ThongBao.ThanhCong($"Đã lưu điểm danh ngày {dtpNgay.Value:dd/MM/yyyy}.");
                 else
                     MessageBox.Show("Một số dòng chưa lưu:\n\n" + string.Join("\n", loi), Constants.Messages.WarningTitle,
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);

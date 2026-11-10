@@ -84,7 +84,7 @@ namespace DoAnWD.UI.Pages
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1 };
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            root.Controls.Add(Ui.Title("Tài khoản"), 0, 0);
+            root.Controls.Add(Ui.DauTrang("Tài khoản", "Cấp tài khoản cho gia sư, đặt lại mật khẩu, khóa tài khoản không còn dùng."), 0, 0);
             root.Controls.Add(cot, 0, 1);
             Controls.Add(root);
         }
@@ -120,8 +120,7 @@ namespace DoAnWD.UI.Pages
                 bool laGS = cboVaiTro.SelectedIndex == 0;
                 int? maGS = laGS ? (cboGiaSu.SelectedItem as MucGiaSu)?.GS.MaGS : null;
                 _service.TaoTaiKhoan(txtTen.Text, txtMatKhau.Text, laGS ? Constants.VaiTro.GiaSu : Constants.VaiTro.QuanLy, maGS);
-                MessageBox.Show($"Đã tạo tài khoản {txtTen.Text.Trim().ToLowerInvariant()}.", Constants.Messages.SuccessTitle,
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ThongBao.ThanhCong($"Đã tạo tài khoản {txtTen.Text.Trim().ToLowerInvariant()}.");
                 txtTen.Clear();
                 txtMatKhau.Clear();
                 NapDuLieu();
@@ -147,8 +146,7 @@ namespace DoAnWD.UI.Pages
             try
             {
                 bool mo = _service.DoiTrangThai(tk.MaTK, PhienDangNhap.MaTK);
-                MessageBox.Show(mo ? $"Đã mở khóa {tk.TenDangNhap}." : $"Đã khóa {tk.TenDangNhap}. Tài khoản này không đăng nhập được nữa.",
-                    Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ThongBao.ThanhCong(mo ? $"Đã mở khóa {tk.TenDangNhap}." : $"Đã khóa {tk.TenDangNhap}. Tài khoản này không đăng nhập được nữa.");
                 NapDuLieu();
             }
             catch (InvalidOperationException ex)

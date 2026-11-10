@@ -16,8 +16,8 @@ namespace DoAnWD.UI.Pages
     /// Trang Lớp học (thay trang "Ghép lớp" cũ):
     ///  - Danh sách mọi lớp: tìm theo tên lớp / học viên / gia sư / môn, lọc trạng thái, ca, môn;
     ///    cuộn tới đâu tải tới đó.
-    ///  - Chi tiết lớp đang chọn: đổi tên lớp, đánh giá (xếp loại hoặc cấp độ), hủy / xóa lớp,
-    ///    mở trang học viên của lớp.
+    ///  - Chi tiết lớp đang chọn: lịch học, đánh giá (xếp loại hoặc cấp độ), sửa lớp (tên, học phí,
+    ///    gia hạn, thứ học, đổi gia sư), hủy / xóa lớp, mở trang học viên của lớp.
     ///  - "Ghép lớp mới" và "Môn học" (danh mục môn, chỉ quản lý).
     /// Dữ liệu đọc một lần mỗi lần nạp (3 truy vấn), lọc / tìm kiếm làm trong bộ nhớ.
     /// </summary>
@@ -37,8 +37,7 @@ namespace DoAnWD.UI.Pages
         private Label lblDem;
 
         private Label lblTenHienTai, lblThongTin, lblDanhGia;
-        private TextBox txtTenLop;
-        private ThemedButton btnDoiTen, btnMoHocVien, btnHuy, btnXoa;
+        private ThemedButton btnSua, btnMoHocVien, btnHuy, btnXoa;
 
         public frmLopHoc()
         {
@@ -63,6 +62,15 @@ namespace DoAnWD.UI.Pages
             ApDungLoc();
         }
 
+        /// <summary>Bỏ mọi bộ lọc rồi chọn đúng một lớp (dùng khi trang khác chuyển tới)</summary>
+        public void ChonLop(int maLop)
+        {
+            txtTim.Clear();
+            cboCa.SelectedIndex = cboMon.SelectedIndex = 0;
+            cboTrangThai.SelectedItem = TatCa;
+            NapDuLieu(maLop);
+        }
+
         // ===================================================================
         // GIAO DIỆN
         // ===================================================================
@@ -76,14 +84,7 @@ namespace DoAnWD.UI.Pages
             var btnGhep = Ui.Button("Ghép lớp mới", ButtonKind.Primary, Glyph.Plus, 170);
             btnGhep.Click += (s, e) => GhepLopMoi();
 
-            var tieuDe = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 3, AutoSize = true };
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tieuDe.Controls.Add(Ui.Stack(false, Ui.Title("Lớp học"),
-                Ui.Text("Tìm lớp theo tên, học viên, gia sư hoặc môn. Chọn một lớp để xem đánh giá, đổi tên, hủy lớp.", true)), 0, 0);
-            tieuDe.Controls.Add(btnMon, 1, 0);
-            tieuDe.Controls.Add(btnGhep, 2, 0);
+            var tieuDe = Ui.DauTrang("Lớp học", "Tìm lớp theo tên, học viên, gia sư hoặc môn. Chọn một lớp để xem đánh giá, sửa, hủy.", btnMon, btnGhep);
 
             // ---- Bộ lọc ----
             txtTim = Ui.Input("Tìm tên lớp, học viên, gia sư, môn... (không cần dấu)");
@@ -113,15 +114,17 @@ namespace DoAnWD.UI.Pages
             ThemeManager.TieuDeCot(dgv, "MaLop", null, "MaHV", null, "MaGS", null, "LoaiMon", null, "HocPhi", null,
                 "DiemTB", null, "TienTrinh", null, "MonHoc", null,
                 // Tên lớp đã có môn, học viên, ca => ẩn 3 cột đó cho bảng thoáng (vẫn tìm / lọc được)
-                "HocVien", null, "CaHoc", null,
-                "TenLop", "Tên lớp", "GiaSu", "Gia sư",
-                "BatDau", "Bắt đầu", "KetThuc", "Kết thúc", "TrangThai", "Trạng thái", "DanhGia", "Đánh giá");
+                "HocVien", null, "CaHoc", null, "ThuHocGoc", null, "SoBuoi", null,
+                "TenLop", "Tên lớp", "GiaSu", "Gia sư", "ThuHoc", "Thứ học",
+                // Ngày bắt đầu xem ở khung chi tiết; bảng chỉ giữ ngày kết thúc (cái cần theo dõi)
+                "BatDau", null, "KetThuc", "Đến ngày", "TrangThai", "Trạng thái", "DanhGia", "Đánh giá");
+            ThemeManager.ChiaCot(dgv, "TenLop", 262, "GiaSu", 124, "ThuHoc", 92, "KetThuc", 88, "TrangThai", 122, "DanhGia", 98);
             dgv.CellFormatting += (s, e) =>
             {
                 string col = dgv.Columns[e.ColumnIndex].DataPropertyName;
                 if ((col == "BatDau" || col == "KetThuc") && e.Value is DateTime) { e.Value = ((DateTime)e.Value).ToString("dd/MM/yy"); e.FormattingApplied = true; }
                 if (col == "CaHoc" && e.Value is string) { e.Value = Constants.CaHoc.TenNgan((string)e.Value); e.FormattingApplied = true; }
-                if (col == "DanhGia") e.CellStyle.Font = Theme.BodyStrong;
+                if (col == "DanhGia") e.CellStyle.Font = Theme.CellStrong;
             };
             _cuon = new CuonTaiDan<LopHocDong>(dgv, 40);
             // Bấm tiêu đề cột để sắp xếp; bấm ô Trạng thái / Ca học để lọc theo giá trị đó
@@ -139,21 +142,11 @@ namespace DoAnWD.UI.Pages
 
             // ---- Chi tiết ----
             lblTenHienTai = new Label { Font = Theme.Section, ForeColor = Theme.Ink, AutoSize = true, MaximumSize = new Size(440, 0), Margin = new Padding(0, 0, 0, 6) };
-            txtTenLop = Ui.Input("Tên lớp");
-            txtTenLop.MaxLength = 150;
-            btnDoiTen = Ui.Button("Đổi tên", ButtonKind.Secondary, Glyph.Edit, 110);
-            btnDoiTen.Click += (s, e) => DoiTen();
-            var hangTen = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
-            hangTen.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            hangTen.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            txtTenLop.Dock = DockStyle.Fill;
-            txtTenLop.Margin = new Padding(0, 4, 8, 0);
-            hangTen.Controls.Add(txtTenLop, 0, 0);
-            hangTen.Controls.Add(btnDoiTen, 1, 0);
-
             lblThongTin = new Label { AutoSize = true, Font = Theme.Body, ForeColor = Theme.Text, MaximumSize = new Size(440, 0), Margin = new Padding(0, 10, 0, 6) };
             lblDanhGia = new Label { AutoSize = true, Font = Theme.Body, ForeColor = Theme.Ink, MaximumSize = new Size(440, 0), Margin = new Padding(0, 6, 0, 10) };
 
+            btnSua = Ui.Button("Sửa lớp", ButtonKind.Secondary, Glyph.Edit);
+            btnSua.Click += (s, e) => SuaLop();
             btnMoHocVien = Ui.Button("Mở trang học viên", ButtonKind.Ghost, Glyph.Users);
             btnMoHocVien.Click += (s, e) => MoHocVien();
             btnHuy = Ui.Button("Hủy lớp", ButtonKind.Secondary, Glyph.Close, 110);
@@ -163,14 +156,14 @@ namespace DoAnWD.UI.Pages
 
             var secCT = Ui.Section("Lớp đang chọn");
             secCT.Margin = new Padding(0);
-            var stCT = Ui.Stack(false, lblTenHienTai, Ui.FieldLabel("Tên lớp"), hangTen, lblThongTin,
-                Ui.FieldLabel("Đánh giá"), lblDanhGia, Ui.Row(btnMoHocVien), Ui.Row(btnHuy, btnXoa));
+            var stCT = Ui.Stack(false, lblTenHienTai, lblThongTin,
+                Ui.FieldLabel("Đánh giá"), lblDanhGia, Ui.Row(btnSua, btnMoHocVien), Ui.Row(btnHuy, btnXoa));
             stCT.AutoScroll = true;
             secCT.Controls.Add(stCT);
 
             var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = new Padding(0, 10, 0, 0) };
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 64));
-            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 66));
+            cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34));
             cot.Controls.Add(secDs, 0, 0);
             cot.Controls.Add(secCT, 1, 0);
 
@@ -249,13 +242,13 @@ namespace DoAnWD.UI.Pages
         {
             var l = dgv.SelectedRows.Count > 0 ? LopChon : null;
             bool co = l != null;
-            txtTenLop.Enabled = btnDoiTen.Enabled = btnMoHocVien.Enabled = btnXoa.Enabled = co;
+            btnMoHocVien.Enabled = btnXoa.Enabled = co;
             btnHuy.Enabled = co && Constants.LopHocStatus.LaHoatDong(l.TrangThai);
+            btnSua.Enabled = co && l.TrangThai != Constants.LopHocStatus.DaHuy;
             if (!co)
             {
                 _maDangChon = null;
                 lblTenHienTai.Text = "Chưa chọn lớp";
-                txtTenLop.Clear();
                 lblThongTin.Text = "Chọn một lớp trong danh sách.";
                 lblDanhGia.Text = "";
                 return;
@@ -263,11 +256,11 @@ namespace DoAnWD.UI.Pages
 
             _maDangChon = l.MaLop;
             lblTenHienTai.Text = l.TenLop;
-            txtTenLop.Text = l.TenLop;
             lblThongTin.Text =
                 $"Môn: {l.MonHoc} ({l.LoaiMon?.ToLower()})\n" +
                 $"Học viên: {l.HocVien}\nGia sư: {l.GiaSu}\n" +
-                $"Ca: {l.CaHoc}\nThời gian: {l.BatDau:dd/MM/yyyy} – {l.KetThuc:dd/MM/yyyy}\n" +
+                $"Lịch học: {l.ThuHoc}, ca {l.CaHoc}\n" +
+                $"Thời gian: {l.BatDau:dd/MM/yyyy} – {l.KetThuc:dd/MM/yyyy} ({l.SoBuoi} buổi)\n" +
                 $"Học phí: {l.HocPhi:N0} đ\nTrạng thái: {l.TrangThai}";
 
             if (l.TienTrinh != null)
@@ -286,7 +279,7 @@ namespace DoAnWD.UI.Pages
         // THAO TÁC
         // ===================================================================
 
-        private void GhepLopMoi()
+        public void GhepLopMoi()
         {
             using (var dlg = new frmChucNangGhepLop())
             {
@@ -303,19 +296,12 @@ namespace DoAnWD.UI.Pages
             NapDuLieu();   // đổi tên môn / loại môn ảnh hưởng tên môn và đánh giá
         }
 
-        private void DoiTen()
+        private void SuaLop()
         {
             var l = LopChon;
             if (l == null) return;
-            try
-            {
-                using (var service = new LopHocService()) service.DoiTenLop(l.MaLop, txtTenLop.Text);
-                NapDuLieu(l.MaLop);
-            }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
-            {
-                MessageBox.Show(ex.Message, Constants.Messages.WarningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            using (var dlg = new dlgSuaLop(l))
+                if (dlg.ShowDialog(FindForm()) == DialogResult.OK) NapDuLieu(l.MaLop);
         }
 
         private void MoHocVien()
@@ -353,7 +339,7 @@ namespace DoAnWD.UI.Pages
             {
                 using (var service = new LopHocService()) viec(service);
                 NapDuLieu(chonLai);
-                MessageBox.Show(thongBao, Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ThongBao.ThanhCong(thongBao);
             }
             catch (InvalidOperationException ex)
             {

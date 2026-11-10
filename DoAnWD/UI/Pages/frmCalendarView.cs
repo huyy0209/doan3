@@ -109,7 +109,7 @@ namespace DoAnWD.UI.Pages
                 for (var ngay = dauThang; ngay <= cuoiThang; ngay = ngay.AddDays(1))
                 {
                     var trongNgay = lopHocs
-                        .Where(l => l.ThoiGianBatDau.Value.Date <= ngay && l.ThoiGianKetThuc.Value.Date >= ngay)
+                        .Where(l => l.HocNgay(ngay))   // đúng khoảng ngày + đúng thứ học
                         .ToList();
                     if (trongNgay.Count > 0)
                         _lichHocTheoNgay[ngay] = trongNgay;

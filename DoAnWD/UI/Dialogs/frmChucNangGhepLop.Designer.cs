@@ -20,9 +20,9 @@ namespace DoAnWD.UI.Dialogs
         private void InitializeComponent()
         {
             this.SuspendLayout();
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1180, 760);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(1240, 780);
             this.MinimumSize = new System.Drawing.Size(1000, 680);
             this.Name = "frmChucNangGhepLop";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

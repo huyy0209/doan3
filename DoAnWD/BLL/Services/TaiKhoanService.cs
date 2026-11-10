@@ -88,6 +88,16 @@ namespace DoAnWD.BLL.Services
             TenGiaSu = tk.GiaSu?.HoTen;
         }
 
+        /// <summary>
+        /// Chặn ở tầng nghiệp vụ: đã đăng nhập mà không phải quản lý thì không được làm.
+        /// (Chưa đăng nhập = chạy kiểm thử / công cụ, cho qua.)
+        /// </summary>
+        public static void YeuCauQuanLy()
+        {
+            if (DaDangNhap && !LaQuanLy)
+                throw new UnauthorizedAccessException("Chỉ quản lý mới được thực hiện thao tác này.");
+        }
+
         public static void KetThuc()
         {
             MaTK = 0; TenDangNhap = null; VaiTro = null; MaGS = null; TenGiaSu = null;
@@ -111,6 +121,9 @@ namespace DoAnWD.BLL.Services
         public const string AdminMacDinh = "admin";
         public const string MatKhauMacDinh = "admin123";
         public const int DoDaiMatKhauToiThieu = 6;
+        /// <summary>Nhập sai mật khẩu liên tiếp bấy nhiêu lần thì tạm khóa đăng nhập</summary>
+        public const int SoLanSaiToiDa = 5;
+        public const int SoPhutKhoa = 5;
 
         /// <summary>
         /// Lần chạy đầu (chưa có tài khoản nào): tạo admin / admin123.
@@ -145,10 +158,36 @@ namespace DoAnWD.BLL.Services
             using (var db = new GiaSuContextDB())
             {
                 var tk = db.TaiKhoans.Include(t => t.GiaSu).FirstOrDefault(t => t.TenDangNhap == ten);
-                if (tk == null || !MatKhau.KiemTra(matKhau, tk.MatKhauHash))
-                    throw new UnauthorizedAccessException(loiChung);
+                if (tk == null) throw new UnauthorizedAccessException(loiChung);
+
+                // Đang bị tạm khóa do nhập sai nhiều lần
+                if (tk.KhoaDen.HasValue && tk.KhoaDen.Value > DateTime.Now)
+                    throw new UnauthorizedAccessException(
+                        $"Nhập sai quá {SoLanSaiToiDa} lần. Thử lại sau {tk.KhoaDen:HH:mm}.");
+
+                if (!MatKhau.KiemTra(matKhau, tk.MatKhauHash))
+                {
+                    tk.SoLanSai++;
+                    string loi = loiChung;
+                    if (tk.SoLanSai >= SoLanSaiToiDa)
+                    {
+                        tk.KhoaDen = DateTime.Now.AddMinutes(SoPhutKhoa);
+                        tk.SoLanSai = 0;
+                        loi = $"Nhập sai {SoLanSaiToiDa} lần liên tiếp. Tài khoản tạm khóa {SoPhutKhoa} phút.";
+                    }
+                    else if (tk.SoLanSai >= SoLanSaiToiDa - 2)
+                        loi += $" Còn {SoLanSaiToiDa - tk.SoLanSai} lần thử.";
+                    db.SaveChanges();
+                    throw new UnauthorizedAccessException(loi);
+                }
                 if (!tk.HoatDong)
                     throw new UnauthorizedAccessException("Tài khoản đã bị khóa. Liên hệ quản lý.");
+                if (tk.SoLanSai != 0 || tk.KhoaDen.HasValue)
+                {
+                    tk.SoLanSai = 0;
+                    tk.KhoaDen = null;
+                    db.SaveChanges();
+                }
                 return tk;
             }
         }
@@ -175,6 +214,8 @@ namespace DoAnWD.BLL.Services
         {
             string loi = KiemTraMatKhauMoi(matKhauMoi);
             if (loi != null) throw new ArgumentException(loi);
+            if (matKhauMoi == matKhauCu) throw new ArgumentException("Mật khẩu mới phải khác mật khẩu hiện tại.");
+            if (matKhauMoi == MatKhauMacDinh) throw new ArgumentException("Không dùng lại mật khẩu mặc định.");
 
             using (var db = new GiaSuContextDB())
             {
@@ -207,6 +248,7 @@ namespace DoAnWD.BLL.Services
 
         public void TaoTaiKhoan(string tenDangNhap, string matKhau, string vaiTro, int? maGS)
         {
+            PhienDangNhap.YeuCauQuanLy();
             string loi = KiemTraTenDangNhap(tenDangNhap) ?? KiemTraMatKhauMoi(matKhau);
             if (loi != null) throw new ArgumentException(loi);
             if (vaiTro != Constants.VaiTro.QuanLy && vaiTro != Constants.VaiTro.GiaSu)
@@ -238,6 +280,7 @@ namespace DoAnWD.BLL.Services
         /// <summary>Quản lý đặt lại mật khẩu cho tài khoản khác</summary>
         public void DatLaiMatKhau(int maTK, string matKhauMoi)
         {
+            PhienDangNhap.YeuCauQuanLy();
             string loi = KiemTraMatKhauMoi(matKhauMoi);
             if (loi != null) throw new ArgumentException(loi);
             using (var db = new GiaSuContextDB())
@@ -245,6 +288,8 @@ namespace DoAnWD.BLL.Services
                 var tk = db.TaiKhoans.Find(maTK);
                 if (tk == null) throw new InvalidOperationException("Không tìm thấy tài khoản.");
                 tk.MatKhauHash = MatKhau.Bam(matKhauMoi);
+                tk.SoLanSai = 0;
+                tk.KhoaDen = null;   // đặt lại mật khẩu thì gỡ luôn tạm khóa
                 db.SaveChanges();
             }
         }
@@ -252,6 +297,7 @@ namespace DoAnWD.BLL.Services
         /// <summary>Khóa / mở khóa. Không cho khóa chính mình hoặc quản lý hoạt động cuối cùng.</summary>
         public bool DoiTrangThai(int maTK, int maTKDangDung)
         {
+            PhienDangNhap.YeuCauQuanLy();
             if (maTK == maTKDangDung)
                 throw new InvalidOperationException("Không thể khóa tài khoản đang đăng nhập.");
             using (var db = new GiaSuContextDB())

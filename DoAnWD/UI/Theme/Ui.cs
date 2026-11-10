@@ -32,6 +32,34 @@ namespace DoAnWD.UI
             return new Label { Text = text, Font = Theme.PageTitle, ForeColor = Theme.Text, AutoSize = true, Margin = new Padding(0, 0, 0, 2), UseMnemonic = false };
         }
 
+        /// <summary>
+        /// Đầu trang: tên trang + một dòng mô tả bên trái, các nút thao tác chính bên phải.
+        /// </summary>
+        public static TableLayoutPanel DauTrang(string tieuDe, string moTa, params Control[] nut)
+        {
+            var chu = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, AutoSize = true, WrapContents = false, Margin = new Padding(0) };
+            chu.Controls.Add(Title(tieuDe));
+            if (!string.IsNullOrEmpty(moTa))
+            {
+                var m = Text(moTa, true);
+                m.Margin = new Padding(1, 0, 0, 0);
+                chu.Controls.Add(m);
+            }
+            var dau = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0, 0, 0, 4) };
+            dau.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            dau.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            dau.Controls.Add(chu, 0, 0);
+            if (nut.Length > 0)
+            {
+                var hang = Row(nut);
+                hang.Dock = DockStyle.None;
+                hang.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
+                nut[nut.Length - 1].Margin = new Padding(0, 4, 0, 4);
+                dau.Controls.Add(hang, 1, 0);
+            }
+            return dau;
+        }
+
         public static Label Text(string text, bool muted = false)
         {
             return new Label
@@ -48,7 +76,7 @@ namespace DoAnWD.UI
 
         public static TextBox Input(string placeholder = null, int width = 0)
         {
-            var t = new TextBox { Font = Theme.Body, BorderStyle = BorderStyle.Fixed3D, Margin = new Padding(0, 0, 0, 4) };
+            var t = new Controls.ThemedTextBox { Margin = new Padding(0, 0, 0, 4) };
             if (width > 0) t.Width = width; else t.Dock = DockStyle.Top;
             if (placeholder != null) SetPlaceholder(t, placeholder);
             t.Enter += (s, e) => { if (!t.ReadOnly) t.BackColor = Theme.InkFocus; };
@@ -84,6 +112,32 @@ namespace DoAnWD.UI
             return hang;
         }
 
+        /// <summary>Xếp vài nhãn chồng lên nhau, cao vừa đúng nội dung (dùng trong ô của bảng bố cục)</summary>
+        public static FlowLayoutPanel Cum(params Control[] cacNhan)
+        {
+            var f = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, AutoSize = true, WrapContents = false, Margin = new Padding(0) };
+            f.Controls.AddRange(cacNhan);
+            return f;
+        }
+
+        /// <summary>Bộ lọc cho khung hẹp: ô tìm kiếm chiếm trọn hàng trên, các ô chọn chia đều hàng dưới</summary>
+        public static TableLayoutPanel LocHaiHang(TextBox tim, params ComboBox[] cacO)
+        {
+            var bang = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = cacO.Length, RowCount = 2, AutoSize = true, Margin = new Padding(0) };
+            foreach (var _ in cacO) bang.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / cacO.Length));
+            tim.Dock = DockStyle.Fill;
+            tim.Margin = new Padding(0, 2, 0, 6);
+            bang.Controls.Add(tim, 0, 0);
+            bang.SetColumnSpan(tim, cacO.Length);
+            for (int i = 0; i < cacO.Length; i++)
+            {
+                cacO[i].Dock = DockStyle.Fill;
+                cacO[i].Margin = new Padding(0, 0, i == cacO.Length - 1 ? 0 : 8, 6);
+                bang.Controls.Add(cacO[i], i, 1);
+            }
+            return bang;
+        }
+
         /// <summary>
         /// Đánh dấu các ô chọn là bộ lọc: mục đang chọn lúc gọi là mặc định;
         /// chọn khác mặc định thì ô tô nền tím nhạt, chữ đậm để biết danh sách đang bị lọc.
@@ -113,7 +167,7 @@ namespace DoAnWD.UI
 
         public static SectionBox Section(string title)
         {
-            return new SectionBox { Text = title, Dock = DockStyle.Fill, Padding = new Padding(14, 36, 14, 12), Margin = new Padding(0, 0, 12, 0) };
+            return new SectionBox { Text = title, Dock = DockStyle.Fill, Padding = new Padding(18, 42, 18, 16), Margin = new Padding(0, 0, 14, 0) };
         }
 
         public static DataGridView Grid()

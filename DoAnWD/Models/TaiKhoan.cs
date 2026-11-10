@@ -32,6 +32,12 @@ namespace DoAnWD.Models
 
         public DateTime NgayTao { get; set; }
 
+        /// <summary>Số lần nhập sai mật khẩu liên tiếp (06_NangCap_v6.sql)</summary>
+        public int SoLanSai { get; set; }
+
+        /// <summary>Tạm khóa đăng nhập đến thời điểm này sau nhiều lần nhập sai</summary>
+        public DateTime? KhoaDen { get; set; }
+
         public virtual GiaSu GiaSu { get; set; }
     }
 }

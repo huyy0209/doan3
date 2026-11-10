@@ -65,6 +65,8 @@
     <Compile Include="BLL\Services\HocTapService.cs" />
     <Compile Include="BLL\Services\HocVienService.cs" />
     <Compile Include="BLL\Services\LopHocService.cs" />
+    <Compile Include="BLL\Services\CaiDatService.cs" />
+    <Compile Include="BLL\Services\TongQuanService.cs" />
     <Compile Include="BLL\Services\MonHocService.cs" />
     <Compile Include="BLL\Services\NotificationService.cs" />
     <Compile Include="BLL\Services\TaiKhoanService.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="DAL\Repositories\LopHocRepository.cs" />
     <Compile Include="DAL\Repositories\Repository.cs" />
     <Compile Include="Models\BuoiHoc.cs" />
+    <Compile Include="Models\CaiDat.cs" />
     <Compile Include="Models\GiaSu.cs" />
     <Compile Include="Models\GiaSuContextDB.cs" />
     <Compile Include="Models\HocVien.cs" />
@@ -100,14 +103,33 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="UI\Controls\ChonCa.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\ChonThu.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Controls\CuonTaiDan.cs" />
+    <Compile Include="UI\Controls\ThemedTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\ThongBao.cs" />
+    <Compile Include="UI\Controls\TongQuanControls.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Controls\SapXepLoc.cs" />
     <Compile Include="UI\Dialogs\dlgMonHoc.cs" />
     <Compile Include="UI\DieuHuong.cs" />
     <Compile Include="UI\Pages\frmLopHoc.cs" />
     <Compile Include="UI\Controls\HoSoEditors.cs" />
     <Compile Include="UI\Dialogs\dlgHocBu.cs" />
+    <Compile Include="UI\Dialogs\dlgCaiDat.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Dialogs\dlgHoSo.cs" />
+    <Compile Include="UI\Dialogs\dlgSuaLop.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Dialogs\frmChucNangGhepLop.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -155,11 +177,8 @@
     <Compile Include="UI\Pages\frmTaiKhoan.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Pages\frmThongKe.cs">
+    <Compile Include="UI\Pages\frmTongQuan.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Pages\frmThongKe.Designer.cs">
-      <DependentUpon>frmThongKe.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Theme\Icons.cs" />
     <Compile Include="UI\Theme\MonthGrid.cs">
@@ -198,6 +217,20 @@
     <Compile Include="UI\TrangChu.Designer.cs">
       <DependentUpon>TrangChu.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Fonts\BeVietnamPro-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Fonts\BeVietnamPro-Medium.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Fonts\BeVietnamPro-SemiBold.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Fonts\OFL.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

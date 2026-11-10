@@ -27,21 +27,20 @@ namespace DoAnWD.UI
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.Clear(Parent?.BackColor ?? Theme.Paper);
 
-            var rect = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
-            using (var path = Theme.RoundedRect(rect, Theme.Radius + 2))
+            // Thẻ trắng bo góc; một nét bóng mờ ở đáy cho thẻ nổi khỏi nền
+            var bong = new RectangleF(0.5f, 1.5f, Width - 1.5f, Height - 2.5f);
+            using (var path = Theme.RoundedRect(bong, Theme.RadiusCard))
+            using (var p = new Pen(Theme.Blend(Theme.Rule, Theme.Paper, 0.35f), 2f)) g.DrawPath(p, path);
+            var rect = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 2.5f);
+            using (var path = Theme.RoundedRect(rect, Theme.RadiusCard))
             {
                 using (var b = new SolidBrush(BackColor)) g.FillPath(b, path);
                 using (var p = new Pen(Theme.Rule)) g.DrawPath(p, path);
             }
 
             if (!string.IsNullOrEmpty(Text))
-            {
-                // Vạch mực tím trước tiêu đề giúp mắt tìm nhanh từng khối
-                using (var bar = new SolidBrush(Theme.Ink))
-                    g.FillRectangle(bar, 10, 9, 3, 16);
-                TextRenderer.DrawText(g, Text, Theme.Section, new Point(19, 6), Theme.Text,
-                    TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
-            }
+                TextRenderer.DrawText(g, Text, Theme.Section, new Point(18, 13), Theme.Text,
+                    TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }
     }
 }

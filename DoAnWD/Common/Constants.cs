@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Drawing;
 
 namespace DoAnWD.Common
 {
@@ -127,6 +130,52 @@ namespace DoAnWD.Common
         /// ✅ Thông báo - BỔ SUNG ĐẦY ĐỦ
         /// </summary>
         /// <summary>Điểm danh một buổi học</summary>
+        /// <summary>
+        /// Thứ học trong tuần. Lưu dạng "2,4,6" (2 = thứ Hai ... 8 = Chủ nhật); null / rỗng = học hằng ngày.
+        /// </summary>
+        public static class ThuHoc
+        {
+            public static readonly int[] TatCa = { 2, 3, 4, 5, 6, 7, 8 };
+
+            /// <summary>Thứ của một ngày: thứ Hai = 2 ... Chủ nhật = 8</summary>
+            public static int Cua(DateTime ngay) => ngay.DayOfWeek == DayOfWeek.Sunday ? 8 : (int)ngay.DayOfWeek + 1;
+
+            public static string Ten(int thu) => thu == 8 ? "CN" : "T" + thu;
+
+            /// <summary>Tập thứ học; rỗng = hằng ngày</summary>
+            public static HashSet<int> Doc(string thuHoc)
+            {
+                var kq = new HashSet<int>();
+                if (string.IsNullOrWhiteSpace(thuHoc)) return kq;
+                foreach (var p in thuHoc.Split(','))
+                {
+                    int t;
+                    if (int.TryParse(p.Trim(), out t) && t >= 2 && t <= 8) kq.Add(t);
+                }
+                return kq.Count == 7 ? new HashSet<int>() : kq;
+            }
+
+            /// <summary>Chuỗi để lưu; null nếu chọn đủ 7 ngày hoặc không chọn gì (= hằng ngày)</summary>
+            public static string Ghi(IEnumerable<int> thu)
+            {
+                var ds = (thu ?? new int[0]).Where(t => t >= 2 && t <= 8).Distinct().OrderBy(t => t).ToList();
+                return ds.Count == 0 || ds.Count == 7 ? null : string.Join(",", ds);
+            }
+
+            /// <summary>"T2-T4-T6" hoặc "Hằng ngày"</summary>
+            public static string MoTa(string thuHoc)
+            {
+                var ds = Doc(thuHoc);
+                return ds.Count == 0 ? "Hằng ngày" : string.Join("-", ds.OrderBy(t => t).Select(Ten));
+            }
+
+            public static bool CoHoc(string thuHoc, DateTime ngay)
+            {
+                var ds = Doc(thuHoc);
+                return ds.Count == 0 || ds.Contains(Cua(ngay));
+            }
+        }
+
         /// <summary>Loại môn: môn chính xếp loại theo điểm, môn năng khiếu xếp theo cấp độ</summary>
         public static class LoaiMon
         {

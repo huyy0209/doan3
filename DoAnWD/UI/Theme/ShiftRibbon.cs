@@ -9,7 +9,7 @@ namespace DoAnWD.UI
 {
     /// <summary>
     /// Dải 6 ca học trong ngày trên thanh tiêu đề.
-    /// Ca đang diễn ra được tô đặc màu ca; mỗi ca hiện số lớp đang học hôm nay.
+    /// Ca đang diễn ra tô xanh đặc; mỗi ca hiện số lớp học hôm nay (không có lớp thì hiện giờ học).
     /// </summary>
     public class ShiftRibbon : Control
     {
@@ -63,15 +63,18 @@ namespace DoAnWD.UI
 
             if (idx == _hoverIndex) return;
             _hoverIndex = idx;
+            Invalidate();
             if (idx >= 0)
             {
                 int n;
                 _soLop.TryGetValue(cas[idx], out n);
                 _tip.SetToolTip(this, n > 0
-                    ? $"{cas[idx]}: {n} lớp đang học hôm nay"
+                    ? $"{cas[idx]}: {n} lớp học hôm nay"
                     : $"{cas[idx]}: chưa có lớp nào hôm nay");
             }
         }
+
+        protected override void OnMouseLeave(EventArgs e) { _hoverIndex = -1; Invalidate(); base.OnMouseLeave(e); }
 
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -86,32 +89,27 @@ namespace DoAnWD.UI
             {
                 string ca = cas[i];
                 bool current = ca == caHienTai;
-                Color color = Theme.ShiftColor(ca);
                 var r = SegmentRect(i, cas.Length);
 
-                using (var path = Theme.RoundedRect(r, 5))
-                {
-                    Color fill = current ? color : Theme.Blend(color, Color.White, 0.88f);
-                    using (var b = new SolidBrush(fill)) g.FillPath(b, path);
-                }
+                // Ca đang diễn ra: xanh đặc; ca khác: nền giấy nhạt
+                using (var path = Theme.RoundedRect(r, 8))
+                using (var b = new SolidBrush(current ? Theme.Ink : _hoverIndex == i ? Theme.InkSoft : Theme.Paper))
+                    g.FillPath(b, path);
 
                 int bd, kt;
                 Constants.CaHoc.TryGetGio(ca, out bd, out kt);
-                Color fore = current ? Color.White : Theme.Blend(color, Theme.Text, 0.35f);
-                Color foreMuted = current ? Theme.Blend(color, Color.White, 0.75f) : Theme.TextMuted;
-
-                var inner = Rectangle.Round(new RectangleF(r.X + 10, r.Y + 4, r.Width - 20, r.Height - 8));
                 int n;
                 bool coLop = _soLop.TryGetValue(ca, out n) && n > 0;
+                Color fore = current ? Color.White : Theme.Text;
+                Color foreMuted = current ? Theme.Blend(Theme.Ink, Color.White, 0.78f) : coLop ? Theme.Ink : Theme.TextFaint;
+
+                var inner = Rectangle.Round(new RectangleF(r.X + 10, r.Y + 5, r.Width - 16, r.Height - 10));
                 var top = new Rectangle(inner.X, inner.Y, inner.Width, inner.Height / 2);
                 var bottom = new Rectangle(inner.X, inner.Y + inner.Height / 2, inner.Width, inner.Height / 2);
-
-                TextRenderer.DrawText(g, Constants.CaHoc.TenNgan(ca), Theme.SmallStrong, top, fore,
-                    TextFormatFlags.Left | TextFormatFlags.Bottom | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
-                // Dòng 2: giờ học, kèm số lớp hôm nay nếu có
-                TextRenderer.DrawText(g, coLop ? $"{bd}h–{kt}h, {n} lớp" : $"{bd}h–{kt}h", Theme.Small, bottom,
-                    coLop ? fore : foreMuted,
-                    TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+                const TextFormatFlags co = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding;
+                TextRenderer.DrawText(g, Constants.CaHoc.TenNgan(ca), Theme.SmallStrong, top, fore, co);
+                // Dòng 2: số lớp hôm nay, không có lớp thì ghi giờ học
+                TextRenderer.DrawText(g, coLop ? $"{n} lớp" : $"{bd}h–{kt}h", coLop ? Theme.SmallStrong : Theme.Small, bottom, foreMuted, co);
             }
         }
 

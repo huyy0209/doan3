@@ -61,9 +61,10 @@ namespace DoAnWD.UI
             {
                 case ButtonKind.Secondary:
                     // Nền tím nhạt, chữ mực tím: vẫn nổi trên nền trắng nhưng kém nút chính
-                    back = _pressed ? Theme.InkSelect : _hover ? Theme.Blend(Theme.InkSoft, Theme.InkSelect, 0.6f) : Theme.InkSoft;
-                    fore = Theme.InkHover;
-                    border = Color.Empty;
+                    // Nút phụ: nền trắng viền xám, rê chuột thì ngả xanh
+                    back = _pressed ? Theme.InkSelect : _hover ? Theme.InkSoft : Theme.Surface;
+                    fore = _hover || _pressed ? Theme.InkHover : Theme.Text;
+                    border = _hover || _pressed ? Theme.Ink : Theme.RuleStrong;
                     break;
                 case ButtonKind.Danger:
                     back = _pressed ? Theme.Blend(Theme.Margin, Color.Black, 0.15f)
@@ -77,7 +78,7 @@ namespace DoAnWD.UI
                     border = Color.Empty;
                     break;
                 default:
-                    back = _pressed ? Theme.InkDark : _hover ? Theme.InkHover : Theme.Ink;
+                    back = _pressed ? Theme.InkDarker : _hover ? Theme.InkHover : Theme.Ink;
                     fore = Color.White;
                     border = Color.Empty;
                     break;
@@ -87,7 +88,7 @@ namespace DoAnWD.UI
             {
                 back = _kind == ButtonKind.Ghost ? Color.Empty : Theme.NeutralSoft;
                 fore = Theme.TextFaint;
-                border = Color.Empty;
+                border = _kind == ButtonKind.Secondary ? Theme.Rule : Color.Empty;
             }
         }
 

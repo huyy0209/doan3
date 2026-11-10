@@ -23,7 +23,7 @@ namespace DoAnWD.UI
             FlatStyle = FlatStyle.Flat;
             FlatAppearance.BorderSize = 0;
             Cursor = Cursors.Hand;
-            Height = 48;
+            Height = 46;
             Dock = DockStyle.Top;
             BackColor = Theme.InkDark;
         }
@@ -50,25 +50,42 @@ namespace DoAnWD.UI
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
-            Color back = _active ? Theme.Blend(Theme.InkDark, Color.White, 0.10f)
-                       : _hover ? Theme.Blend(Theme.InkDark, Color.White, 0.05f)
-                       : Theme.InkDark;
-            g.Clear(back);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(Theme.Board);
 
-            Color fore = _active ? Color.White : _hover ? Color.White : Theme.InkMuted;
-            Icons.Draw(g, Glyph, new RectangleF(26, (Height - 18) / 2f, 18, 18), _active ? Theme.Hex("#F2A7AD") : fore);
+            // Mục đang mở: viên bo tròn sáng hơn nền bảng + vạch phấn vàng bên trái
+            var vien = new RectangleF(12, 3, Width - 24, Height - 6);
+            if (_active || _hover)
+                using (var path = Theme.RoundedRect(vien, 9))
+                using (var b = new SolidBrush(Theme.Blend(Theme.Board, Color.White, _active ? 0.13f : 0.06f)))
+                    g.FillPath(b, path);
+            if (_active)
+                using (var path = Theme.RoundedRect(new RectangleF(12, Height / 2f - 9, 4, 18), 2))
+                using (var b = new SolidBrush(Theme.Chalk))
+                    g.FillPath(b, path);
 
-            var textRect = new Rectangle(56, 0, Width - 68, Height);
+            Color fore = _active || _hover ? Color.White : Theme.InkMuted;
+            Icons.Draw(g, Glyph, new RectangleF(30, (Height - 18) / 2f, 18, 18), _active ? Theme.Chalk : fore);
+
+            var textRect = new Rectangle(60, 0, Width - 76, Height);
             TextRenderer.DrawText(g, Text, _active ? Theme.NavActive : Theme.Nav, textRect, fore,
-                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
+                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
 
             if (!string.IsNullOrEmpty(Badge))
-                TextRenderer.DrawText(g, Badge, Theme.SmallStrong, textRect, Theme.InkMuted,
-                    TextFormatFlags.VerticalCenter | TextFormatFlags.Right | TextFormatFlags.SingleLine);
+            {
+                // Số việc cần làm: viên tròn vàng phấn
+                var co = TextRenderer.MeasureText(Badge, Theme.SmallStrong);
+                var o = new RectangleF(Width - 26 - co.Width, Height / 2f - 10, co.Width + 8, 20);
+                using (var path = Theme.RoundedRect(o, 10))
+                using (var b = new SolidBrush(Theme.Chalk)) g.FillPath(b, path);
+                TextRenderer.DrawText(g, Badge, Theme.SmallStrong, Rectangle.Round(o), Theme.InkDarker,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+            }
 
             if (Focused && ShowFocusCues)
+                using (var path = Theme.RoundedRect(vien, 9))
                 using (var p = new Pen(Theme.InkMuted) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot })
-                    g.DrawRectangle(p, 6, 4, Width - 13, Height - 9);
+                    g.DrawPath(p, path);
         }
     }
 }

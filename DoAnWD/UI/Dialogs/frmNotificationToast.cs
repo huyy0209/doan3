@@ -96,7 +96,7 @@ namespace DoAnWD.UI.Dialogs
             var btnClose = new Button
             {
                 Text = "×",
-                Font = new Font("Segoe UI", 13F),
+                Font = Theme.Chu(13F),
                 ForeColor = DoAnWD.UI.Theme.TextMuted,
                 BackColor = DoAnWD.UI.Theme.Surface,
                 FlatStyle = FlatStyle.Flat,

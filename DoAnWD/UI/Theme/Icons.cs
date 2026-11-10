@@ -6,7 +6,8 @@ namespace DoAnWD.UI
     public enum Glyph
     {
         None, Plus, Edit, Trash, Check, Close, Refresh, ChevronLeft, ChevronRight,
-        Calendar, Chart, User, Users, Link, Exit, Search, Money, Key, Clipboard
+        Calendar, Chart, User, Users, Link, Exit, Search, Money, Key, Clipboard,
+        Settings, Home, Alert, Clock, Book, ChevronDown
     }
 
     /// <summary>
@@ -83,6 +84,29 @@ namespace DoAnWD.UI
                         g.DrawRectangle(p, 3, 3, 10, 11.5f);
                         g.DrawRectangle(p, 5.8f, 1.8f, 4.4f, 2.4f);
                         g.DrawLines(p, new[] { new PointF(5.5f, 9.5f), new PointF(7.3f, 11.3f), new PointF(10.8f, 7.3f) }); break;
+                    case Glyph.Settings:
+                        // ba thanh trượt
+                        g.DrawLine(p, 2.5f, 4, 13.5f, 4); g.DrawLine(p, 2.5f, 8, 13.5f, 8); g.DrawLine(p, 2.5f, 12, 13.5f, 12);
+                        using (var nen = new SolidBrush(color))
+                        {
+                            g.FillEllipse(nen, 8.6f, 2.2f, 3.6f, 3.6f); g.FillEllipse(nen, 3.6f, 6.2f, 3.6f, 3.6f); g.FillEllipse(nen, 7.4f, 10.2f, 3.6f, 3.6f);
+                        }
+                        break;
+                    case Glyph.Home:
+                        g.DrawRectangle(p, 2.5f, 2.5f, 4.5f, 6); g.DrawRectangle(p, 9, 2.5f, 4.5f, 3.5f);
+                        g.DrawRectangle(p, 2.5f, 10.5f, 4.5f, 3); g.DrawRectangle(p, 9, 8, 4.5f, 5.5f); break;
+                    case Glyph.Alert:
+                        g.DrawPolygon(p, new[] { new PointF(8, 2.5f), new PointF(14, 13), new PointF(2, 13) });
+                        g.DrawLine(p, 8, 6.5f, 8, 9.5f); g.DrawLine(p, 8, 11.3f, 8, 11.4f); break;
+                    case Glyph.Clock:
+                        g.DrawEllipse(p, 2.5f, 2.5f, 11, 11);
+                        g.DrawLines(p, new[] { new PointF(8, 5), new PointF(8, 8), new PointF(10.3f, 9.5f) }); break;
+                    case Glyph.Book:
+                        g.DrawLines(p, new[] { new PointF(8, 4.2f), new PointF(5.5f, 3), new PointF(2, 3), new PointF(2, 12), new PointF(5.5f, 12), new PointF(8, 13.2f) });
+                        g.DrawLines(p, new[] { new PointF(8, 4.2f), new PointF(10.5f, 3), new PointF(14, 3), new PointF(14, 12), new PointF(10.5f, 12), new PointF(8, 13.2f) });
+                        g.DrawLine(p, 8, 4.2f, 8, 13.2f); break;
+                    case Glyph.ChevronDown:
+                        g.DrawLines(p, new[] { new PointF(3.5f, 6), new PointF(8, 10.5f), new PointF(12.5f, 6) }); break;
                     case Glyph.Search:
                         g.DrawEllipse(p, 2.5f, 2.5f, 8, 8); g.DrawLine(p, 9.3f, 9.3f, 13.5f, 13.5f); break;
                 }

@@ -85,12 +85,13 @@ namespace DoAnWD.UI.Pages
             foreach (var c in new[] { cboLocMon, cboLocTrangThai, cboLocCa })
                 c.SelectedIndexChanged += (s, e) => ApDungLoc();
 
-            var loc = Ui.HangLoc(txtTim, cboLocMon, cboLocTrangThai, cboLocCa);
+            var loc = Ui.LocHaiHang(txtTim, cboLocMon, cboLocTrangThai, cboLocCa);
 
             dgv = Ui.Grid();
 
             ThemeManager.TieuDeCot(dgv, "MaGS", null, "HoTen", "Họ tên", "SDT", "Số ĐT", "ChuyenMon", "Chuyên môn",
-                "KinhNghiem", "Kinh nghiệm", "CaNhanDay", "Ca nhận dạy", "SoLop", "Lớp đang dạy", "TrangThai", "Trạng thái");
+                "KinhNghiem", null, "CaNhanDay", "Ca nhận dạy", "SoLop", "Số lớp", "TrangThai", "Trạng thái");
+            ThemeManager.ChiaCot(dgv, "HoTen", 150, "SDT", 104, "ChuyenMon", 100, "CaNhanDay", 136, "SoLop", 66, "TrangThai", 104);
             // A-Z theo tên gọi; bấm ô Trạng thái / Chuyên môn để lọc theo giá trị đó
             _sx = new SapXepLoc(dgv, () => ApDungLoc(), "HoTen")
                 .LocKhiBam("TrangThai", cboLocTrangThai)
@@ -118,7 +119,7 @@ namespace DoAnWD.UI.Pages
             lblLich.MaximumSize = new Size(440, 0);
             lblTaiKhoan = Ui.Text("", true);
 
-            btnThemMoi = Ui.Button("Thêm gia sư", ButtonKind.Secondary, Glyph.Plus);
+            btnThemMoi = Ui.Button("Thêm gia sư", ButtonKind.Primary, Glyph.Plus);
             btnThemMoi.Click += (s, e) => MoCuaSoThem();
             btnLuu = Ui.Button("Lưu thay đổi", ButtonKind.Primary, Glyph.Check, 150);
             btnLuu.Click += (s, e) => Luu();
@@ -134,11 +135,7 @@ namespace DoAnWD.UI.Pages
                 Ui.Row(btnLuu, btnXoa)));
 
             // ---- Trang ----
-            var tieuDe = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tieuDe.Controls.Add(Ui.Title("Gia sư"), 0, 0);
-            tieuDe.Controls.Add(btnThemMoi, 1, 0);
+            var tieuDe = Ui.DauTrang("Gia sư", "Hồ sơ gia sư, ca nhận dạy và các lớp đang dạy. Bấm ô Trạng thái hoặc Chuyên môn để lọc nhanh.", btnThemMoi);
 
             var cot = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = new Padding(0, 10, 0, 0) };
             cot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
@@ -324,7 +321,7 @@ namespace DoAnWD.UI.Pages
             if (!LuuHoSo(_maDangSua, editor, out gs)) return;
             NapDuLieu(gs.MaGS);
             HienHoSoDangChon();
-            MessageBox.Show($"Đã lưu hồ sơ {gs.HoTen}.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ThongBao.ThanhCong($"Đã lưu hồ sơ {gs.HoTen}.");
         }
 
         private void Xoa()

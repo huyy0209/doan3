@@ -76,6 +76,16 @@ namespace DoAnWD.UI.Pages
             if (tabsTrang != null) tabsTrang.SelectedIndex = 1;
         }
 
+        /// <summary>Mở tab điểm danh đúng ngày và ca (ca = null: mọi ca) - dùng khi trang Tổng quan chuyển tới</summary>
+        public void MoDiemDanh(DateTime ngay, string ca)
+        {
+            MoTabDiemDanh();
+            if (dtpNgay == null) return;
+            if (ngay.Date <= dtpNgay.MaxDate) dtpNgay.Value = ngay.Date;
+            cboCa.SelectedItem = ca;
+            if (cboCa.SelectedIndex < 0) cboCa.SelectedIndex = 0;
+        }
+
         // ===================================================================
         // GIAO DIỆN
         // ===================================================================
@@ -97,13 +107,14 @@ namespace DoAnWD.UI.Pages
             cboTrinhDoLoc.SelectedIndexChanged += (s, e) => ApDungLoc();
             Ui.DanhDauBoLoc(cboTinhTrang, cboTrinhDoLoc);
 
-            var loc = Ui.HangLoc(txtTim, cboTinhTrang, cboTrinhDoLoc);
+            var loc = Ui.LocHaiHang(txtTim, cboTinhTrang, cboTrinhDoLoc);
 
             dgv = Ui.Grid();
             dgv.SelectionChanged += (s, e) => HienHoSoDangChon();
-            // Trường / lớp, trình độ đã hiện ở phần đầu bên phải => ẩn cho bảng gọn (vẫn tìm / lọc được)
+            // Trường / lớp, trình độ, phụ huynh đã hiện ở phần đầu bên phải => ẩn cho bảng gọn (vẫn tìm / lọc được)
             ThemeManager.TieuDeCot(dgv, "MaHV", null, "TruongLop", null, "TrinhDo", null, "HoTen", "Họ tên",
-                "SDT", "SĐT liên hệ", "PhuHuynh", "Phụ huynh", "DangHocMon", "Đang học");
+                "SDT", "SĐT liên hệ", "PhuHuynh", null, "DangHocMon", "Đang học");
+            ThemeManager.ChiaCot(dgv, "HoTen", 140, "SDT", 96, "DangHocMon", 110);
             // Mặc định A-Z theo tên gọi; bấm tiêu đề cột để đổi cách sắp xếp
             _sx = new SapXepLoc(dgv, () => ApDungLoc(), "HoTen");
             lblDem = Ui.Text("", true);
@@ -134,7 +145,7 @@ namespace DoAnWD.UI.Pages
             lblLop = Ui.Text("", true);
             lblLop.MaximumSize = new Size(560, 0);
 
-            btnThemMoi = Ui.Button("Thêm học viên", ButtonKind.Secondary, Glyph.Plus);
+            btnThemMoi = Ui.Button("Thêm học viên", ButtonKind.Primary, Glyph.Plus);
             btnThemMoi.Click += (s, e) => MoCuaSoThem();
             btnThemMoi.Visible = LaQuanLy;
             btnLuu = Ui.Button("Lưu hồ sơ", ButtonKind.Primary, Glyph.Check, 130);
@@ -168,7 +179,7 @@ namespace DoAnWD.UI.Pages
             var dauCT = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0) };
             dauCT.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             dauCT.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            dauCT.Controls.Add(Ui.Stack(false, lblTieuDeForm, lblLienHe), 0, 0);
+            dauCT.Controls.Add(Ui.Cum(lblTieuDeForm, lblLienHe), 0, 0);
             dauCT.Controls.Add(btnPhieuBao, 1, 0);
 
             var secCT = Ui.Section("Học viên đang chọn");
@@ -200,12 +211,8 @@ namespace DoAnWD.UI.Pages
             var hostTrang = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 4, 0, 0) };
             hostTrang.Controls.Add(tabsTrang);
 
-            var tieuDe = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true };
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            tieuDe.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tieuDe.Controls.Add(Ui.Stack(false, Ui.Title("Học viên"),
-                Ui.Text("Chọn học viên để sửa điểm danh, điểm test, xếp học bù. Điểm danh cả ca ở tab \"Điểm danh theo ca\".", true)), 0, 0);
-            tieuDe.Controls.Add(btnThemMoi, 1, 0);
+            var tieuDe = Ui.DauTrang("Học viên",
+                "Chọn học viên để sửa điểm danh, điểm test, xếp học bù. Điểm danh cả ca ở tab \"Điểm danh theo ca\".", btnThemMoi);
 
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1 };
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -406,7 +413,7 @@ namespace DoAnWD.UI.Pages
             if (!LuuHoSo(_maDangSua, editor, out hv)) return;
             NapDuLieu(hv.MaHV);
             HienHoSoDangChon();
-            MessageBox.Show($"Đã lưu hồ sơ {hv.HoTen}.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ThongBao.ThanhCong($"Đã lưu hồ sơ {hv.HoTen}.");
         }
 
         private void Xoa()
@@ -459,7 +466,7 @@ namespace DoAnWD.UI.Pages
                 try
                 {
                     new BaoCaoService().XuatCsv(dgv, dlg.FileName);
-                    MessageBox.Show("Đã xuất danh sách.", Constants.Messages.SuccessTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ThongBao.ThanhCong("Đã xuất danh sách.");
                 }
                 catch (Exception ex)
                 {

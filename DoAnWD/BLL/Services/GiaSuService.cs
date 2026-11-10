@@ -59,6 +59,7 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public GiaSu LuuHoSo(int? maGS, HoSoGiaSu hs)
         {
+            PhienDangNhap.YeuCauQuanLy();
             string loi = GiaSuValidator.KiemTraHoSo(hs);
             if (loi != null) throw new ArgumentException(loi);
             if (_giaSuRepo.ExistsSDT(hs.SDT, maGS))
@@ -100,6 +101,7 @@ namespace DoAnWD.BLL.Services
 
         public void Delete(int maGS)
         {
+            PhienDangNhap.YeuCauQuanLy();
             var giaSu = _giaSuRepo.GetById(maGS);
             if (giaSu == null)
             {
