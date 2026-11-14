@@ -22,10 +22,10 @@
 | W0 | đã merge (e.g. merge commit sau 31515ec) | copilot (dispatch ctx_02e2349e5312) | web-w0 | huyy0209/web-w0 | chuyển 8 service phụ (HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao). Lúc đầu worktree tạo từ 6f6a35f (thiếu DoAnWeb) → coordinator ff lên 8cd7a1d |
 | W7 | đã merge (329c780) | opencode / DeepSeek V4.1 Flash Free (ctx_55791c8eaee1) | web-w7 | huyy0209/web-w7 | giao diện khung giống app: site.css, _Layout, đăng nhập, icon |
 | W1 | đã merge (soát: admin 200, gs1 bị chặn trang QL) | copilot (ctx_74844e637f60) | web-w1 | huyy0209/web-w1 | GS, HV, Tài khoản. Prompt đầu bị rớt (Copilot "policy still loading") → gửi lại |
-| W2 | đang chạy | opencode (ctx_9d9eae0856d5) | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
+| W2 | đang chạy | copilot (ctx_e3f5757d236e) – trước: opencode hết quota, coordinator commit hộ 04331e9 | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
 | W3 | đã merge (240/240 pass, DB QuanLyGiaSu_Test) | copilot (ctx_21286689504e) – trước: dsh (ctx_d81e86f6b82c) hết số dư | web-w3 | huyy0209/web-w3 | xUnit, DB QuanLyGiaSu_Test |
 | W5 | đã merge (fix trùng namespace ad77cd0) | copilot (ctx_6c7fa2f46c0b) | web-w5 | huyy0209/web-w5 | Điểm danh, kết quả, học bù |
-| W6 | đang chạy | opencode (ctx_d8a933687d47) | web-w6 | huyy0209/web-w6 | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
+| W6 | đang chạy | copilot (ctx_42f8a24ce2b6) – trước: opencode hết quota, chưa viết gì | web-w6 | huyy0209/web-w6 | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
 | W4 | chưa giao | (antigravity) | – | – | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
 
 Đã báo W1, W2, W3 merge nhánh coordinator (fix ToTable – trước đó mọi truy vấn lỗi "Invalid object name").
@@ -38,6 +38,9 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 | Thời điểm | Task | Agent cũ | Agent mới | Lý do |
 |---|---|---|---|---|
 | 2026-11-15 | W3 | dsh (deepseek-v4-pro) | copilot | "Insufficient Balance" (hết số dư). Đã dừng worker, giữ worktree; test chưa commit vì build lỗi (thiếu using EF Core) → ghi vào docs/progress/W3.md nhánh web-w3, copilot làm tiếp |
+
+| 2026-11-15 | W2 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3-Flash Free) → copilot | "Free usage exceeded" (chờ 6h35m). Người dùng yêu cầu đổi model opencode: thử GLM-5.3 cũng hết → quota tính theo cả tài khoản OpenCode free. Code dở build pass → coordinator commit hộ 04331e9 + sửa trùng namespace |
+| 2026-11-15 | W6 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3) → copilot | như W2; W6 chưa viết gì |
 
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
