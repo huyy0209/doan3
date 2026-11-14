@@ -297,7 +297,11 @@ namespace DoAnWD.UI.Pages
                         k = moi;
                     }
                 }
-                catch { /* giữ số liệu cũ */ }
+                catch (Exception ex)
+                {
+                    // MED-05: giữ số liệu đang hiển thị nhưng ghi nhận lỗi tải lại.
+                    System.Diagnostics.Trace.WriteLine($"[STUDENT-LESSONS] Lỗi tải lại kết quả: {ex}");
+                }
             }
 
             _vuaNap = false;

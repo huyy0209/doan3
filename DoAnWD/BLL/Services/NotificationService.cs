@@ -71,7 +71,8 @@ namespace DoAnWD.BLL.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[NOTIFICATION] Lỗi khi lấy danh sách: {ex.Message}");
+                // MED-05: ghi lại lỗi để sự cố truy vấn nền không biến mất ở bản Release.
+                System.Diagnostics.Trace.WriteLine($"[NOTIFICATION] Lỗi khi lấy danh sách: {ex}");
                 return new List<LopHoc>();
             }
         }
@@ -88,7 +89,8 @@ namespace DoAnWD.BLL.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[NOTIFICATION] Lỗi phát âm thanh: {ex.Message}");
+                // MED-05: lưu dấu lỗi phát thông báo mà không làm gián đoạn giao diện.
+                System.Diagnostics.Trace.WriteLine($"[NOTIFICATION] Lỗi phát âm thanh: {ex}");
             }
         }
 
@@ -101,8 +103,10 @@ namespace DoAnWD.BLL.Services
             {
                 return QueryLopSapBatDau(hours).Count;
             }
-            catch
+            catch (Exception ex)
             {
+                // MED-05: giữ giá trị dự phòng nhưng ghi lại lỗi truy vấn.
+                System.Diagnostics.Trace.WriteLine($"[NOTIFICATION] Lỗi đếm lớp sắp bắt đầu: {ex}");
                 return 0;
             }
         }

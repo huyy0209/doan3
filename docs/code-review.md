@@ -313,7 +313,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-05] Nuốt lỗi ngoại lệ (Swallowed Exceptions) ở các Service nền và Timer
 - **Vị trí**: `DoAnWD/BLL/Services/NotificationService.cs:72, 89, 104`, `DoAnWD/BLL/Services/CaiDatService.cs:39`, `DoAnWD/UI/TrangChu.cs:266, 340, 346, 353, 453`, `DoAnWD/UI/Pages/frmHocVien.BuoiHoc.cs:300`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Ghi lỗi bằng Trace tại các catch nền để không mất dấu trong bản Release.
 - **Mô tả vấn đề**:
   Nhiều khối `catch` bắt ngoại lệ nhưng bỏ trống hoặc chỉ ghi ra `Debug.WriteLine`. Khi biên dịch ứng dụng ở chế độ Release, các lệnh `Debug.WriteLine` hoàn toàn bị trình biên dịch loại bỏ (strip out), khiến các lỗi xảy ra trong quá trình chạy thực tế biến mất không dấu vết.
 - **Tình huống gây lỗi cụ thể**:

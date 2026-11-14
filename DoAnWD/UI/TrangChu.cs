@@ -263,7 +263,11 @@ namespace DoAnWD.UI
                     CapNhatThanhTrangThai();
                     if (soLopDoi > 0) NapLaiTrangChiXem();
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[TIMER] " + ex.Message); }
+                catch (Exception ex)
+                {
+                    // MED-05: timer tiếp tục chạy và lỗi được ghi lại trong bản Release.
+                    System.Diagnostics.Trace.WriteLine("[TIMER] " + ex);
+                }
             };
             autoUpdateTimer.Start();
 
@@ -305,7 +309,8 @@ namespace DoAnWD.UI
             {
                 lblStatus.Text = "Không đọc được dữ liệu";
                 lblStatus.ForeColor = Theme.Margin;
-                System.Diagnostics.Debug.WriteLine("[HEADER] " + ex.Message);
+                // MED-05: ghi lại chi tiết lỗi thay vì chỉ gửi tới Debug trong bản phát hành.
+                System.Diagnostics.Trace.WriteLine("[HEADER] " + ex);
             }
             lblSubtitle.Text = $"Cập nhật lúc {lastUpdateTime:HH:mm}";
         }
@@ -337,20 +342,32 @@ namespace DoAnWD.UI
                     {
                         t.Stop(); t.Dispose();
                         try { new frmNotificationToast(l).Show(); }
-                        catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[TOAST] " + ex.Message); }
+                        catch (Exception ex)
+                        {
+                            // MED-05: lỗi thông báo riêng lẻ không làm dừng các timer nền.
+                            System.Diagnostics.Trace.WriteLine("[TOAST] " + ex);
+                        }
                     };
                     t.Start();
                     cho += 2000;   // mỗi thông báo cách nhau 2 giây
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[NOTIFICATION] " + ex.Message); }
+            catch (Exception ex)
+            {
+                // MED-05: bảo vệ timer nền và lưu dấu lỗi trong bản Release.
+                System.Diagnostics.Trace.WriteLine("[NOTIFICATION] " + ex);
+            }
         }
 
         private void TrangChu_Load(object sender, EventArgs e)
         {
             // Đồng bộ trạng thái ngay khi mở app (không đợi 60 giây)
             try { ChayCapNhatTrangThai(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[APP] " + ex.Message); }
+            catch (Exception ex)
+            {
+                // MED-05: đồng bộ lỗi lúc khởi động không làm ứng dụng thoát âm thầm.
+                System.Diagnostics.Trace.WriteLine("[APP] " + ex);
+            }
             lastUpdateTime = DateTime.Now;
             CapNhatThanhTrangThai();
 
@@ -450,7 +467,11 @@ namespace DoAnWD.UI
                 lastUpdateTime = DateTime.Now;
                 CapNhatThanhTrangThai();
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[REFRESH] " + ex.Message); }
+            catch (Exception ex)
+            {
+                // MED-05: ghi lại lỗi làm mới dữ liệu trong bản Release.
+                System.Diagnostics.Trace.WriteLine("[REFRESH] " + ex);
+            }
             (activeChild as ILamMoi)?.LamMoi();
         }
 

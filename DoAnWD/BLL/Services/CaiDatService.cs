@@ -36,8 +36,10 @@ namespace DoAnWD.BLL.Services
                         _nho = new ThongTinTrungTam { Ten = lay(KTen), DiaChi = lay(KDiaChi), SDT = lay(KSDT) };
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // MED-05: vẫn dùng tên mặc định nhưng không che mất lỗi đọc cài đặt.
+                    System.Diagnostics.Trace.WriteLine($"[SETTINGS] Lỗi đọc thông tin trung tâm: {ex}");
                     return new ThongTinTrungTam();   // CSDL chưa nâng cấp: dùng tên mặc định, lần sau đọc lại
                 }
                 return _nho;
