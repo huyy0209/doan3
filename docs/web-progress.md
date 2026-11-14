@@ -56,6 +56,8 @@ Thử model mới 2026-11-15: Qwen Code (OAuth free ngừng 15/04/2026) và Gemi
 
 Đánh giá zai (glm-4.5-flash): chạy được nhưng chất lượng thấp, tự báo xong khi chưa đạt → chỉ giao việc rất nhỏ và luôn soát lại.
 
+Chính sách model (người dùng chốt 2026-11-15): được dùng worker Claude; coordinator tự chọn Haiku (việc đơn giản) / Sonnet (code) / Opus (review, lỗi khó). **Fable chỉ khi miễn phí hoặc khuyến mãi không tính tiền.** Thứ tự dự phòng: copilot → claude-sonnet → zai (việc nhỏ) → muse.
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
