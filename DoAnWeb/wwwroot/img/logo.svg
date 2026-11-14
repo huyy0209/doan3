@@ -1,0 +1,18 @@
+<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Nền bảng xanh bảng (#1D4A40) bo góc -->
+  <rect x="1" y="1" width="14" height="14" rx="2" fill="#1D4A40"/>
+
+  <!-- Mũ tốt nghiệp màu phấn vàng (#F3C44F) -->
+  <path d="M4 3.5 L8 1 L12 3.5"
+        stroke="#F3C44F"
+        stroke-width="0.8"
+        fill="none"/>
+
+  <!-- Chữ "GS" màu phấn vàng (#F3C44F) -->
+  <text x="8" y="10"
+        font-family="Arial, sans-serif"
+        font-size="7"
+        font-weight="bold"
+        text-anchor="middle"
+        fill="#F3C44F">GS</text>
+</svg>
