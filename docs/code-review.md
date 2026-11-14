@@ -384,7 +384,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-04] Thiếu chỉ mục UNIQUE cho cột `TaiKhoan.MaGS` trong CSDL
 - **Vị trí**: `Database/02_NangCap_v2.sql:63-74`, `DoAnWD/BLL/Services/TaiKhoanService.cs:264`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm `Database/08_NangCap_v8.sql` tạo filtered unique index `UX_TaiKhoan_MaGS` (chạy lại được, báo lỗi nếu dữ liệu đang trùng `MaGS`).
 - **Mô tả vấn đề**:
   Nghiệp vụ quy định mỗi gia sư chỉ được cấp tối đa một tài khoản đăng nhập.
   Tầng BLL có kiểm tra `if (maGS.HasValue && db.TaiKhoans.Any(t => t.MaGS == maGS.Value)) throw ...;`
