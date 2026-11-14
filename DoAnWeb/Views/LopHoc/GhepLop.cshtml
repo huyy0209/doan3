@@ -17,6 +17,7 @@
             sdt = h.SDT,
             tenPh = h.TenPhuHuynh,
             sdtPh = h.SDTPhuHuynh,
+            truong = h.TruongLop,
             trinhDo = h.TrinhDo,
             soLop = Model.LopHoatDong.Count(l => l.MaHV == h.MaHV),
             lopText = string.Join("; ", Model.LopHoatDong.Where(l => l.MaHV == h.MaHV)
@@ -81,7 +82,7 @@
                             <label class="ghep-item" data-ma="@hv.MaHV"
                                    data-ten="@hv.HoTen" data-sdt="@hv.SDT"
                                    data-ph="@hv.TenPhuHuynh" data-sdtph="@hv.SDTPhuHuynh"
-                                   data-trinhdo="@hv.TrinhDo">
+                                   data-truong="@hv.TruongLop" data-trinhdo="@hv.TrinhDo">
                                 <input type="radio" name="MaHV" value="@hv.MaHV" class="ghep-radio-hv"
                                        checked="@(Model.MaHV == hv.MaHV)" />
                                 <span class="ghep-item-main">
@@ -258,4 +259,8 @@
 
 @section Scripts {
     <script src="~/js/lophoc.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/lophoc.css" asp-append-version="true" />
 }

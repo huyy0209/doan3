@@ -27,6 +27,10 @@
             <input type="text" class="form-control" name="q" value="@Model.TuKhoa"
                    placeholder="Tìm tên lớp, học viên, gia sư, môn… (không cần dấu)" />
         </div>
+
+        @section Styles {
+            <link rel="stylesheet" href="~/css/lophoc.css" asp-append-version="true" />
+        }
         <select class="form-select" name="trangThai" aria-label="Lọc trạng thái">
             @foreach (var tt in dsTrangThai)
             {
