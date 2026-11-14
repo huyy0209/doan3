@@ -1,31 +1,1388 @@
+/* =====================================================================
+   GIAO DIỆN WEB "VỞ Ô LI" – bám bộ màu / font của app WinForms DoAnWD
+   Nguồn: DoAnWD/UI/Theme/Theme.cs (Paper, Ink, Board, Chalk, Margin…)
+
+   Quy ước cho W1/W2/W5/W6:
+   1. Màu & font : luôn dùng biến --vo-*, không viết mã màu rời.
+   2. Khung trang : .vo-page-title, .vo-page-sub, .vo-card, .vo-section,
+                    .vo-toolbar, .vo-stat, .vo-empty, .vo-table, .vo-tag.
+   3. Nút         : .btn .btn-primary (xanh mực), .btn-outline-ink (phụ),
+                    .btn-ink-soft (nhạt), .btn-danger (bút đỏ), .btn-ghost.
+   4. Bảng        : <table class="vo-table">…</table> – dòng xen kẽ, dòng chọn
+                    thêm class "is-selected"; bọc trong .vo-table-wrap để cuộn.
+   5. Nhãn trạng thái: <span class="vo-tag vo-tag-success">Đang dạy</span>
+                    biến thể: success | warning | info | danger | neutral | ink.
+   6. Icon        : <partial name="_Icon" model='"home"' /> (SVG nét 16x16,
+                    ăn theo currentColor nên đổi màu bằng CSS).
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. FONT – Be Vietnam Pro chép từ DoAnWD/Fonts (giấy phép OFL.txt)
+   --------------------------------------------------------------------- */
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../fonts/BeVietnamPro-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------
+   2. BIẾN MÀU – đúng bảng màu Theme.cs
+   --------------------------------------------------------------------- */
+:root {
+  /* Nền tảng */
+  --vo-paper: #F2F5F3;          /* nền trang */
+  --vo-paper-alt: #F8FAF9;      /* dòng xen kẽ */
+  --vo-surface: #FFFFFF;        /* thẻ, vùng nội dung */
+  --vo-rule: #DFE6E2;           /* đường kẻ mảnh */
+  --vo-rule-strong: #BCC9C3;    /* viền ô nhập */
+
+  /* Xanh mực (hành động chính) + xanh bảng (sidebar) */
+  --vo-ink: #1B7A5E;
+  --vo-ink-hover: #14624B;
+  --vo-ink-dark: #1D4A40;
+  --vo-ink-darker: #163A32;
+  --vo-ink-soft: #E3F1EC;
+  --vo-ink-select: #CFE7DD;
+  --vo-ink-muted: #A9C4BB;      /* chữ phụ trên nền bảng */
+  --vo-ink-focus: #F1F8F5;      /* ô nhập đang gõ */
+  --vo-board-line: #2C5F53;     /* nét kẻ trên bảng */
+
+  /* Phấn vàng + bút đỏ */
+  --vo-chalk: #F3C44F;
+  --vo-chalk-soft: #FCF3D9;
+  --vo-margin: #C4403C;
+  --vo-margin-soft: #FBE9E8;
+
+  /* Trạng thái */
+  --vo-info: #2B6FD6;
+  --vo-info-soft: #E4EEFB;
+  --vo-success: #23825B;
+  --vo-success-soft: #E2F3EA;
+  --vo-warning: #B4730F;
+  --vo-warning-soft: #FBF1DC;
+  --vo-neutral: #7F8E88;
+  --vo-neutral-soft: #ECF0EE;
+
+  /* Chữ */
+  --vo-text: #1B2A26;
+  --vo-text-muted: #5C6C66;
+  --vo-text-faint: #93A19B;
+
+  /* Dòng đang chọn trong bảng */
+  --vo-row-select: #D8E8FB;
+  --vo-row-select-bar: #2B6FD6;
+
+  /* Kích thước dùng chung */
+  --vo-radius: 8px;
+  --vo-radius-card: 12px;
+  --vo-sidebar-width: 252px;
+  --vo-topbar-height: 82px;
+
+  /* Ghi đè biến Bootstrap */
+  --bs-body-font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+  --bs-body-font-size: 0.9375rem;
+  --bs-body-color: var(--vo-text);
+  --bs-body-bg: var(--vo-paper);
+  --bs-border-color: var(--vo-rule);
+  --bs-link-color: var(--vo-ink);
+  --bs-link-hover-color: var(--vo-ink-hover);
+  --bs-primary: var(--vo-ink);
+  --bs-primary-rgb: 27, 122, 94;
+  --bs-border-radius: var(--vo-radius);
+}
+
+/* ---------------------------------------------------------------------
+   3. NỀN CHUNG
+   --------------------------------------------------------------------- */
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
+  font-size: 15px;
   position: relative;
   min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--vo-paper);
+  color: var(--vo-text);
+  font-family: var(--bs-body-font-family);
+  -webkit-font-smoothing: antialiased;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+h1, h2, h3, h4, h5, h6 {
+  color: var(--vo-text);
+  font-weight: 600;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+a {
+  color: var(--vo-ink);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--vo-ink-hover);
+}
+
+/* Vùng nội dung chính không sidebar (trang đăng nhập) */
+.vo-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  background: var(--vo-paper);
+}
+
+/* ---------------------------------------------------------------------
+   4. KHUNG CHÍNH: SIDEBAR + VÙNG NỘI DUNG
+   --------------------------------------------------------------------- */
+.vo-app {
+  min-height: 100vh;
+  display: flex;
+}
+
+.vo-sidebar {
+  width: var(--vo-sidebar-width);
+  flex: 0 0 var(--vo-sidebar-width);
+  min-height: 100vh;
+  background: var(--vo-ink-dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 20;
+}
+
+/* Đầu sidebar: ô phấn vàng + tên trung tâm */
+.vo-brand {
+  height: 92px;
+  flex: 0 0 92px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--vo-board-line);
+  color: #fff;
+}
+
+.vo-brand:hover {
+  color: #fff;
+}
+
+.vo-brand-mark {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 11px;
+  background: var(--vo-chalk);
+  color: var(--vo-ink-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vo-brand-mark .vo-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.vo-brand-text {
+  min-width: 0;
+}
+
+.vo-brand-name {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.vo-brand-sub {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--vo-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Menu chính */
+.vo-nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.vo-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 46px;
+  padding: 0 12px;
+  margin-bottom: 4px;
+  border-radius: 9px;
+  color: var(--vo-ink-muted);
+  font-weight: 500;
+  position: relative;
+  transition: background-color .12s ease, color .12s ease;
+}
+
+.vo-nav-link .vo-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.vo-nav-link:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+}
+
+.vo-nav-link.is-active {
+  background: rgba(255, 255, 255, .13);
+  color: #fff;
+  font-weight: 600;
+}
+
+.vo-nav-link.is-active::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--vo-chalk);
+}
+
+.vo-nav-link.is-active .vo-icon {
+  color: var(--vo-chalk);
+}
+
+.vo-nav-link.is-active .vo-nav-text {
+  padding-left: 18px;
+}
+
+.vo-nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--vo-chalk);
+  color: var(--vo-ink-darker);
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Chân sidebar: Cài đặt, Làm mới, ô người dùng */
+.vo-sidebar-foot {
+  flex: 0 0 auto;
+  padding: 4px 12px 0;
+}
+
+.vo-foot-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: var(--vo-ink-muted);
+  font-weight: 500;
+}
+
+.vo-foot-link:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+}
+
+.vo-foot-link .vo-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.vo-user {
+  margin: 6px -12px 0;
+  padding: 0;
+  background: var(--vo-ink-darker);
+  position: relative;
+}
+
+.vo-user-toggle {
+  width: 100%;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 0 18px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vo-user-toggle:hover,
+.vo-user-toggle[aria-expanded="true"] {
+  background: rgba(255, 255, 255, .06);
+}
+
+.vo-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  background: var(--vo-chalk);
+  color: var(--vo-ink-darker);
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.vo-user-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.vo-user-name {
+  font-weight: 600;
+  font-size: 0.94rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vo-user-role {
+  font-size: 0.78rem;
+  color: var(--vo-ink-muted);
+}
+
+.vo-user-toggle .vo-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--vo-ink-muted);
+  flex: 0 0 14px;
+}
+
+/* Menu xổ của ô người dùng */
+.vo-user .dropdown-menu {
+  width: calc(100% - 24px);
+  margin: 0 12px 8px;
+  border: 0;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
+}
+
+.vo-user .dropdown-item {
+  border-radius: 7px;
+  padding: 9px 10px;
+  font-size: 0.9rem;
+  color: var(--vo-text);
+}
+
+.vo-user .dropdown-item:hover {
+  background: var(--vo-ink-soft);
+  color: var(--vo-ink-hover);
+}
+
+.vo-user .dropdown-item.vo-danger {
+  color: var(--vo-margin);
+}
+
+.vo-user .dropdown-item.vo-danger:hover {
+  background: var(--vo-margin-soft);
+  color: var(--vo-margin);
+}
+
+/* Vùng phải: thanh trên + nội dung */
+.vo-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vo-topbar {
+  min-height: var(--vo-topbar-height);
+  padding: 16px 28px;
+  background: var(--vo-surface);
+  border-bottom: 1px solid var(--vo-rule);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vo-topbar-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.vo-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.vo-content {
+  flex: 1 1 auto;
+  padding: 22px 28px 36px;
+  min-width: 0;
+}
+
+/* Nút mở/đóng sidebar trên màn hẹp */
+.vo-sidebar-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--vo-rule-strong);
+  border-radius: var(--vo-radius);
+  background: var(--vo-surface);
+  color: var(--vo-text);
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------
+   5. TIÊU ĐỀ TRANG
+   --------------------------------------------------------------------- */
+.vo-page-title {
+  margin: 0;
+  font-size: 1.28rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--vo-text);
+}
+
+.vo-page-sub {
+  margin-top: 3px;
+  font-size: 0.82rem;
+  color: var(--vo-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   6. THẺ / NHÓM NỘI DUNG
+   --------------------------------------------------------------------- */
+.vo-card {
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  box-shadow: 0 1px 2px rgba(27, 42, 38, .04);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.vo-card-tight {
+  padding: 0;
+  overflow: hidden;
+}
+
+.vo-section {
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  box-shadow: 0 1px 2px rgba(27, 42, 38, .04);
+  padding: 16px 18px 18px;
+  margin-bottom: 16px;
+}
+
+.vo-section-title {
+  margin: 0 0 12px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--vo-text);
+}
+
+.vo-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.vo-section-head .vo-section-title {
+  margin: 0;
+}
+
+/* Dòng kẻ mảnh ngăn cách trong thẻ */
+.vo-divider {
+  height: 1px;
+  background: var(--vo-rule);
+  margin: 14px 0;
+}
+
+/* ---------------------------------------------------------------------
+   7. THANH CÔNG CỤ: ô tìm + bộ lọc + nút
+   --------------------------------------------------------------------- */
+.vo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.vo-toolbar > .vo-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.vo-toolbar > .form-select,
+.vo-toolbar > .form-control {
+  width: auto;
+  min-width: 150px;
+}
+
+.vo-toolbar > .ms-auto {
+  margin-left: auto;
+}
+
+/* Ô tìm kiếm có icon kính lúp */
+.vo-search {
+  position: relative;
+}
+
+.vo-search .vo-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--vo-text-faint);
+  pointer-events: none;
+}
+
+.vo-search .form-control {
+  padding-left: 34px;
+}
+
+/* ---------------------------------------------------------------------
+   8. BẢNG DỮ LIỆU
+   --------------------------------------------------------------------- */
+.vo-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  background: var(--vo-surface);
+}
+
+table.vo-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--vo-text);
+  font-size: 0.88rem;
+}
+
+table.vo-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--vo-paper-alt);
+  color: var(--vo-text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--vo-rule);
+  white-space: nowrap;
+  text-align: left;
+}
+
+table.vo-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--vo-rule);
+  vertical-align: middle;
+}
+
+table.vo-table tbody tr:nth-child(even) {
+  background: var(--vo-paper-alt);
+}
+
+table.vo-table tbody tr:hover {
+  background: var(--vo-ink-soft);
+}
+
+table.vo-table tbody tr.is-selected {
+  background: var(--vo-row-select);
+}
+
+table.vo-table tbody tr.is-selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--vo-row-select-bar);
+}
+
+table.vo-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+table.vo-table .vo-cell-strong {
+  font-weight: 600;
+}
+
+table.vo-table .vo-cell-muted {
+  color: var(--vo-text-muted);
+  font-size: 0.82rem;
+}
+
+table.vo-table .vo-cell-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+table.vo-table .vo-cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+table.vo-table .vo-cell-actions .btn {
+  padding: 4px 9px;
+  font-size: 0.8rem;
+}
+
+/* ---------------------------------------------------------------------
+   9. NHÃN TRẠNG THÁI (.vo-tag)
+   --------------------------------------------------------------------- */
+.vo-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  background: var(--vo-neutral-soft);
+  color: var(--vo-neutral);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.vo-tag .vo-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.vo-tag-success { background: var(--vo-success-soft); color: var(--vo-success); }
+.vo-tag-warning { background: var(--vo-warning-soft); color: var(--vo-warning); }
+.vo-tag-info    { background: var(--vo-info-soft);    color: var(--vo-info); }
+.vo-tag-danger  { background: var(--vo-margin-soft);  color: var(--vo-margin); }
+.vo-tag-neutral { background: var(--vo-neutral-soft); color: var(--vo-neutral); }
+.vo-tag-ink     { background: var(--vo-ink-soft);     color: var(--vo-ink); }
+.vo-tag-chalk   { background: var(--vo-chalk-soft);   color: var(--vo-warning); }
+
+/* ---------------------------------------------------------------------
+   10. Ô SỐ LIỆU LỚN (.vo-stat)
+   --------------------------------------------------------------------- */
+.vo-stat {
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  padding: 16px 18px;
+  height: 100%;
+}
+
+.vo-stat-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--vo-text-muted);
+  text-transform: none;
+}
+
+.vo-stat-value {
+  margin-top: 4px;
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--vo-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.vo-stat-note {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  color: var(--vo-text-muted);
+}
+
+.vo-stat-ink .vo-stat-value { color: var(--vo-ink); }
+.vo-stat-warning .vo-stat-value { color: var(--vo-warning); }
+.vo-stat-danger .vo-stat-value { color: var(--vo-margin); }
+.vo-stat-info .vo-stat-value { color: var(--vo-info); }
+
+/* ---------------------------------------------------------------------
+   11. TRẠNG THÁI RỖNG (.vo-empty)
+   --------------------------------------------------------------------- */
+.vo-empty {
+  padding: 38px 18px;
+  text-align: center;
+  color: var(--vo-text-muted);
+}
+
+.vo-empty .vo-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--vo-rule-strong);
+  margin-bottom: 8px;
+}
+
+.vo-empty-title {
+  font-weight: 600;
+  color: var(--vo-text);
+  margin-bottom: 3px;
+}
+
+.vo-empty-note {
+  font-size: 0.84rem;
+}
+
+/* ---------------------------------------------------------------------
+   12. GHI ĐÈ BOOTSTRAP: NÚT
+   --------------------------------------------------------------------- */
+.btn {
+  border-radius: var(--vo-radius);
+  font-weight: 500;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border-width: 1px;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(27, 122, 94, .18);
+  border-color: var(--vo-ink);
+}
+
+/* Nút chính = xanh mực */
+.btn-primary {
+  --bs-btn-bg: var(--vo-ink);
+  --bs-btn-border-color: var(--vo-ink);
+  --bs-btn-hover-bg: var(--vo-ink-hover);
+  --bs-btn-hover-border-color: var(--vo-ink-hover);
+  --bs-btn-active-bg: var(--vo-ink-darker);
+  --bs-btn-active-border-color: var(--vo-ink-darker);
+  --bs-btn-disabled-bg: var(--vo-neutral-soft);
+  --bs-btn-disabled-border-color: var(--vo-neutral-soft);
+  --bs-btn-disabled-color: var(--vo-text-faint);
+  color: #fff;
+}
+
+/* Nút phụ: nền trắng viền xám, rê chuột ngả xanh */
+.btn-outline-secondary,
+.btn-outline-ink {
+  color: var(--vo-text);
+  background: var(--vo-surface);
+  border-color: var(--vo-rule-strong);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-ink:hover {
+  color: var(--vo-ink-hover);
+  background: var(--vo-ink-soft);
+  border-color: var(--vo-ink);
+}
+
+/* Nút nhạt nền xanh */
+.btn-ink-soft {
+  color: var(--vo-ink-hover);
+  background: var(--vo-ink-soft);
+  border-color: transparent;
+}
+
+.btn-ink-soft:hover {
+  color: var(--vo-ink-darker);
+  background: var(--vo-ink-select);
+}
+
+/* Nút xóa / hủy lớp = bút đỏ */
+.btn-danger {
+  --bs-btn-bg: var(--vo-margin);
+  --bs-btn-border-color: var(--vo-margin);
+  --bs-btn-hover-bg: #A93632;
+  --bs-btn-hover-border-color: #A93632;
+  --bs-btn-active-bg: #932F2B;
+  --bs-btn-active-border-color: #932F2B;
+  color: #fff;
+}
+
+.btn-outline-danger {
+  color: var(--vo-margin);
+  background: var(--vo-margin-soft);
+  border-color: transparent;
+}
+
+.btn-outline-danger:hover {
+  color: #fff;
+  background: var(--vo-margin);
+  border-color: var(--vo-margin);
+}
+
+/* Nút không nền (Làm mới, điều hướng) */
+.btn-ghost {
+  color: var(--vo-ink);
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  color: var(--vo-ink-hover);
+  background: var(--vo-ink-soft);
+}
+
+.btn-sm {
+  padding: 0.32rem 0.65rem;
+  font-size: 0.8rem;
+  border-radius: 7px;
+}
+
+.btn-lg {
+  padding: 0.65rem 1.15rem;
+  font-size: 1rem;
+}
+
+.btn .vo-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -3px;
+}
+
+/* ---------------------------------------------------------------------
+   13. GHI ĐÈ BOOTSTRAP: Ô NHẬP / BIỂU MẪU
+   --------------------------------------------------------------------- */
+.form-label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--vo-text);
+  margin-bottom: 0.3rem;
+}
+
+.form-control,
+.form-select {
+  border-color: var(--vo-rule-strong);
+  border-radius: var(--vo-radius);
+  background-color: var(--vo-surface);
+  color: var(--vo-text);
+  font-size: 0.9rem;
+  padding: 0.48rem 0.75rem;
+}
+
+.form-control::placeholder {
+  color: var(--vo-text-faint);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--vo-ink-focus);
+}
+
+.form-control:disabled,
+.form-select:disabled,
+.form-control[readonly] {
+  background-color: var(--vo-paper-alt);
+  color: var(--vo-text-muted);
+}
+
+.form-text,
+.form-check-label {
+  font-size: 0.82rem;
+  color: var(--vo-text-muted);
+}
+
+.form-check-input:checked {
+  background-color: var(--vo-ink);
+  border-color: var(--vo-ink);
+}
+
+.form-group,
+.vo-field {
+  margin-bottom: 14px;
+}
+
+/* Lưới 2 cột cho biểu mẫu (thay cho TableLayoutPanel 2 cột của app) */
+.vo-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.vo-form-grid .vo-span-2 {
+  grid-column: 1 / -1;
+}
+
+.vo-field-required > .form-label::after {
+  content: " *";
+  color: var(--vo-margin);
+}
+
+/* ---------------------------------------------------------------------
+   14. GHI ĐÈ BOOTSTRAP: THẺ, BẢNG, BADGE, ALERT
+   --------------------------------------------------------------------- */
+.card {
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  box-shadow: 0 1px 2px rgba(27, 42, 38, .04);
+}
+
+.card-header {
+  background: var(--vo-surface);
+  border-bottom: 1px solid var(--vo-rule);
+  font-weight: 600;
+  padding: 12px 18px;
+}
+
+.card-body {
+  padding: 18px;
+}
+
+.table {
+  --bs-table-border-color: var(--vo-rule);
+  color: var(--vo-text);
+  margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+  padding: 0.6rem 0.75rem;
+  border-bottom-color: var(--vo-rule);
+  background-color: transparent;
+}
+
+.table thead th {
+  background: var(--vo-paper-alt);
+  color: var(--vo-text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-bottom-color: var(--vo-rule);
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: var(--vo-ink-soft);
+}
+
+.badge {
+  border-radius: 11px;
+  font-weight: 600;
+  padding: 0.32em 0.62em;
+  font-size: 0.74rem;
+}
+
+.badge.bg-success { background-color: var(--vo-success-soft) !important; color: var(--vo-success); }
+.badge.bg-warning { background-color: var(--vo-warning-soft) !important; color: var(--vo-warning); }
+.badge.bg-danger  { background-color: var(--vo-margin-soft) !important; color: var(--vo-margin); }
+.badge.bg-info    { background-color: var(--vo-info-soft) !important; color: var(--vo-info); }
+.badge.bg-secondary { background-color: var(--vo-neutral-soft) !important; color: var(--vo-neutral); }
+.badge.bg-primary { background-color: var(--vo-ink-soft) !important; color: var(--vo-ink); }
+
+.alert {
+  border-radius: var(--vo-radius);
+  border: 1px solid transparent;
+  font-size: 0.88rem;
+  padding: 10px 14px;
+}
+
+.alert-success { background: var(--vo-success-soft); color: var(--vo-success); border-color: #C7E6D5; }
+.alert-danger  { background: var(--vo-margin-soft);  color: var(--vo-margin);  border-color: #F1CFCD; }
+.alert-warning { background: var(--vo-warning-soft); color: var(--vo-warning); border-color: #EFDDB6; }
+.alert-info    { background: var(--vo-info-soft);    color: var(--vo-info);    border-color: #C9DCF6; }
+
+.dropdown-menu {
+  border: 1px solid var(--vo-rule);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(27, 42, 38, .14);
+  font-size: 0.9rem;
+}
+
+.dropdown-item:active {
+  background: var(--vo-ink);
+  color: #fff;
+}
+
+.nav-tabs {
+  border-bottom-color: var(--vo-rule);
+}
+
+.nav-tabs .nav-link {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--vo-text-muted);
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--vo-ink-hover);
+  border-bottom-color: var(--vo-ink);
+  background: transparent;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--vo-ink);
+  border-bottom-color: var(--vo-ink-soft);
+}
+
+.pagination {
+  --bs-pagination-color: var(--vo-ink);
+  --bs-pagination-active-bg: var(--vo-ink);
+  --bs-pagination-active-border-color: var(--vo-ink);
+  --bs-pagination-border-color: var(--vo-rule);
+  --bs-pagination-hover-bg: var(--vo-ink-soft);
+}
+
+/* ---------------------------------------------------------------------
+   15. TOAST THÔNG BÁO (giống ThongBao.cs: xanh = xong, đỏ = lỗi)
+   --------------------------------------------------------------------- */
+.vo-toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.vo-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(620px, calc(100vw - 32px));
+  padding: 13px 20px;
+  border-radius: 10px;
+  background: var(--vo-ink-darker);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .25);
+  animation: vo-toast-in .18s ease-out;
+}
+
+.vo-toast-dot {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.vo-toast-dot .vo-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.vo-toast-success .vo-toast-dot { background: var(--vo-success); }
+.vo-toast-danger  .vo-toast-dot { background: var(--vo-margin); }
+.vo-toast-warning .vo-toast-dot { background: var(--vo-warning); }
+
+.vo-toast.is-hiding {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+@keyframes vo-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------------------------------------------------
+   16. ICON SVG NỘI TUYẾN
+   --------------------------------------------------------------------- */
+.vo-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: -3px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------
+   17. ĐĂNG NHẬP / ĐỔI MẬT KHẨU (khối 2 nửa như frmDangNhap)
+   --------------------------------------------------------------------- */
+.vo-auth {
+  width: min(860px, 100%);
+  min-height: 500px;
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(27, 42, 38, .12);
+}
+
+.vo-auth-board {
+  background: var(--vo-ink-dark);
+  color: #fff;
+  padding: 44px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vo-auth-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 15px;
+  background: var(--vo-chalk);
+  color: var(--vo-ink-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+
+.vo-auth-mark .vo-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.vo-auth-name {
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
+}
+
+.vo-auth-tag {
+  margin-top: 6px;
+  color: var(--vo-ink-muted);
+  font-size: 0.9rem;
+}
+
+.vo-auth-rule {
+  height: 1px;
+  background: var(--vo-board-line);
+  margin: 22px 0 18px;
+}
+
+.vo-auth-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+}
+
+.vo-auth-list li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 12px;
+  color: #F4F8F6;
+  font-size: 0.9rem;
+}
+
+.vo-auth-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vo-chalk);
+}
+
+.vo-auth-contact {
+  margin-top: auto;
+  color: var(--vo-ink-muted);
+  font-size: 0.8rem;
+  white-space: pre-line;
+}
+
+.vo-auth-form {
+  padding: 48px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.vo-auth-form .vo-auth-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.vo-auth-form .vo-auth-sub {
+  color: var(--vo-text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+.vo-auth-hint {
+  background: var(--vo-chalk-soft);
+  color: #7A5A0C;
+  border: 1px solid #EFDDB6;
+  border-radius: var(--vo-radius);
+  padding: 9px 12px;
+  font-size: 0.84rem;
+  margin-bottom: 16px;
+}
+
+.vo-auth-form .btn-primary {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-size: 0.98rem;
+}
+
+.vo-auth-note {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--vo-text-muted);
+}
+
+/* Trang đổi mật khẩu dùng khung hẹp (không sidebar) */
+.vo-panel-narrow {
+  width: min(440px, 100%);
+  background: var(--vo-surface);
+  border: 1px solid var(--vo-rule);
+  border-radius: var(--vo-radius-card);
+  padding: 30px 32px;
+  box-shadow: 0 18px 48px rgba(27, 42, 38, .1);
+}
+
+/* ---------------------------------------------------------------------
+   18. MÀN 403 / 404 / LỖI
+   --------------------------------------------------------------------- */
+.vo-error {
+  max-width: 520px;
+  margin: 8vh auto;
+  text-align: center;
+}
+
+.vo-error-code {
+  font-size: 3.4rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--vo-margin);
+}
+
+.vo-error-title {
+  margin: 10px 0 6px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.vo-error-text {
+  color: var(--vo-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------------------------------------------------------------------
+   19. TIỆN ÍCH NHỎ
+   --------------------------------------------------------------------- */
+.vo-muted { color: var(--vo-text-muted); }
+.vo-strong { font-weight: 600; }
+.vo-money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vo-nowrap { white-space: nowrap; }
+.vo-text-success { color: var(--vo-success); }
+.vo-text-warning { color: var(--vo-warning); }
+.vo-text-danger { color: var(--vo-margin); }
+.vo-text-info { color: var(--vo-info); }
+.vo-hide { display: none !important; }
+
+/* ---------------------------------------------------------------------
+   20. MÀN HÌNH HẸP
+   --------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .vo-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform .18s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .25);
+  }
+
+  .vo-app.is-sidebar-open .vo-sidebar {
+    transform: translateX(0);
+  }
+
+  .vo-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .vo-topbar {
+    padding: 12px 16px;
+  }
+
+  .vo-content {
+    padding: 16px;
+  }
+
+  .vo-auth {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .vo-auth-board {
+    padding: 26px 28px;
+  }
+
+  .vo-auth-mark {
+    margin-bottom: 14px;
+  }
+
+  .vo-auth-list,
+  .vo-auth-contact {
+    display: none;
+  }
+
+  .vo-auth-form {
+    padding: 28px;
+  }
+
+  .vo-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
