@@ -19,6 +19,8 @@
 |---|---|---|---|---|---|
 | GĐ0 | xong, đã duyệt | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | 3b08cb1 |
 | GĐ1 | đang chạy | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | |
+| W0 | đang chạy | copilot (dispatch ctx_02e2349e5312) | web-w0 | huyy0209/web-w0 | chuyển 8 service phụ (HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao). Lúc đầu worktree tạo từ 6f6a35f (thiếu DoAnWeb) → coordinator ff lên 8cd7a1d |
+| W7 | đang chạy | opencode / DeepSeek V4.1 Flash Free (ctx_55791c8eaee1) | web-w7 | huyy0209/web-w7 | giao diện khung giống app: site.css, _Layout, đăng nhập, icon |
 | W1 | chưa giao | (copilot) | – | – | GS, HV, Tài khoản |
 | W2 | chưa giao | (opencode) | – | – | Lớp, ghép lớp, Môn học |
 | W3 | chưa giao | (dsh) | – | – | xUnit, DB QuanLyGiaSu_Test |
