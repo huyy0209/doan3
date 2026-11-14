@@ -232,7 +232,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-01] Dead Code và lỗ hổng kiểm tra null trong `LopHoc.TrungLich`
 - **Vị trí**: `DoAnWD/Models/LopHoc.cs:238-240`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Bỏ dead code, thêm kiểm tra null và cảnh báo trùng lịch nếu cùng ca học mà thiếu ngày.
 - **Mô tả vấn đề**:
   Đoạn code trong `TrungLich`:
   ```csharp
