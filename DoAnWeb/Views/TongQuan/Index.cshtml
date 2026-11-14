@@ -1,0 +1,178 @@
+@model DoAnWeb.ViewModels.TongQuan.TongQuanIndexViewModel
+@using System.Globalization
+@using DoAnWeb.Services
+@{
+    ViewData["Title"] = "Tổng quan";
+    ViewData["PageSub"] = "Tình hình lớp học, lịch hôm nay và các việc cần xử lý.";
+    var duLieu = Model.DuLieu;
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    var ca = Constants.CaHoc.TatCaCaHoc;
+    var thuMax = duLieu.ThuTheoThang.Count == 0 ? 0 : duLieu.ThuTheoThang.Max(t => t.SoTien);
+    var gio = DateTime.Now.Hour;
+    var buoi = gio < 11 ? "buổi sáng" : gio < 13 ? "buổi trưa" : gio < 18 ? "buổi chiều" : "buổi tối";
+    var tongLopHomNay = duLieu.HomNay.Count;
+    var daDiemDanh = duLieu.HomNay.Count(r => r.DaLuu);
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+}
+
+<div class="w6-dashboard">
+    <section class="w6-greeting">
+        <div>
+            <h2>Chào @buoi, @(string.IsNullOrWhiteSpace(Model.TenQuanLy) ? "bạn" : Model.TenQuanLy)</h2>
+            <p>Hôm nay @(tongLopHomNay == 0 ? "không có lớp nào" : $"có {tongLopHomNay} lớp, đã điểm danh {daDiemDanh}")@(Model.Viec.Count == 0 ? ", không còn việc tồn." : $", {Model.Viec.Count} việc cần xử lý.")</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-ink" href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")">Điểm danh hôm nay</a>
+            <a class="btn btn-primary" href="/LopHoc/GhepLop">Ghép lớp mới</a>
+        </div>
+    </section>
+
+    <section class="vo-card w6-panel">
+        <div class="w6-panel-heading">
+            <div>
+                <h2>Ca học hôm nay</h2>
+                <span>@DateTime.Today.ToString("dddd, dd/MM/yyyy", vi)</span>
+            </div>
+            <span class="w6-muted">@tongLopHomNay lớp · đã điểm danh @daDiemDanh</span>
+        </div>
+        <div class="w6-shift-ribbon">
+            @foreach (var item in ca)
+            {
+                var dem = Model.SoLopTheoCa != null && Model.SoLopTheoCa.TryGetValue(item, out var n) ? n : 0;
+                Constants.CaHoc.TryGetGio(item, out var bd, out var kt);
+                <a class="w6-shift @(item == Model.CaHienTai ? "is-current" : "") @(dem > 0 ? "has-classes" : "")"
+                   href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")&amp;ca=@Uri.EscapeDataString(item)">
+                    <strong>@Constants.CaHoc.TenNgan(item)</strong>
+                    <span>@(dem > 0 ? $"{dem} lớp" : $"{bd}h–{kt}h")</span>
+                </a>
+            }
+        </div>
+        <div class="w6-today-grid">
+            @foreach (var item in ca)
+            {
+                var classes = duLieu.HomNay.Where(r => r.CaHoc == item).OrderBy(r => r.HocVien).ToList();
+                Constants.CaHoc.TryGetGio(item, out var bd, out var kt);
+                <a class="w6-shift-list" href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")&amp;ca=@Uri.EscapeDataString(item)">
+                    <div class="w6-shift-list-title">
+                        <strong>@Constants.CaHoc.TenNgan(item)</strong><small>@bd:00–@kt:00</small>
+                    </div>
+                    @if (classes.Count == 0)
+                    {
+                        <span class="w6-muted">Trống</span>
+                    }
+                    else
+                    {
+                        foreach (var lop in classes)
+                        {
+                            <span class="w6-today-class">
+                                <span class="w6-attendance @(lop.DaLuu ? "is-done" : "")" aria-label="@(lop.DaLuu ? "Đã điểm danh" : "Chưa điểm danh")"></span>
+                                <span class="w6-today-class-text"><b>@lop.HocVien@(lop.LaHocBu ? " (bù)" : "")</b><small>@lop.MonHoc · @lop.GiaSu</small></span>
+                            </span>
+                        }
+                    }
+                </a>
+            }
+        </div>
+    </section>
+
+    <section class="w6-stat-grid" aria-label="Số liệu tổng quan">
+        <a class="vo-stat w6-stat-card" href="/LopHoc?trangThai=@Uri.EscapeDataString(Constants.LopHocStatus.DangDienRa)">
+            <span>Lớp đang học</span><strong>@duLieu.LopDangHoc</strong><small>@duLieu.LopChuaBatDau lớp chưa bắt đầu</small>
+        </a>
+        <a class="vo-stat w6-stat-card" href="/HocVien?tinhTrang=Đang%20học">
+            <span>Học viên đang học</span><strong>@duLieu.HocVienDangHoc</strong><small>@duLieu.GiaSuDangDay / @duLieu.TongGiaSu gia sư đang dạy</small>
+        </a>
+        <a class="vo-stat w6-stat-card" href="/HocPhi">
+            <span>Thu tháng này</span><strong>@duLieu.ThuThangNay.ToString("N0", vi) đ</strong>
+            <small>@(duLieu.ThuThangTruoc == 0 ? "Tháng trước chưa có khoản thu" : $"Tháng trước {duLieu.ThuThangTruoc.ToString("N0", vi)} đ")</small>
+        </a>
+        <a class="vo-stat w6-stat-card" href="/HocPhi">
+            <span>Còn phải thu</span><strong>@duLieu.ConNo.ToString("N0", vi) đ</strong>
+            <small>@duLieu.SoLopConNo lớp còn nợ học phí</small>
+        </a>
+    </section>
+
+    <div class="w6-bottom-grid">
+        <section class="vo-card w6-panel">
+            <div class="w6-panel-heading"><h2>Cần xử lý</h2><span>@Model.Viec.Count việc</span></div>
+            @if (Model.Viec.Count == 0)
+            {
+                <div class="vo-empty">Không còn việc tồn. Sổ sách hôm nay đang gọn.</div>
+            }
+            else
+            {
+                <div class="w6-action-list">
+                    @foreach (var row in Model.Viec)
+                    {
+                        <a class="w6-action-row" href="@row.Url">
+                            <span class="w6-action-mark w6-action-@row.Viec.Loai.ToString().ToLowerInvariant()"></span>
+                            <span><b>@row.Viec.TieuDe</b><small>@row.Viec.ChiTiet</small></span>
+                            <span aria-hidden="true">›</span>
+                        </a>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="vo-card w6-panel">
+            <div class="w6-panel-heading"><h2>Học phí đã thu 6 tháng gần đây</h2></div>
+            @if (thuMax <= 0)
+            {
+                <div class="vo-empty">Chưa ghi nhận khoản thu nào trong 6 tháng gần đây.</div>
+            }
+            else
+            {
+                <svg class="w6-revenue-chart" viewBox="0 0 600 220" role="img" aria-label="Biểu đồ tiền thu trong 6 tháng gần đây">
+                    <line x1="20" y1="180" x2="580" y2="180" class="w6-chart-axis" />
+                    @for (var i = 0; i < duLieu.ThuTheoThang.Count; i++)
+                    {
+                        var month = duLieu.ThuTheoThang[i];
+                        var h = month.SoTien == 0 ? 0 : Math.Max(4, (double)(month.SoTien / thuMax) * 132);
+                        var x = 36 + i * 92;
+                        var y = 180 - h;
+                        <rect x="@x" y="@y.ToString("0.##", CultureInfo.InvariantCulture)" width="50" height="@h.ToString("0.##", CultureInfo.InvariantCulture)" rx="6" class="@(i == duLieu.ThuTheoThang.Count - 1 ? "w6-chart-bar-current" : "w6-chart-bar")">
+                            <title>@month.SoTien.ToString("N0", vi) đ</title>
+                        </rect>
+                    }
+                </svg>
+                <div class="w6-chart-labels">
+                    @foreach (var month in duLieu.ThuTheoThang)
+                    {
+                        <span>Tháng @month.Thang.Month<br /><small>@month.SoTien.ToString("N0", vi) đ</small></span>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+
+    <section class="vo-card w6-panel">
+        <div class="w6-panel-heading">
+            <div><h2>Lớp sắp kết thúc</h2><span>Trong @TongQuanService.SoNgayBaoTruoc ngày tới</span></div>
+        </div>
+        @if (duLieu.SapKetThuc.Count == 0)
+        {
+            <div class="vo-empty">Không có lớp nào kết thúc trong @TongQuanService.SoNgayBaoTruoc ngày tới.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table vo-table align-middle mb-0">
+                    <thead><tr><th>Lớp</th><th>Gia sư</th><th>Ngày kết thúc</th><th>Còn lại</th></tr></thead>
+                    <tbody>
+                    @foreach (var lop in duLieu.SapKetThuc)
+                    {
+                        <tr>
+                            <td><a href="/LopHoc/Details/@lop.MaLop">@lop.TenLop</a></td>
+                            <td>@lop.GiaSu</td>
+                            <td>@lop.KetThuc.ToString("dd/MM/yyyy")</td>
+                            <td><span class="vo-tag @(lop.ConNgay <= 2 ? "vo-tag-warning" : "vo-tag-info")">@(lop.ConNgay == 0 ? "Hôm nay" : $"Còn {lop.ConNgay} ngày")</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
