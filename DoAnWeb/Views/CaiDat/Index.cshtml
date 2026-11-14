@@ -1,0 +1,34 @@
+@model DoAnWeb.ViewModels.CaiDat.CaiDatIndexViewModel
+@{
+    ViewData["Title"] = "Cài đặt trung tâm";
+    ViewData["PageSub"] = "Thông tin hiển thị trên menu và phiếu báo kết quả gửi phụ huynh.";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+}
+
+<section class="vo-card w6-panel w6-settings-panel">
+    <div class="w6-panel-heading">
+        <div><h2>Thông tin trung tâm</h2><span>Chỉ quản lý mới có thể thay đổi.</span></div>
+    </div>
+    <form asp-action="Index" method="post" class="w6-settings-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div>
+            <label asp-for="Ten" class="form-label">Tên trung tâm</label>
+            <input asp-for="Ten" class="form-control" maxlength="100" placeholder="@CaiDatService.TenMacDinh" />
+            <div class="form-text">Để trống sẽ dùng tên mặc định “@CaiDatService.TenMacDinh”.</div>
+        </div>
+        <div>
+            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+            <textarea asp-for="DiaChi" class="form-control" rows="3" maxlength="300" placeholder="Số nhà, đường, quận/huyện"></textarea>
+        </div>
+        <div>
+            <label asp-for="SDT" class="form-label">Số điện thoại</label>
+            <input asp-for="SDT" class="form-control" maxlength="50" placeholder="Số để phụ huynh liên hệ" />
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary"><partial name="_Icon" model='"check"' /> Lưu thông tin</button>
+        </div>
+    </form>
+</section>

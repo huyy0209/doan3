@@ -495,6 +495,15 @@ a.w6-month-cell:hover {
     gap: .35rem;
 }
 
+.w6-settings-panel {
+    max-width: 760px;
+}
+
+.w6-settings-form {
+    display: grid;
+    gap: 1rem;
+}
+
 @media (max-width: 1050px) {
     .w6-stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
