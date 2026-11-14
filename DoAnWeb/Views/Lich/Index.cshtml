@@ -1,0 +1,118 @@
+@model DoAnWeb.ViewModels.Lich.LichIndexViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Lịch học";
+    ViewData["PageSub"] = "Lịch các lớp theo tháng và gia sư.";
+    var month = Model.Thang;
+    var previous = month.AddMonths(-1);
+    var next = month.AddMonths(1);
+    var headers = new[] { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+}
+
+<div class="w6-dashboard w6-calendar-page">
+    <section class="vo-card w6-panel">
+        <div class="w6-calendar-toolbar">
+            <div class="w6-calendar-nav">
+                <a class="btn btn-outline-ink" asp-action="Index" asp-route-nam="@previous.Year" asp-route-thang="@previous.Month" asp-route-maGS="@Model.MaGS" aria-label="Tháng trước">‹</a>
+                <h2>Tháng @month.ToString("MM/yyyy")</h2>
+                <a class="btn btn-outline-ink" asp-action="Index" asp-route-nam="@next.Year" asp-route-thang="@next.Month" asp-route-maGS="@Model.MaGS" aria-label="Tháng sau">›</a>
+                <a class="btn btn-ghost" asp-action="Index" asp-route-maGS="@Model.MaGS">Hôm nay</a>
+            </div>
+            @if (Model.GiaSus.Count > 0)
+            {
+                <form method="get" class="w6-tutor-filter">
+                    <input type="hidden" name="nam" value="@month.Year" />
+                    <input type="hidden" name="thang" value="@month.Month" />
+                    <label class="form-label mb-0" for="maGS">Gia sư</label>
+                    <select class="form-select" name="maGS" id="maGS" onchange="this.form.submit()">
+                        <option value="">Tất cả gia sư</option>
+                        @foreach (var gs in Model.GiaSus)
+                        {
+                            <option value="@gs.MaGS" selected="@(Model.MaGS == gs.MaGS)">@gs.HoTen (@gs.ChuyenMon)</option>
+                        }
+                    </select>
+                </form>
+            }
+        </div>
+
+        <div class="w6-month-grid" style="grid-template-rows: 36px repeat(@Model.SoHang, minmax(112px, 1fr));">
+            @foreach (var header in headers)
+            {
+                <div class="w6-month-head @(header == "CN" ? "is-sunday" : "")">@header</div>
+            }
+            @foreach (var cell in Model.CacNgay)
+            {
+                if (!cell.Ngay.HasValue)
+                {
+                    <div class="w6-month-cell is-outside" aria-hidden="true"></div>
+                }
+                else
+                {
+                    var date = cell.Ngay.Value;
+                    var isSelected = Model.NgayChon == date;
+                    var href = Url.Action("Index", new { nam = month.Year, thang = month.Month, maGS = Model.MaGS, ngay = date.ToString("yyyy-MM-dd") }) + "#w6-day-details";
+                    <a class="w6-month-cell @(date == DateTime.Today ? "is-today" : "") @(isSelected ? "is-selected" : "")"
+                       href="@href" aria-label="@date.ToString("dd/MM/yyyy"), @cell.LopHoc.Count lớp">
+                        <span class="w6-month-date @(date.DayOfWeek == DayOfWeek.Sunday ? "is-sunday" : "")">@date.Day</span>
+                        @foreach (var lop in cell.LopHoc.Take(4))
+                        {
+                            <span class="w6-calendar-chip" title="@lop.TenHienThi · @lop.GiaSu?.HoTen · @lop.HocVien?.HoTen">
+                                <i class="w6-shift-dot w6-shift-@Array.IndexOf(Constants.CaHoc.TatCaCaHoc, lop.CaHoc)"></i>
+                                <span>@Constants.CaHoc.TenNgan(lop.CaHoc): @lop.MonHoc</span>
+                            </span>
+                        }
+                        @if (cell.LopHoc.Count > 4)
+                        {
+                            <span class="w6-month-more">+@(cell.LopHoc.Count - 4) lớp</span>
+                        }
+                    </a>
+                }
+            }
+        </div>
+        <div class="w6-calendar-legend">
+            @foreach (var shift in Constants.CaHoc.TatCaCaHoc.Select((name, index) => new { name, index }))
+            {
+                <span><i class="w6-shift-dot w6-shift-@shift.index"></i>@Constants.CaHoc.TenNgan(shift.name)</span>
+            }
+        </div>
+    </section>
+
+    @if (Model.NgayChon.HasValue)
+    {
+        <section class="vo-card w6-panel" id="w6-day-details">
+            <div class="w6-panel-heading">
+                <div><h2>Lớp học ngày @Model.NgayChon.Value.ToString("dddd, dd/MM/yyyy", vi)</h2><span>@Model.LopNgayChon.Count lớp</span></div>
+                <a class="btn btn-ghost" asp-action="Index" asp-route-nam="@month.Year" asp-route-thang="@month.Month" asp-route-maGS="@Model.MaGS">Đóng chi tiết</a>
+            </div>
+            @if (Model.LopNgayChon.Count == 0)
+            {
+                <div class="vo-empty">Ngày này không có lớp học.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table vo-table align-middle mb-0">
+                        <thead><tr><th>Ca</th><th>Lớp</th><th>Môn</th><th>Học viên</th><th>Gia sư</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var lop in Model.LopNgayChon)
+                        {
+                            <tr>
+                                <td><span class="w6-calendar-chip"><i class="w6-shift-dot w6-shift-@Array.IndexOf(Constants.CaHoc.TatCaCaHoc, lop.CaHoc)"></i>@lop.CaHoc</span></td>
+                                <td>@lop.TenHienThi</td>
+                                <td>@lop.MonHoc</td>
+                                <td>@lop.HocVien?.HoTen</td>
+                                <td>@lop.GiaSu?.HoTen</td>
+                                <td class="text-end"><a class="btn btn-sm btn-outline-ink" href="/LopHoc/Details/@lop.MaLop">Chi tiết</a></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+</div>
