@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DoAnWeb.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +32,7 @@ public partial class QuanLyGiaSuContext : DbContext
     {
         modelBuilder.Entity<BuoiHoc>(entity =>
         {
+            entity.ToTable("BuoiHoc");
             entity.HasKey(e => e.MaBuoi);
 
             entity.HasIndex(e => new { e.NgayHoc, e.CaHoc }, "IX_BuoiHoc_HocBu_Ngay").HasFilter("([MaBuoiGoc] IS NOT NULL)");
@@ -70,6 +71,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<CaiDat>(entity =>
         {
+            entity.ToTable("CaiDat");
             entity.HasKey(e => e.Khoa);
 
             entity.Property(e => e.Khoa)
@@ -80,6 +82,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<GiaSu>(entity =>
         {
+            entity.ToTable("GiaSu");
             entity.HasKey(e => e.MaGS).HasName("PK__GiaSu__2725AE8ED63F74C1");
 
             entity.Property(e => e.CaNhanDay).HasMaxLength(200);
@@ -98,6 +101,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<HocVien>(entity =>
         {
+            entity.ToTable("HocVien");
             entity.HasKey(e => e.MaHV).HasName("PK__HocVien__2725A6D203B23E92");
 
             entity.Property(e => e.DiaChi).HasMaxLength(200);
@@ -116,6 +120,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<LopHoc>(entity =>
         {
+            entity.ToTable("LopHoc");
             entity.HasKey(e => e.MaLop).HasName("PK__LopHoc__3B98D2738A2E23FF");
 
             entity.HasIndex(e => new { e.TrangThai, e.ThoiGianBatDau, e.ThoiGianKetThuc }, "IX_LopHoc_TrangThai_ThoiGian");
@@ -169,6 +174,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<TaiKhoan>(entity =>
         {
+            entity.ToTable("TaiKhoan");
             entity.HasKey(e => e.MaTK);
 
             entity.HasIndex(e => e.TenDangNhap, "UQ_TaiKhoan_TenDangNhap").IsUnique();
@@ -201,6 +207,7 @@ public partial class QuanLyGiaSuContext : DbContext
 
         modelBuilder.Entity<ThanhToan>(entity =>
         {
+            entity.ToTable("ThanhToan");
             entity.HasKey(e => e.MaTT);
 
             entity.HasIndex(e => e.MaLop, "IX_ThanhToan_MaLop");

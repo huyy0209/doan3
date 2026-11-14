@@ -91,6 +91,13 @@ namespace DoAnWeb.Controllers
         public async Task<IActionResult> DoiMatKhau(DoiMatKhauVM vm)
         {
             vm.BatBuoc = User.FindFirst(LoaiClaim.PhaiDoiMatKhau)?.Value == "1";
+            // Bắt buộc đổi (vừa đăng nhập bằng mật khẩu mặc định): form ẩn ô mật khẩu cũ, mật khẩu cũ chính là mặc định
+            // (giống frmDangNhap.cs:126 truyền sẵn matKhauCu)
+            if (vm.BatBuoc)
+            {
+                vm.MatKhauCu = TaiKhoanService.MatKhauMacDinh;
+                ModelState.Remove(nameof(vm.MatKhauCu));
+            }
             if (!ModelState.IsValid) return View(vm);
             try
             {
