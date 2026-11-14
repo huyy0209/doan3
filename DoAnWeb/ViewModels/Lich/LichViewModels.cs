@@ -12,12 +12,12 @@ namespace DoAnWeb.ViewModels.Lich
         public List<DoAnWeb.Data.Entities.GiaSu> GiaSus { get; set; } = new List<DoAnWeb.Data.Entities.GiaSu>();
         public List<LichNgayViewModel> CacNgay { get; set; } = new List<LichNgayViewModel>();
         public int SoHang { get; set; }
-        public List<LopHoc> LopNgayChon { get; set; } = new List<LopHoc>();
+        public List<DoAnWeb.Data.Entities.LopHoc> LopNgayChon { get; set; } = new List<DoAnWeb.Data.Entities.LopHoc>();
     }
 
     public class LichNgayViewModel
     {
         public DateTime? Ngay { get; set; }
-        public List<LopHoc> LopHoc { get; set; } = new List<LopHoc>();
+        public List<DoAnWeb.Data.Entities.LopHoc> LopHoc { get; set; } = new List<DoAnWeb.Data.Entities.LopHoc>();
     }
 }
