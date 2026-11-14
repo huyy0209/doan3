@@ -1,0 +1,189 @@
+@model DoAnWeb.ViewModels.HocTap.HocVienKetQuaViewModel
+@{
+    ViewData["Title"] = "Kết quả học tập";
+    ViewData["PageSub"] = Model.TenHocVien;
+    var sessionIndex = -1;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <a asp-action="Index" class="small text-decoration-none">&larr; Danh sách học viên</a>
+        <h2 class="h4 mt-2 mb-0">@Model.TenHocVien</h2>
+    </div>
+</div>
+
+@if (Model.Loi.Count > 0)
+{
+    <div class="alert alert-warning" role="alert">
+        <strong>Một số buổi chưa lưu:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var loi in Model.Loi) { <li>@loi</li> }
+        </ul>
+    </div>
+}
+
+@if (Model.CacLop.Count == 0)
+{
+    <section class="vo-section vo-card"><div class="vo-empty">Học viên chưa có lớp học nào.</div></section>
+}
+else
+{
+    <form asp-action="KetQua" asp-route-maHV="@Model.MaHV" method="post" id="luuBuoiForm">
+        @Html.AntiForgeryToken()
+        @for (var lopIndex = 0; lopIndex < Model.CacLop.Count; lopIndex++)
+        {
+            var lop = Model.CacLop[lopIndex];
+            var sessions = Model.Buoi.Where(b => b.MaLop == lop.MaLop).ToList();
+            <section class="vo-section vo-card hoc-tap-class">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                    <div>
+                        <h3 class="h5 mb-1">@lop.TenLop</h3>
+                        <div class="text-muted small">@lop.MonHoc · @lop.CaHoc · Gia sư @lop.GiaSu · @lop.TrangThai</div>
+                    </div>
+                    <span class="vo-tag vo-tag-info">@lop.LoaiMon</span>
+                </div>
+
+                <div class="hoc-tap-stats mt-3">
+                    <div class="vo-stat"><div class="vo-stat-value">@lop.SoBuoi</div><div class="vo-stat-label">buổi theo lịch</div></div>
+                    <div class="vo-stat"><div class="vo-stat-value">@lop.SoBuoiCoMat</div><div class="vo-stat-label">có mặt</div></div>
+                    <div class="vo-stat"><div class="vo-stat-value">@lop.SoBuoiVang</div><div class="vo-stat-label">vắng</div></div>
+                    <div class="vo-stat"><div class="vo-stat-value">@lop.SoBuoiHocBu</div><div class="vo-stat-label">đã học bù</div></div>
+                    <div class="vo-stat"><div class="vo-stat-value">@lop.SoBaiTest</div><div class="vo-stat-label">bài test</div></div>
+                    @if (lop.DiemTrungBinh.HasValue)
+                    {
+                        <div class="vo-stat"><div class="vo-stat-value">@lop.DiemTrungBinh.Value.ToString("0.##")</div><div class="vo-stat-label">điểm TB · @lop.XepLoai</div></div>
+                    }
+                    @if (lop.TienTrinh != null)
+                    {
+                        <div class="vo-stat"><div class="vo-stat-value">@lop.TienTrinh.CapHienTai</div><div class="vo-stat-label">cấp hiện tại</div></div>
+                    }
+                </div>
+
+                @if (lop.TienTrinh != null)
+                {
+                    <div class="vo-section py-2">
+                        <div><strong>Tiến trình cấp độ</strong>: @lop.TienTrinh.CapDauVao &rarr; @lop.TienTrinh.CapHienTai
+                            @if (lop.TienTrinh.CapKeTiep != null) { <span class="text-muted">(tiếp theo: @lop.TienTrinh.CapKeTiep)</span> }
+                        </div>
+                        @if (lop.TienTrinh.BaiThi.Count > 0)
+                        {
+                            <ul class="small mb-0 mt-1">
+                                @foreach (var baiThi in lop.TienTrinh.BaiThi) { <li>@baiThi</li> }
+                            </ul>
+                        }
+                    </div>
+                }
+
+                <div class="ht-chart-wrap">
+                    <div class="small fw-semibold mb-1">Biểu đồ điểm test</div>
+                    <div class="ht-score-chart" data-score-chart>
+                        @foreach (var buoi in lop.Buoi.Where(b => b.Diem.HasValue).OrderBy(b => b.NgayHoc))
+                        {
+                            <span class="ht-score-point" data-date="@buoi.NgayHoc.ToString("yyyy-MM-dd")"
+                                  data-score="@buoi.Diem.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"></span>
+                        }
+                    </div>
+                </div>
+
+                @if (sessions.Count == 0)
+                {
+                    <div class="vo-empty mt-3">Chưa có buổi học được ghi nhận.</div>
+                }
+                else
+                {
+                    <div class="table-responsive mt-3">
+                        <table class="table vo-table align-middle ht-session-table">
+                            <thead><tr><th>Ngày</th><th>Ca</th><th>Gia sư</th><th>Điểm danh</th><th>Điểm</th><th>Nhận xét</th><th>Học bù / ghi chú</th><th>Thao tác</th></tr></thead>
+                            <tbody>
+                            @foreach (var session in sessions)
+                            {
+                                sessionIndex++;
+                                var i = sessionIndex;
+                                var b = session.Goc;
+                                var ghiChu = b.ThiLenCap ? b.KetQuaThi :
+                                    b.LaHocBu ? (b.ChuaToiNgay ? $"Lịch bù {b.NgayVangGoc:dd/MM} (chưa học)" : $"Bù cho buổi {b.NgayVangGoc:dd/MM}") :
+                                    b.MaBuoiBu.HasValue ? $"Bù {b.NgayBu:dd/MM}, {Constants.CaHoc.TenNgan(b.CaBu)}" :
+                                    b.Vang ? "Chưa bù" : "";
+                                <tr class="@(b.LaHocBu ? "ht-makeup-row" : "")">
+                                    <td>
+                                        @b.NgayHoc.ToString("dd/MM/yyyy")
+                                        <input type="hidden" name="buoi[@i].MaBuoi" value="@session.MaBuoi" />
+                                        <input type="hidden" name="buoi[@i].MaLop" value="@session.MaLop" />
+                                    </td>
+                                    <td>@Constants.CaHoc.TenNgan(b.CaHoc)</td>
+                                    <td>@b.GiaSu</td>
+                                    <td>
+                                        @if (session.KhoaSua)
+                                        {
+                                            <input type="hidden" name="buoi[@i].DiemDanh" value="@session.DiemDanh" />
+                                            <span>@b.DiemDanhHienThi</span>
+                                        }
+                                        else
+                                        {
+                                            <select name="buoi[@i].DiemDanh" class="form-select form-select-sm">
+                                                @foreach (var status in Constants.DiemDanh.TatCa)
+                                                {
+                                                    <option value="@status" selected="@(session.DiemDanh == status)">@status</option>
+                                                }
+                                            </select>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (session.KhoaSua)
+                                        {
+                                            <input type="hidden" name="buoi[@i].DiemText" value="@session.DiemText" />
+                                            <span>@session.DiemText</span>
+                                        }
+                                        else
+                                        {
+                                            <input name="buoi[@i].DiemText" value="@session.DiemText" inputmode="decimal" class="form-control form-control-sm ht-score-input" />
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (session.KhoaSua)
+                                        {
+                                            <input type="hidden" name="buoi[@i].NhanXet" value="@session.NhanXet" />
+                                            <span>@session.NhanXet</span>
+                                        }
+                                        else
+                                        {
+                                            <input name="buoi[@i].NhanXet" value="@session.NhanXet" maxlength="300" class="form-control form-control-sm ht-comment-input" />
+                                        }
+                                    </td>
+                                    <td class="small">@ghiChu</td>
+                                    <td class="text-nowrap">
+                                        @if (session.KhoaSua)
+                                        {
+                                            <input type="hidden" name="buoi[@i].ThiLenCap" value="@session.ThiLenCap.ToString().ToLowerInvariant()" />
+                                        }
+                                        else if (session.LaNangKhieu)
+                                        {
+                                            @Html.CheckBox($"buoi[{i}].ThiLenCap", session.ThiLenCap, new { @class = "form-check-input", title = "Thi lên cấp" })
+                                            <span class="small">Thi lên cấp</span>
+                                        }
+                                        else
+                                        {
+                                            <input type="hidden" name="buoi[@i].ThiLenCap" value="false" />
+                                        }
+                                        @if (session.KhoaSua) { <span class="small text-muted">Chỉ xem</span> }
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+        <div class="d-flex justify-content-end sticky-bottom py-2 ht-save-bar">
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+        </div>
+    </form>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/hoctap.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/hoctap.js" asp-append-version="true"></script>
+}
