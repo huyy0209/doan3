@@ -41,6 +41,37 @@
 
 Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã gia sư>` / `123456` (ví dụ `gs3`) để thử vai trò Gia sư. Đây là mật khẩu mẫu, đổi hoặc khóa trước khi dùng thật.
 
+## Bản web (DoAnWeb)
+
+Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với bản WinForms (không đổi schema, hai bản chạy song song được) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
+
+| Thành phần | Công nghệ |
+|---|---|
+| Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
+| ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
+| Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 240 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật |
+
+**Cách chạy**
+
+1. Có CSDL: chạy `CaiDatCSDL.bat` như bản WinForms (bỏ qua nếu đã có).
+2. Cần **.NET SDK 8 trở lên** (`dotnet --version`). Không cần Visual Studio.
+3. Bấm đúp **`start-web.bat`**: build Release, chạy web ở cửa sổ riêng tại `http://localhost:5080` và tự mở trình duyệt.
+4. Bấm đúp **`stop-web.bat`** để tắt web (không ảnh hưởng `start.bat` / `stop.bat` của bản WinForms).
+
+Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`.
+
+**Tài khoản demo** (CSDL hiện tại của nhóm):
+
+| Vai trò | Tên đăng nhập | Mật khẩu | Thấy gì |
+|---|---|---|---|
+| Quản lý | `admin` | `Admin@2026` | Toàn bộ: Tổng quan, Lớp học, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản, Cài đặt |
+| Gia sư | `gs1` | `123456` | Học viên & điểm, Điểm danh, Lịch – chỉ lớp của mình và buổi bù mình dạy |
+
+CSDL mới tinh (chưa có tài khoản nào): web tự tạo `admin` / `admin123` và bắt đổi mật khẩu ở lần đăng nhập đầu. Đây là mật khẩu demo – đổi trước khi dùng thật.
+
+Tài liệu chuyển đổi: `docs/web-plan.md` (màn hình, quyền, luật nghiệp vụ kèm nguồn), `docs/web-progress.md` (tiến độ, đổi agent), `docs/web-review.md` (review).
+
 ## Cấu trúc thư mục
 
 ```
