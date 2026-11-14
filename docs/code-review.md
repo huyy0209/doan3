@@ -172,7 +172,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-02] Lỗ hổng kiểm tra quyền ở tầng BLL khi `PhienDangNhap` chưa đăng nhập hoặc phụ thuộc tham số từ UI
 - **Vị trí**: `DoAnWD/BLL/Services/TaiKhoanService.cs:95-99` và `DoAnWD/BLL/Services/HocTapService.cs:219, 240, 536, 592`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `PhienDangNhap.YeuCauQuanLy` chặn cả khi chưa đăng nhập; `HocTapService` tự đọc `PhienDangNhap.GioiHanGiaSu` thay vì tin tham số `chiChoGiaSu` từ UI.
 - **Mô tả vấn đề**:
   1. `PhienDangNhap.YeuCauQuanLy()` được cài đặt như sau:
      ```csharp

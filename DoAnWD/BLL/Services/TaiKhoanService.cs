@@ -89,12 +89,12 @@ namespace DoAnWD.BLL.Services
         }
 
         /// <summary>
-        /// Chặn ở tầng nghiệp vụ: đã đăng nhập mà không phải quản lý thì không được làm.
-        /// (Chưa đăng nhập = chạy kiểm thử / công cụ, cho qua.)
+        /// Chặn ở tầng nghiệp vụ: chỉ quản lý đã đăng nhập mới được làm.
+        /// HIGH-02: chưa đăng nhập cũng bị chặn (trước đây cho qua nên vô tình cấp quyền quản trị).
         /// </summary>
         public static void YeuCauQuanLy()
         {
-            if (DaDangNhap && !LaQuanLy)
+            if (!DaDangNhap || !LaQuanLy)
                 throw new UnauthorizedAccessException("Chỉ quản lý mới được thực hiện thao tác này.");
         }
 
