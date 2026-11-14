@@ -1,50 +1,173 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@inject DoAnWeb.Services.INguoiDungHienTai NguoiDung
+@{
+    // ----- Dữ liệu khung -----
+    var daDangNhap = NguoiDung?.DaDangNhap == true;
+    var laQuanLy = NguoiDung?.LaQuanLy == true;
+
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+    if (string.IsNullOrWhiteSpace(tenTrungTam)) { tenTrungTam = "Quản lý gia sư"; }
+
+    var boDieuKhien = (ViewContext.RouteData.Values["controller"] as string) ?? "Home";
+
+    var tenHienThi = laQuanLy
+        ? (string.IsNullOrWhiteSpace(NguoiDung?.TenDangNhap) ? "admin" : NguoiDung.TenDangNhap)
+        : (string.IsNullOrWhiteSpace(NguoiDung?.TenGiaSu) ? (NguoiDung?.TenDangNhap ?? "") : NguoiDung.TenGiaSu);
+    var vaiTro = laQuanLy ? "Quản lý" : "Gia sư";
+    var chuDau = string.IsNullOrWhiteSpace(tenHienThi)
+        ? "?"
+        : tenHienThi.Trim().Substring(tenHienThi.Trim().LastIndexOf(' ') + 1, 1).ToUpperInvariant();
+
+    var tieuDeTrang = ViewData["Title"] as string;
+    if (string.IsNullOrWhiteSpace(tieuDeTrang)) { tieuDeTrang = tenTrungTam; }
+    var dongPhu = ViewData["PageSub"] as string;
+    var urlHienTai = Context.Request.Path + Context.Request.QueryString;
+
+    // ----- Menu theo vai trò (web-plan mục 2) -----
+    // Gia sư chỉ thấy "Học viên & điểm" và "Lịch học"; quản lý thấy tất cả.
+    var dsMenu = new (string Ten, string Icon, string Url, string[] BoDieuKhien, bool ChiQuanLy)[]
+    {
+        ("Tổng quan",       "home",     "/TongQuan",        new[] { "TongQuan", "Home" },          true),
+        ("Lớp học",         "book",     "/LopHoc",          new[] { "LopHoc", "MonHoc" },          true),
+        ("Học viên & điểm", "users",    "/HocVien",         new[] { "HocVien", "DiemDanh", "HocTap" }, false),
+        ("Lịch học",        "calendar", "/Lich",            new[] { "Lich" },                      false),
+        ("Học phí",         "money",    "/HocPhi",          new[] { "HocPhi" },                    true),
+        ("Gia sư",          "user",     "/GiaSu",           new[] { "GiaSu" },                     true),
+        ("Tài khoản",       "key",      "/QuanLyTaiKhoan",  new[] { "QuanLyTaiKhoan" },            true),
+    };
+
+    var thongBao = TempData["ThongBao"] as string;
+    var loi = TempData["Loi"] as string;
+}
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - DoAnWeb</title>
-    <script type="importmap"></script>
+    <title>@tieuDeTrang - @tenTrungTam</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/DoAnWeb.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DoAnWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+<body class="vo-body">
+<div class="vo-app" id="vo-app">
+    @* ================= SIDEBAR ================= *@
+    <aside class="vo-sidebar" aria-label="Menu chính">
+        <a class="vo-brand" asp-controller="Home" asp-action="Index" title="@tenTrungTam">
+            <span class="vo-brand-mark"><partial name="_Icon" model='"book"' /></span>
+            <span class="vo-brand-text">
+                <span class="vo-brand-name">@tenTrungTam</span>
+                <span class="vo-brand-sub">Sổ lớp của trung tâm</span>
+            </span>
+        </a>
+
+        <nav class="vo-nav">
+            @foreach (var muc in dsMenu)
+            {
+                if (muc.ChiQuanLy && !laQuanLy) { continue; }
+                var dangMo = muc.BoDieuKhien.Contains(boDieuKhien, StringComparer.OrdinalIgnoreCase);
+                <a class="vo-nav-link @(dangMo ? "is-active" : "")" href="@muc.Url"
+                   aria-current="@(dangMo ? "page" : null)">
+                    <partial name="_Icon" model='muc.Icon' />
+                    <span class="vo-nav-text">@muc.Ten</span>
+                </a>
+            }
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+        <div class="vo-sidebar-foot">
+            @if (laQuanLy)
+            {
+                var dangCaiDat = string.Equals(boDieuKhien, "CaiDat", StringComparison.OrdinalIgnoreCase);
+                <a class="vo-foot-link @(dangCaiDat ? "is-active" : "")" href="/CaiDat">
+                    <partial name="_Icon" model='"settings"' />
+                    <span>Cài đặt trung tâm</span>
+                </a>
+            }
+            @* "Làm mới dữ liệu" = tải lại đúng trang đang xem *@
+            <a class="vo-foot-link" href="@urlHienTai" title="Tải lại dữ liệu trang hiện tại">
+                <partial name="_Icon" model='"refresh"' />
+                <span>Làm mới dữ liệu</span>
+            </a>
+
+            <div class="vo-user dropdown dropup">
+                <button class="vo-user-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" title="Đổi mật khẩu, đăng xuất">
+                    <span class="vo-avatar">@chuDau</span>
+                    <span class="vo-user-text">
+                        <span class="vo-user-name d-block">@tenHienThi</span>
+                        <span class="vo-user-role d-block">@vaiTro</span>
+                    </span>
+                    <partial name="_Icon" model='"chevron-down"' />
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" asp-controller="TaiKhoan" asp-action="DoiMatKhau">
+                            Đổi mật khẩu
+                        </a>
+                    </li>
+                    @if (daDangNhap)
+                    {
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form method="post" asp-controller="TaiKhoan" asp-action="DangXuat">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item vo-danger">
+                                    Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    @* ================= VÙNG NỘI DUNG ================= *@
+    <div class="vo-main">
+        <header class="vo-topbar">
+            <button class="vo-sidebar-toggle" type="button" id="vo-sidebar-toggle"
+                    aria-label="Mở menu" aria-controls="vo-app" aria-expanded="false">
+                <partial name="_Icon" model='"chevron-down"' />
+            </button>
+            <div class="vo-topbar-text">
+                <h1 class="vo-page-title">@tieuDeTrang</h1>
+                @if (!string.IsNullOrWhiteSpace(dongPhu))
+                {
+                    <div class="vo-page-sub">@dongPhu</div>
+                }
+            </div>
+            <div class="vo-topbar-right">
+                @* W6 gắn badge thông báo lớp sắp bắt đầu vào đây *@
+                <span id="vo-badge-thongbao"></span>
+            </div>
+        </header>
+
+        <main role="main" class="vo-content">
             @RenderBody()
         </main>
     </div>
+</div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - DoAnWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+@* ================= TOAST THÔNG BÁO ================= *@
+<div class="vo-toasts" id="vo-toasts" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(thongBao))
+    {
+        <div class="vo-toast vo-toast-success" data-vo-toast>
+            <span class="vo-toast-dot"><partial name="_Icon" model='"check"' /></span>
+            <span>@thongBao</span>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    }
+    @if (!string.IsNullOrWhiteSpace(loi))
+    {
+        <div class="vo-toast vo-toast-danger" data-vo-toast>
+            <span class="vo-toast-dot"><partial name="_Icon" model='"x"' /></span>
+            <span>@loi</span>
+        </div>
+    }
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
