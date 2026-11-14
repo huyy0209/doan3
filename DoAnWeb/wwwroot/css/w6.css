@@ -504,6 +504,47 @@ a.w6-month-cell:hover {
     gap: 1rem;
 }
 
+.w6-notification-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--vo-ink);
+}
+
+.w6-notification-badge .vo-icon {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.w6-notification-count {
+    position: absolute;
+    top: -.25rem;
+    right: -.45rem;
+    min-width: 1.15rem;
+    padding: 0 .25rem;
+    border-radius: 999px;
+    background: var(--vo-margin);
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 600;
+    line-height: 1.15rem;
+    text-align: center;
+}
+
+.w6-upcoming-toast {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    color: inherit;
+}
+
+.w6-upcoming-toast:hover {
+    color: inherit;
+}
+
 @media (max-width: 1050px) {
     .w6-stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
