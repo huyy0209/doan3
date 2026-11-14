@@ -1,69 +1,31 @@
-# Hệ thống Quản lý Gia sư (DoAnWD)
+# Hệ thống Quản lý Gia sư – Bản web
 
-Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho một trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả cho phụ huynh, học phí, lịch học, trang tổng quan "hôm nay làm gì" và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
+Ứng dụng web quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm test, học bù, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả, học phí, lịch học, trang tổng quan và phân quyền Quản lý / Gia sư.
 
-> Chạy nhanh: bấm đúp **`QuanLyGiaSu.bat`** để mở menu. Từ đây có thể cài CSDL, mở / tắt bản web hoặc WinForms, sao lưu CSDL và tạo shortcut trên Desktop.
->
-> Bản này cần **CSDL v6**. Nếu mở app thấy báo thiếu cột / bảng, chọn mục **5** trong menu để cài / nâng cấp CSDL (không mất dữ liệu).
+> Đây là nhánh **`web`**. Bản app WinForms nằm ở nhánh **`app`**; hai bản dùng chung CSDL `QuanLyGiaSu`.
 
-## Yêu cầu cài đặt
+## Bản web
 
-- Windows 10/11.
-- .NET Framework 4.8 Runtime (trên Windows 10/11 thường đã có sẵn; để build cần **.NET Framework 4.8 Developer Pack/Targeting Pack**).
-- Visual Studio 2022 với workload **.NET desktop development** để mục **2** tìm được MSBuild và build ứng dụng. `DoAnWD.slnx` cần Visual Studio 2022 phiên bản 17.13 trở lên.
-- Microsoft SQL Server 2016 trở lên (Express hoặc Developer đều được), đang chạy và cho phép kết nối Windows Authentication.
-- `sqlcmd` để cài CSDL qua mục **5**; nếu không có, có thể chạy lần lượt các script trong `Database/` bằng SQL Server Management Studio (SSMS).
-- Kết nối Internet trong lần build đầu để khôi phục các gói NuGet nếu chúng chưa có trên máy.
-
-## Công nghệ
-
-| Thành phần | Phiên bản |
-|---|---|
-| Ngôn ngữ / Framework | C# · .NET Framework 4.8 · Windows Forms |
-| ORM | Entity Framework 6.5.1 (Code First từ CSDL có sẵn) |
-| CSDL | Microsoft SQL Server (2016 trở lên, Express/Developer đều được) |
-| IDE | Visual Studio 2022 (17.13+ để mở file `DoAnWD.slnx`) |
-
-## Chạy nhanh (Windows)
-
-Mở **`QuanLyGiaSu.bat`** để dùng menu:
-
-| Chọn | Chức năng |
-|---|---|
-| 1 | Mở bản web ở `http://localhost:5080` và tự mở trình duyệt |
-| 2 | Tìm MSBuild bằng `vswhere`, build Release và mở ứng dụng WinForms |
-| 3 | Tắt bản web |
-| 4 | Tắt ứng dụng WinForms |
-| 5 | Cài / nâng cấp CSDL `QuanLyGiaSu`, có thể thêm dữ liệu mẫu |
-| 6 | Sao lưu CSDL ra file `.bak` có ngày giờ trong tên |
-| 7 | Tạo shortcut **Quản lý gia sư** trên Desktop |
-| 0 | Thoát |
-
-Mục **5** mặc định dùng SQL Server trên máy (`.`); nếu dùng instance khác, chạy `QuanLyGiaSu.bat cai-csdl .\SQLEXPRESS` rồi sửa `data source` trong `DoAnWD/App.config` cho khớp. Mục này cần lệnh `sqlcmd` (cài cùng SQL Server / SSMS). Nếu không có, có thể chạy các script bằng SSMS. Các script con nằm trong `scripts/` (gồm `CaiDatCSDL.bat`, `SaoLuuCSDL.bat`, `start.bat`, `stop.bat`, `start-web.bat`, `stop-web.bat`); có thể gọi trực tiếp, ví dụ `scripts\CaiDatCSDL.bat .\SQLEXPRESS`.
-
-Mục **2** chỉ build lại phần thay đổi nên lần sau mở rất nhanh. Máy không có Visual Studio thì ứng dụng mở bản đã build trước đó (`DoAnWD/bin/Release/DoAnWD.exe`); nếu chưa có bản build nào hoặc build thất bại thì báo lỗi rõ ràng. Có thể chọn mục **7** để tạo shortcut menu trên Desktop. Nên sao lưu bằng mục **6** mỗi tuần một lần và trước khi nâng cấp.
-
-**Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Đăng nhập bằng mật khẩu mặc định thì ứng dụng **bắt đặt mật khẩu mới ngay** rồi mới cho vào. Sau đó vào **Cài đặt trung tâm** (cuối menu trái) nhập tên, địa chỉ, số điện thoại trung tâm, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
-
-Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã gia sư>` / `123456` (ví dụ `gs3`) để thử vai trò Gia sư. Đây là mật khẩu mẫu, đổi hoặc khóa trước khi dùng thật.
-
-## Bản web (DoAnWeb)
-
-Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với bản WinForms (không đổi schema, hai bản chạy song song được) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
+Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với bản app WinForms ở nhánh `app` (không đổi schema, hai bản chạy song song được) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
 
 | Thành phần | Công nghệ |
 |---|---|
 | Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
 | ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
 | Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
-| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 240 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật |
 
-**Cách chạy**
+**Cách chạy** – bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo, hoặc chạy thẳng một lệnh:
 
-1. Có CSDL: chọn mục **5** trong `QuanLyGiaSu.bat` như bản WinForms (bỏ qua nếu đã có).
-2. Cần **.NET SDK 8 trở lên** (`dotnet --version`). Không cần Visual Studio.
-3. Chọn mục **1** trong `QuanLyGiaSu.bat`: build Release, chạy web ở cửa sổ riêng tại `http://localhost:5080` và tự mở trình duyệt.
-4. Chọn mục **3** để tắt web; mục **4** tắt WinForms. Có thể chạy thẳng `QuanLyGiaSu.bat web` hoặc `QuanLyGiaSu.bat stop` nếu không muốn mở menu.
+| Menu | Lệnh thẳng | Làm gì | Script con |
+|---|---|---|---|
+| 1 | `QuanLyGiaSu.bat web` | Build Release, chạy web tại `http://localhost:5080` (cửa sổ riêng) và mở trình duyệt | `scripts/start-web.bat` |
+| 2 | `QuanLyGiaSu.bat stop` | Tắt tiến trình web | `scripts/stop-web.bat` |
+| 3 | `QuanLyGiaSu.bat cai-csdl [.\SQLEXPRESS]` | Tạo / nâng cấp CSDL `QuanLyGiaSu`, hỏi thêm dữ liệu mẫu (cần `sqlcmd`) | `scripts/CaiDatCSDL.bat` |
+| 4 | `QuanLyGiaSu.bat sao-luu` | Sao lưu CSDL ra file `.bak` có ngày giờ | `scripts/SaoLuuCSDL.bat` |
+| 5 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư" trên Desktop (icon `assets/QuanLyGiaSu.ico`) | – |
+
+Lần đầu: chọn **3** (cài CSDL) rồi **1**. Cần **.NET SDK 8 trở lên** (`dotnet --version`), SQL Server (2016+) đang chạy với Windows Authentication; không cần Visual Studio.
 
 Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`. Các script được gọi bởi menu nằm trong thư mục `scripts/`.
 
@@ -81,85 +43,16 @@ Tài liệu chuyển đổi: `docs/web-plan.md` (màn hình, quyền, luật ngh
 ## Cấu trúc thư mục
 
 ```
-doan3/
-├── QuanLyGiaSu.bat              # Menu duy nhất để mở / tắt app, web, cài và sao lưu CSDL
-├── scripts/                     # Sáu script con được menu gọi
-│   ├── start.bat                # Tìm MSBuild, build Release + mở WinForms
-│   ├── stop.bat                 # Đóng WinForms đang chạy
-│   ├── start-web.bat            # Build + mở web
-│   ├── stop-web.bat             # Tắt web
-│   ├── CaiDatCSDL.bat           # Tạo / nâng cấp CSDL, thêm dữ liệu mẫu
-│   └── SaoLuuCSDL.bat           # Sao lưu CSDL ra file .bak
-├── DoAnWD.slnx                  # Solution (Visual Studio 2022 17.13+)
-├── Database/                    # Script SQL, đánh số theo thứ tự chạy
-│   ├── 01_QuanLyGiaSu.sql       #   tạo CSDL + bảng gốc
-│   ├── 02_NangCap_v2.sql        #   hồ sơ học viên, điểm danh, học phí, tài khoản
-│   ├── 03_NangCap_v3.sql        #   hồ sơ gia sư, chỉ mục
-│   ├── 04_NangCap_v4.sql        #   học bù
-│   ├── 05_NangCap_v5.sql        #   danh mục môn học, tên lớp, thi lên cấp
-│   ├── 06_NangCap_v6.sql        #   thứ học của lớp, khóa đăng nhập sai, cài đặt trung tâm
-│   └── 11_ … 16_DuLieuMau_*.sql #   dữ liệu mẫu (không bắt buộc; số 1x để script nâng cấp sau này không làm đổi số)
-└── DoAnWD/
-    ├── Program.cs               # Điểm vào: kiểm tra CSDL, đăng nhập, mở trang chủ
-    ├── App.config               # Connection string
-    ├── Fonts/                   # Font Be Vietnam Pro (giấy phép OFL), chép kèm bản build
-    ├── Common/                  # Hằng số (ca học, thứ học, trạng thái), tìm kiếm không dấu, đọc số tiền
-    ├── Models/                  # Entity EF + DbContext
-    ├── DAL/                     # Repository
-    ├── BLL/
-    │   ├── Services/            # Nghiệp vụ: gia sư, học viên, lớp, môn học, điểm danh + học bù + cấp độ, học phí, tài khoản, báo cáo, tổng quan, cài đặt
-    │   ├── Validators/          # Kiểm tra dữ liệu nhập
-    │   └── Dto/                 # Dữ liệu trả về cho màn hình
-    └── UI/
-        ├── TrangChu.cs          # Khung chính: menu trái (tên trung tâm, người đăng nhập), thanh ca học, giữ các trang đã mở
-        ├── DieuHuong.cs         # Trang này mở trang khác (vd. bấm ô Tổng quan => trang đã lọc sẵn)
-        ├── Pages/               # namespace DoAnWD.UI.Pages: Tổng quan, Lớp học, Học viên & điểm, Lịch, Học phí, Gia sư, Tài khoản
-        ├── Dialogs/             # namespace DoAnWD.UI.Dialogs: đăng nhập, ghép lớp, sửa lớp, môn học, thêm hồ sơ, xếp học bù, cài đặt trung tâm
-        ├── Controls/            # namespace DoAnWD.UI.Controls: khung nhập hồ sơ, chọn ca / chọn thứ, bảng "Hôm nay", ô số, biểu đồ thu, thông báo tự tắt, cuộn tải dần
-        └── Theme/               # Màu, font, nút, bảng, lịch... dùng chung cho mọi màn hình
+doan3/ (nhánh web)
+├── QuanLyGiaSu.bat     # Menu khởi động
+├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat
+├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
+├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests
+├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
+├── DoAnWeb/            # ASP.NET Core 8 MVC: Controllers, Views, ViewModels, Services (nghiệp vụ), Data (EF Core), wwwroot
+├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Test
+└── docs/               # web-plan.md, web-progress.md, web-review.md, progress/
 ```
-
-## Cài đặt thủ công (không dùng file .bat)
-
-1. **Clone repo**
-   ```bash
-   git clone https://github.com/huyy0209/doan3.git
-   ```
-2. **Tạo CSDL**: mở từng file trong thư mục `Database` bằng SQL Server Management Studio và bấm *Execute* theo **thứ tự số**:
-
-   | Script | Bắt buộc | Nội dung |
-   |---|---|---|
-   | `01_QuanLyGiaSu.sql` | Có | Tạo CSDL + dữ liệu mẫu nhỏ |
-   | `02_NangCap_v2.sql` | Có | Hồ sơ học viên, điểm danh, học phí, tài khoản |
-   | `03_NangCap_v3.sql` | Có | Hồ sơ gia sư (email, học vấn, kinh nghiệm, ca nhận dạy, ghi chú) + chỉ mục tăng tốc |
-   | `04_NangCap_v4.sql` | Có | Học bù: buổi học có ca, gia sư dạy bù, buổi vắng được bù |
-   | `05_NangCap_v5.sql` | Có | Danh mục môn học (môn chính / năng khiếu + cấp độ), tên lớp, cấp đầu vào, bài thi lên cấp; tự đặt tên cho lớp cũ |
-   | `06_NangCap_v6.sql` | Có | Thứ học trong tuần của lớp, đếm lần đăng nhập sai + khóa tạm, bảng cài đặt (thông tin trung tâm) |
-   | `11_DuLieuMau_ThemNhieu.sql` | Không | Thêm 14 gia sư, 30 học viên, 46 lớp |
-   | `12_DuLieuMau_DiemDanh_HocPhi.sql` | Không | Điểm danh, điểm test, học phí mẫu |
-   | `13_DuLieuMau_v3.sql` | Không | Hồ sơ gia sư, ghi chú học viên, **tài khoản gia sư mẫu** |
-   | `14_DuLieuMau_HocBu.sql` | Không | Xếp học bù cho khoảng một nửa số buổi vắng gần đây |
-   | `15_DuLieuMau_CapDo.sql` | Không | Tên lớp + cấp đầu vào cho lớp mẫu, bài thi lên cấp mẫu ở lớp năng khiếu |
-   | `16_DuLieuMau_v6.sql` | Không | Một phần lớp mẫu học theo thứ (2-4-6, 3-5-7), dọn điểm danh mẫu rơi vào ngày không học, thông tin trung tâm mẫu |
-
-   Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -I -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
-3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu dùng SQL Express, đổi thành `data source=.\SQLEXPRESS;`.
-4. Build và chạy bằng một trong hai cách:
-   - Chọn mục **2** trong `QuanLyGiaSu.bat` để tìm MSBuild qua `vswhere`, khôi phục gói NuGet, build cấu hình Release và mở `DoAnWD/bin/Release/DoAnWD.exe`.
-   - Hoặc mở `DoAnWD.slnx` bằng Visual Studio 2022 17.13+, restore NuGet packages rồi chạy bằng **F5**.
-
-Nếu không kết nối được CSDL hoặc CSDL chưa nâng cấp, ứng dụng báo rõ cần làm gì thay vì văng lỗi.
-
-## Xử lý sự cố thường gặp
-
-| Hiện tượng | Cách xử lý |
-|---|---|
-| Mục 5 báo không tìm thấy `sqlcmd` | Cài SQL Server Command Line Utilities, hoặc chạy các file SQL bằng SSMS theo đúng thứ tự ở trên. |
-| Không kết nối được SQL Server / lỗi đăng nhập | Kiểm tra dịch vụ SQL Server đang chạy, tên instance và `data source` trong `DoAnWD/App.config` khớp nhau; tài khoản Windows cần quyền tạo / sửa CSDL khi cài. |
-| Ứng dụng báo thiếu bảng hoặc cột | Chọn lại mục **5** để nâng cấp lên CSDL v6; các script nâng cấp được thiết kế để chạy lại và giữ dữ liệu hiện có. |
-| Mục 2 không tìm thấy MSBuild | Cài Visual Studio 2022 cùng workload **.NET desktop development**; kiểm tra có `vswhere.exe` tại thư mục cài đặt Visual Studio. |
-| Build báo lỗi tham chiếu hoặc thiếu .NET Framework | Cài .NET Framework 4.8 Developer Pack/Targeting Pack, kiểm tra kết nối Internet để NuGet restore, rồi chọn lại mục **2**. |
-| Đăng nhập không được | CSDL mới khởi tạo sẽ tự tạo `admin` / `admin123` nếu chưa có tài khoản; mật khẩu này buộc đổi ngay lần đầu. Nếu đã chọn thêm dữ liệu mẫu, thử tài khoản gia sư `gs<mã gia sư>` / `123456`. |
 
 ## Nghiệp vụ chính
 
@@ -226,121 +119,6 @@ Trang Lớp học → **Sửa lớp**: đổi tên, học phí, ngày kết thú
 - Không xóa gia sư/học viên đã có lịch sử lớp (để giữ số liệu thống kê) → dùng `Tạm nghỉ` cho gia sư.
 - Số điện thoại gia sư không được trùng.
 
-## Chức năng
-
-| Màn hình | Chức năng | Ai dùng |
-|---|---|---|
-| **Tổng quan** | Trả lời ba câu khi mở máy: **hôm nay dạy gì** (tấm bảng 6 ca, mỗi dòng một lớp, chấm vàng = đã điểm danh; bấm một ca để mở điểm danh ca đó), **việc nào còn tồn** (hôm qua chưa điểm danh, buổi vắng 30 ngày gần đây chưa xếp học bù, lớp còn nợ học phí, lớp kết thúc / bắt đầu trong 7 ngày; bấm vào là mở đúng trang, đúng học viên), **tiền thu ra sao** (4 ô số + biểu đồ 6 tháng). Nút nhanh *Điểm danh hôm nay*, *Ghép lớp mới* | Quản lý |
-| **Lớp học** | Mọi lớp: tìm theo tên lớp / học viên / gia sư / môn, lọc trạng thái, ca, môn; **cuộn tới đâu tải tới đó**. Lớp đang chọn: lịch học (thứ, ca, số buổi), đánh giá (xếp loại hoặc cấp độ + lịch sử thi lên cấp), **sửa lớp** (tên, học phí, gia hạn, thứ học, đổi gia sư), mở trang học viên, hủy / xóa lớp. **Ghép lớp mới** 3 bước (học viên → môn, cấp đầu vào, ca, **thứ học**, ngày, học phí → gia sư dạy môn đó và còn trống lịch) + tên lớp; ca học viên đang bận hiện chữ "Bận". **Môn học**: danh mục môn | Quản lý |
-| **Lịch học** | Lịch tháng; mỗi lớp hiện ở mọi ngày học | Quản lý, Gia sư (lịch của mình) |
-| **Học phí** | Học phí / đã đóng / còn nợ từng lớp, lọc "còn nợ", ghi nhận các lần đóng, xuất CSV | Quản lý |
-| **Gia sư** | Danh sách + hồ sơ (bấm **Thêm gia sư** để mở cửa sổ nhập riêng): email, học vấn/bằng cấp, kinh nghiệm, **ca nhận dạy**, ghi chú, Tạm nghỉ; lọc theo môn, trạng thái, ca nhận dạy; xem lịch dạy và tài khoản | Quản lý |
-| **Học viên & điểm** | Tab **Theo học viên**: danh sách (lọc đang học / chưa có lớp / đã nghỉ, theo trình độ; xuất CSV) + học viên đang chọn với 2 tab: *Buổi học & điểm* (chọn lớp, chuyên cần, điểm TB, xếp loại, biểu đồ điểm; sửa trực tiếp điểm danh / điểm / nhận xét từng buổi, thêm buổi còn thiếu, **xếp / hủy học bù**) và *Hồ sơ* (phụ huynh + SĐT, trường/lớp, trình độ, ghi chú). **Thêm học viên** mở cửa sổ nhập riêng; **phiếu báo kết quả** cho phụ huynh. Tab **Điểm danh theo ca**: chọn ngày + ca → điểm danh cả ca, gồm cả học viên đến học bù; bấm đúp tên để mở trang học viên | Quản lý; Gia sư (học viên của mình, không sửa hồ sơ; mở thẳng tab Điểm danh theo ca khi đăng nhập) |
-| **Tài khoản** | Tạo tài khoản gia sư/quản lý, đặt lại mật khẩu, khóa/mở khóa | Quản lý |
-| **Cài đặt trung tâm** | Tên, địa chỉ, số điện thoại trung tâm: hiện ở màn hình đăng nhập, menu trái, tiêu đề cửa sổ và đầu phiếu báo kết quả | Quản lý |
-
-Khi ghép lớp, gia sư không nhận ca đã chọn bị ẩn (khi bật "chỉ hiện gia sư nhận và còn trống ca này") hoặc gắn nhãn "Không nhận ca này"; vẫn ghép được nếu đã thống nhất riêng.
-
-### Hiệu năng
-- Danh sách lớp luôn nạp kèm gia sư + học viên trong **một truy vấn** (không còn lỗi N+1).
-- Lịch học chỉ đọc lớp của tháng đang xem; header đếm số lớp theo ca ngay trong SQL; công nợ tính tổng bằng SQL.
-- Tự cập nhật trạng thái mỗi phút chỉ đọc các lớp còn hoạt động.
-- **Chuyển trang tức thì**: mỗi màn hình chỉ dựng giao diện một lần rồi giữ lại; mở lại thì hiện ngay và chỉ nạp lại dữ liệu (`ILamMoi.LamMoi()`). Nút "Làm mới dữ liệu" cũng chỉ nạp lại dữ liệu, không dựng lại màn hình.
-- Bảng Học viên, Gia sư, Học phí phân trang 50 dòng; Học phí mặc định chỉ hiện lớp còn phải thu.
-- Trang Lớp học và danh sách buổi học của học viên **cuộn tới đâu tải tới đó** (`CuonTaiDan<T>`): lúc đầu chỉ đưa 30–40 dòng vào bảng, cuộn gần cuối mới thêm đợt tiếp (dữ liệu đã có trong bộ nhớ, không gọi lại CSDL). Trang Lớp học mặc định chỉ hiện lớp còn hoạt động.
-- Trang Lớp học đọc dữ liệu bằng 3 truy vấn (lớp kèm gia sư + học viên, buổi có điểm / bài thi, danh mục môn) rồi tìm / lọc trong bộ nhớ.
-- Tổng quan: đếm lớp theo trạng thái bằng **một** câu GROUP BY (trước là 4 câu), danh sách lớp còn hoạt động đọc **một lần** dùng chung cho 3 bảng của tab Lớp học (trước là 3 lần).
-- Tab "Điểm danh theo ca" chỉ nạp khi đang mở tab đó.
-
-Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra "Đỗ Bảo Ngọc - 0981111111".
-
-### Điểm danh và điểm test
-- Mỗi lớp có tối đa **một buổi thường mỗi ngày** (điểm danh + điểm + nhận xét); lưu lại cùng ngày thì cập nhật. Buổi học bù là bản ghi riêng.
-- Điểm thang 10, được nhập "8,5" hoặc "8.5". Vắng thì không có điểm. Không điểm danh cho ngày tương lai hoặc ngoài thời gian lớp.
-- Môn chính xếp loại theo điểm TB các bài test: Giỏi ≥ 8, Khá ≥ 6,5, Trung bình ≥ 5, Yếu < 5. Môn năng khiếu đánh giá theo cấp độ (xem *Môn học và đánh giá*).
-- **Phiếu báo kết quả** là file HTML mở bằng trình duyệt (có biểu đồ điểm, bảng các buổi có điểm/nhận xét/vắng). Bấm Ctrl+P để in hoặc lưu PDF gửi phụ huynh.
-
-### Học phí
-- Còn nợ = học phí cả khóa − tổng các lần đã đóng. Không cho đóng vượt số còn nợ.
-- Lớp đã có điểm danh hoặc đã đóng tiền thì chỉ **hủy** được (giữ lịch sử), không xóa hẳn.
-
-### Tài khoản và bảo mật
-- Mật khẩu lưu dạng băm **PBKDF2-SHA256** (salt ngẫu nhiên, 100.000 vòng), không lưu mật khẩu gốc.
-- Đăng nhập sai không cho biết sai tên hay sai mật khẩu; sai từ lần thứ 3 phải chờ vài giây mới thử lại được. Sai **5 lần liên tiếp thì tài khoản bị khóa 5 phút** (lưu trong CSDL nên đóng mở lại app không lách được); quản lý đặt lại mật khẩu thì mở khóa luôn.
-- Đăng nhập bằng mật khẩu mặc định `admin123` bị buộc đặt mật khẩu mới; không đặt lại được về mật khẩu mặc định.
-- **Phân quyền kiểm tra ở tầng nghiệp vụ**, không chỉ ẩn nút: ghép / sửa / hủy / xóa lớp, lưu / xóa hồ sơ, học phí, danh mục môn, tài khoản, cài đặt đều từ chối khi người đăng nhập không phải quản lý.
-- Luôn còn ít nhất một quản lý đang hoạt động; không tự khóa tài khoản đang dùng.
-- Sao lưu: chọn mục **6** trong `QuanLyGiaSu.bat`. Khôi phục bằng SSMS (Restore Database → chọn file `.bak`).
-
-## Giao diện
-
-Chủ đề **"Bảng xanh"**: khung ứng dụng màu xanh bảng viết, điểm nhấn vàng phấn, đỏ bút chấm chỉ dành cho lỗi và việc gấp, nội dung nằm trên các thẻ trắng nền giấy xanh rất nhạt. Chữ dùng **Be Vietnam Pro** (font thiết kế cho tiếng Việt, đi kèm trong thư mục `Fonts/`, không cần cài vào máy; không nạp được thì tự dùng Segoe UI). Mỗi ca học có một màu chấm riêng dùng thống nhất ở lịch, bảng và ô chọn ca.
-
-| Thành phần | Mô tả |
-|---|---|
-| Đăng nhập | Nửa trái là tấm bảng xanh mang tên, địa chỉ, số điện thoại trung tâm; nửa phải là ô nhập. Lỗi hiện ngay dưới ô nhập |
-| Menu trái | Tên trung tâm ở trên cùng; mục đang mở có nền sáng hơn + vạch vàng phấn; cuối menu là *Làm mới dữ liệu*, *Cài đặt trung tâm* và ô người đang đăng nhập (bấm để đổi mật khẩu / đăng xuất) |
-| Thanh trên | Ngày hôm nay, **dải 6 ca** (ca đang diễn ra tô xanh đặc, ca có lớp hiện số lớp), số lớp bắt đầu trong 24 giờ |
-| Tổng quan | Tấm bảng "Hôm nay" là phần chính của trang; bên cạnh là danh sách việc cần xử lý, bên dưới là 4 ô số và biểu đồ thu 6 tháng |
-| Thông báo | Lưu / ghép / xóa thành công hiện **bảng báo nhỏ tự tắt** ở cuối cửa sổ, không phải bấm OK. Lỗi và câu hỏi xác nhận vẫn là hộp thoại; hộp thoại Sửa lớp và Đăng nhập báo lỗi ngay trong khung |
-| Danh sách trống | Nói rõ vì sao trống và làm gì tiếp (vd. ghép lớp không có gia sư trống lịch: gợi ý bỏ ô lọc hoặc đổi ca / thứ) |
-| Bảng | Mọi ô tự vẽ: chữ luôn một dòng, dài thì "…"; số tiền không bao giờ bị cắt mất chữ số đầu. Cột chia theo tỉ lệ khai báo (`ThemeManager.ChiaCot`), bảng không cuộn ngang. Không kẻ dọc, trạng thái là nhãn màu, ca học có chấm màu. Dòng đang chọn tô xanh dương nhạt |
-| Sắp xếp + lọc nhanh | **Bấm tiêu đề cột để sắp xếp** (bấm lần nữa đảo chiều). Cột tên người xếp theo **tên gọi** kiểu Việt Nam. **Bấm ô trạng thái / chuyên môn / tình trạng để lọc ngay theo giá trị đó**, bấm lại để bỏ lọc |
-| Ô chọn, ô nhập | `ThemedComboBox`, `ThemedTextBox`: viền xám mảnh, đang gõ / đang chọn thì viền xanh. Bộ lọc đang khác mặc định thì tô nền để biết danh sách đang bị lọc |
-| Chọn ca, chọn thứ | Ô bấm thay cho danh sách: 6 ca (ca học viên bận ghi "Bận"), 7 thứ T2…CN |
-| Nút bấm | Có icon, 4 kiểu: chính (xanh đặc), phụ (trắng viền), xóa (đỏ nhạt), nhẹ (chỉ chữ). Mỗi trang một nút chính ở góc phải tiêu đề |
-| Sao chép | Ở mọi bảng: **Ctrl+C** chép dòng đang chọn; **chuột phải** để chép ô, dòng hoặc cả bảng (dán thẳng vào Excel) |
-| Co giãn | Các form dùng tỉ lệ theo DPI (không theo font) nên bố cục giống nhau trên mọi máy; chuyển trang hiện ngay trang đã mở trước đó |
-
-Mã nguồn giao diện nằm trong `DoAnWD/UI/Theme/`:
-
-| File | Vai trò |
-|---|---|
-| `Theme.cs` | Token màu, font, màu theo ca và theo trạng thái |
-| `ThemeManager.cs` | Áp giao diện lên mọi control của một form lúc chạy (`ThemeManager.Apply(form)`) |
-| `ThemedButton.cs` | Nút bo góc: Primary / Secondary / Danger / Ghost |
-| `SectionBox.cs` | Thẻ trắng bo góc có tiêu đề (thay GroupBox) |
-| `NavButton.cs`, `TabStrip.cs` | Mục menu trái, thanh tab gạch chân |
-| `Icons.cs` | Bộ icon nét mảnh vẽ bằng GDI+, không cần file ảnh |
-| `Ui.cs`, `ScoreChart.cs` | Hàm dựng control dùng chung (`DauTrang`, `Section`, `HangLoc`, `LocHaiHang`, `Grid`...), biểu đồ điểm |
-
-| `ShiftRibbon.cs`, `MonthGrid.cs` | Dải ca học, lịch tháng |
-
-Trang Học viên chia 3 file: `frmHocVien.cs` (khung trang, danh sách, hồ sơ), `frmHocVien.BuoiHoc.cs` (buổi học & điểm, học bù), `frmHocVien.DiemDanh.cs` (điểm danh theo ca). Cửa sổ xếp học bù: `UI/Dialogs/dlgHocBu.cs`.
-
-`UI/Controls/HoSoEditors.cs` chứa khung nhập hồ sơ học viên / gia sư dùng chung cho trang và cho cửa sổ "Thêm ..." (`UI/Dialogs/dlgHoSo.cs`).
-
-Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `frmDangNhap`, hộp thoại ghép lớp) được dựng bằng code thay vì Designer để tự co giãn theo màn hình.
-
-## Lịch sử nâng cấp
-
-| Commit | Nội dung |
-|---|---|
-| `chore: add database script…` | Thêm script CSDL + dữ liệu mẫu, connection string dùng `.`, kiểm tra kết nối khi khởi động |
-| `fix: correct class-matching rules…` | Sửa luật trùng lịch theo ca (trước đây chặn cả khi khác ca), thêm kiểm tra trùng lịch học viên, đồng bộ trạng thái gia sư, sửa lỗi xóa được học viên có lớp sắp học, chặn trùng SĐT, thêm hủy lớp, thống kê doanh thu |
-| `feat(ui): upgrade…` | Nâng cấp hộp thoại ghép lớp, danh sách lớp, trang chủ, thống kê; dùng DbContext mới mỗi lần làm mới để tránh dữ liệu cũ |
-| `docs: add README` | Tài liệu này |
-| `feat(ui): redesign…` | Thiết kế lại toàn bộ giao diện theo chủ đề "vở ô li" |
-| `feat(ui): readability…` | Chữ to hơn, nút có icon và màu rõ, ô số liệu theo màu, hiệu ứng chuyển trang |
-| `chore(db): add larger sample data…` | Script dữ liệu mẫu lớn |
-| `feat(db): student profile, attendance…` | CSDL v2: hồ sơ học viên, điểm danh + điểm test, học phí, tài khoản; các service + kiểm thử |
-| `feat(ui): searchable 3-step class matching…` | Ghép lớp 3 bước có tìm kiếm/lọc; trang Học viên mới; lọc gia sư |
-| `feat: attendance, fees, report card, login…` | Màn hình Điểm danh & điểm, Học phí, Tài khoản, đăng nhập + phân quyền |
-| `perf: load less data…` | Tối ưu truy vấn, phân trang, giảm dữ liệu hiển thị |
-| `feat: tutor profile…` | Trang Gia sư mới + hồ sơ, ca nhận dạy dùng khi ghép lớp, dữ liệu mẫu v3 |
-| `perf(ui): instant page switch…` | Giữ màn hình đã mở để chuyển trang không khựng; dòng chọn màu xanh, sao chép trong bảng; thêm học viên / gia sư bằng cửa sổ riêng; gộp code nhập hồ sơ, xóa hàm không dùng |
-| `fix(ui): grid borders, overview data; tidy project…` | Ô bảng điểm danh có khung ổn định; tab Lớp học ở Tổng quan đủ tiêu đề cột, đủ 6 ca, cột "Còn" dễ đọc; sắp xếp UI vào `Pages/`, `Dialogs/`, `Controls/`; đánh số script SQL; thêm `ChayNhanh.bat` (nay đã gộp vào `start.bat`), `CaiDatCSDL.bat` |
-| `feat: merge attendance into students, make-up classes…` | Gộp điểm danh + điểm vào trang Học viên (theo học viên và theo ca); học bù cho buổi vắng (ngày, ca, gia sư khác), kiểm tra trùng ca; CSDL v4, dữ liệu mẫu học bù |
-| `feat: subject catalog, levels, class names; overview links…` | Danh mục môn học (môn chính / năng khiếu), đánh giá theo xếp loại hoặc cấp độ + thi lên cấp; tên lớp khi ghép lớp; trang Lớp học mới thay trang Ghép lớp cũ; bấm ô Tổng quan để mở trang đã lọc; cuộn tới đâu tải tới đó; gộp truy vấn Tổng quan, xóa hàm không dùng; UI chia namespace theo thư mục; CSDL v5 |
-| `style(ui): clearer dropdowns…` | Ô chọn / bộ lọc tự vẽ cho rõ (viền, mũi tên, tô màu khi đang lọc) |
-| `feat(ui): sort by column, click a value to filter…` | Sắp xếp theo cột (tên theo tên gọi), bấm ô trạng thái để lọc; gom code: tiêu đề cột khai báo một chỗ (`TieuDeCot`), hàng lọc dùng chung (`Ui.HangLoc`), Tổng quan bỏ ~170 dòng cấu hình cột lặp lại |
-| `feat: weekday schedule, edit class, today dashboard, redesign…` | CSDL v6: thứ học của lớp (trùng lịch xét cả thứ), sửa lớp, hủy lớp dọn buổi bù, khóa đăng nhập sai + buộc đổi mật khẩu mặc định, phân quyền ở tầng nghiệp vụ, cài đặt trung tâm, sao lưu. Giao diện mới "Bảng xanh" + font Be Vietnam Pro, trang Tổng quan mới, đăng nhập mới, thông báo tự tắt |
-
-## Kiểm thử và giới hạn đã biết
-
-- Luật nghiệp vụ (ghép lớp theo thứ, sửa lớp, học bù, cấp độ, học phí, khóa đăng nhập, phân quyền, số liệu tổng quan) có **116 phép kiểm tự động** chạy trên kho dữ liệu giả lập trong bộ nhớ; giao diện được chụp kiểm tra bằng Mono trên Linux.
-- Chưa chạy kiểm trên **Windows + SQL Server thật** trong quá trình phát triển bản này. Các điểm chỉ có trên Windows nên xem lại khi chạy lần đầu: nạp font Be Vietnam Pro, viền ô nhập `ThemedTextBox`, script `06` / `16` và `SaoLuuCSDL.bat`.
-- Một lớp chỉ có một học viên (kèm 1-1). Chưa có: lớp nhóm, nhắc học phí tự động, xuất Excel (hiện xuất CSV), nhiều chi nhánh.
 
 ## Dữ liệu mẫu
 

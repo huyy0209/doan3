@@ -6,7 +6,7 @@ rem  Moi script deu chay lai nhieu lan duoc (khong xoa du lieu dang co).
 rem
 rem  Cach dung:  CaiDatCSDL.bat                (SQL Server tren may nay: ".")
 rem              CaiDatCSDL.bat .\SQLEXPRESS   (ten instance khac)
-rem  Neu doi ten server, nho sua connection string trong DoAnWD\App.config.
+rem  Neu doi ten server, nho sua ConnectionStrings:QuanLyGiaSu trong DoAnWeb\appsettings.json.
 rem ==========================================================================
 setlocal EnableExtensions
 title Quan ly gia su - Cai dat CSDL
@@ -45,7 +45,7 @@ for %%f in (11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 
 
 :xong
 echo.
-echo [OK] CSDL da san sang. Chay start.bat de mo ung dung.
+echo [OK] CSDL da san sang. Chay QuanLyGiaSu.bat web de mo ban web.
 echo      Tai khoan quan ly mac dinh: admin / admin123 (doi mat khau sau khi dang nhap).
 pause
 exit /b 0

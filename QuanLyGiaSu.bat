@@ -1,10 +1,14 @@
 @echo off
+rem ==========================================================================
+rem  Quản lý gia sư - BẢN WEB: menu khởi động duy nhất.
+rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|shortcut
+rem  Các script con nằm trong thư mục scripts\
+rem ==========================================================================
 setlocal EnableExtensions
 chcp 65001 >nul
-title Quản lý gia sư
+title Quản lý gia sư - Bản web
 
 if /I "%~1"=="web" goto mo_web
-if /I "%~1"=="app" goto mo_app
 if /I "%~1"=="stop" goto tat_web
 if /I "%~1"=="cai-csdl" goto cai_csdl
 if /I "%~1"=="sao-luu" goto sao_luu
@@ -15,26 +19,22 @@ if /I not "%~1"=="" goto lenh_khong_hop_le
 cls
 echo.
 echo  ╔══════════════════════════════════════════════════════════╗
-echo  ║                 QUẢN LÝ GIA SƯ                         ║
+echo  ║             QUẢN LÝ GIA SƯ - BẢN WEB                     ║
 echo  ╠══════════════════════════════════════════════════════════╣
-echo  ║  1. Mở bản web (trình duyệt)                            ║
-echo  ║  2. Mở ứng dụng WinForms                                ║
-echo  ║  3. Tắt bản web                                         ║
-echo  ║  4. Tắt ứng dụng WinForms                               ║
-echo  ║  5. Cài / nâng cấp CSDL                                 ║
-echo  ║  6. Sao lưu CSDL                                        ║
-echo  ║  7. Tạo shortcut "Quản lý gia sư" ra Desktop            ║
-echo  ║  0. Thoát                                               ║
+echo  ║  1. Mở bản web (trình duyệt)                             ║
+echo  ║  2. Tắt bản web                                          ║
+echo  ║  3. Cài / nâng cấp CSDL                                  ║
+echo  ║  4. Sao lưu CSDL                                         ║
+echo  ║  5. Tạo shortcut "Quản lý gia sư" ra Desktop             ║
+echo  ║  0. Thoát                                                ║
 echo  ╚══════════════════════════════════════════════════════════╝
 echo.
-choice /c 12345670 /n /m "Chọn chức năng: "
-if errorlevel 8 goto thoat
-if errorlevel 7 goto menu_shortcut
-if errorlevel 6 goto menu_sao_luu
-if errorlevel 5 goto menu_cai_csdl
-if errorlevel 4 goto menu_tat_app
-if errorlevel 3 goto menu_tat_web
-if errorlevel 2 goto menu_mo_app
+choice /c 123450 /n /m "Chọn chức năng: "
+if errorlevel 6 goto thoat
+if errorlevel 5 goto menu_shortcut
+if errorlevel 4 goto menu_sao_luu
+if errorlevel 3 goto menu_cai_csdl
+if errorlevel 2 goto menu_tat_web
 if errorlevel 1 goto menu_mo_web
 goto menu
 
@@ -42,16 +42,8 @@ goto menu
 call "%~dp0scripts\start-web.bat"
 goto menu_cho_tiep
 
-:menu_mo_app
-call "%~dp0scripts\start.bat"
-goto menu_cho_tiep
-
 :menu_tat_web
 call "%~dp0scripts\stop-web.bat"
-goto menu_cho_tiep
-
-:menu_tat_app
-call "%~dp0scripts\stop.bat"
 goto menu_cho_tiep
 
 :menu_cai_csdl
@@ -73,10 +65,6 @@ goto menu
 
 :mo_web
 call "%~dp0scripts\start-web.bat"
-exit /b %ERRORLEVEL%
-
-:mo_app
-call "%~dp0scripts\start.bat"
 exit /b %ERRORLEVEL%
 
 :tat_web
@@ -114,7 +102,7 @@ exit /b 0
 
 :lenh_khong_hop_le
 echo [X] Lệnh không hợp lệ: %~1
-echo     Dùng: QuanLyGiaSu.bat web^|app^|stop^|cai-csdl^|sao-luu^|shortcut
+echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|shortcut
 exit /b 2
 
 :thoat
