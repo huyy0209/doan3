@@ -1,0 +1,249 @@
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DoAnWeb.Data.Entities;
+
+/// <summary>
+/// Phần nghiệp vụ của LopHoc, chép nguyên từ DoAnWD/Models/LopHoc.cs (không ánh xạ vào CSDL).
+/// Trạng thái theo thời gian, đếm số buổi, kiểm tra trùng lịch (LH-10, LH-11, LH-16, LH-17).
+/// </summary>
+public partial class LopHoc
+{
+        /// <summary>Lớp có buổi học vào ngày này không (trong thời gian lớp + đúng thứ học)</summary>
+        public bool HocNgay(DateTime ngay)
+        {
+            var d = ngay.Date;
+            if (ThoiGianBatDau.HasValue && d < ThoiGianBatDau.Value.Date) return false;
+            if (ThoiGianKetThuc.HasValue && d > ThoiGianKetThuc.Value.Date) return false;
+            return DoAnWeb.Common.Constants.ThuHoc.CoHoc(ThuHoc, d);
+        }
+
+        /// <summary>Số buổi theo lịch từ ngày bắt đầu đến ngày kết thúc</summary>
+        public int DemSoBuoi()
+        {
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue) return 0;
+            DateTime a = ThoiGianBatDau.Value.Date, b = ThoiGianKetThuc.Value.Date;
+            if (b < a) return 0;
+            var thu = DoAnWeb.Common.Constants.ThuHoc.Doc(ThuHoc);
+            int tong = (b - a).Days + 1;
+            if (thu.Count == 0) return tong;
+            int dem = tong / 7 * thu.Count;
+            for (var d = a.AddDays(tong / 7 * 7); d <= b; d = d.AddDays(1))
+                if (thu.Contains(DoAnWeb.Common.Constants.ThuHoc.Cua(d))) dem++;
+            return dem;
+        }
+
+        /// <summary>Tên để hiển thị: tên lớp nếu đã đặt, không thì "Môn - Học viên"</summary>
+        /// <summary>Tên để hiển thị: tên lớp nếu đã đặt, không thì "Môn - Học viên"</summary>
+        [NotMapped]
+        public string TenHienThi => !string.IsNullOrWhiteSpace(TenLop) ? TenLop : $"{MonHoc} - {HocVien?.HoTen}";
+
+        // ===================================================================
+        // ✨ COMPUTED PROPERTIES - MỚI CHO OPTION 2
+        // ===================================================================
+
+        /// <summary>
+        /// Tính trạng thái lớp học dựa trên thời gian hiện tại
+        /// </summary>
+        [NotMapped]
+        public string TrangThaiTheoThoiGian
+        {
+            get
+            {
+                // Lớp đã hủy giữ nguyên trạng thái, không tính theo thời gian
+                if (TrangThai == DoAnWeb.Common.Constants.LopHocStatus.DaHuy)
+                    return TrangThai;
+
+                if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
+                    return TrangThai; // Trả về trạng thái thủ công nếu không có thời gian
+
+                DateTime now = DateTime.Now;
+
+                if (now < ThoiGianBatDau.Value)
+                    return DoAnWeb.Common.Constants.LopHocStatus.ChuaBatDau;
+                else if (now >= ThoiGianBatDau.Value && now <= ThoiGianKetThuc.Value)
+                    return DoAnWeb.Common.Constants.LopHocStatus.DangDienRa;
+                else
+                    return DoAnWeb.Common.Constants.LopHocStatus.DaKetThuc;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem lớp có đang hoạt động không (chưa kết thúc)
+        /// </summary>
+        [NotMapped]
+        public bool DangHoatDong
+        {
+            get
+            {
+                if (TrangThai == DoAnWeb.Common.Constants.LopHocStatus.DaHuy)
+                    return false; // Lớp đã hủy không còn chiếm lịch
+
+                if (!ThoiGianKetThuc.HasValue)
+                    return DoAnWeb.Common.Constants.LopHocStatus.LaHoatDong(TrangThai);
+
+                return DateTime.Now <= ThoiGianKetThuc.Value;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem lớp có đã bắt đầu chưa
+        /// </summary>
+        [NotMapped]
+        public bool DaBatDau
+        {
+            get
+            {
+                if (!ThoiGianBatDau.HasValue)
+                    return false;
+
+                return DateTime.Now >= ThoiGianBatDau.Value;
+            }
+        }
+
+        /// <summary>
+        /// Số ngày còn lại đến khi lớp bắt đầu (âm nếu đã bắt đầu)
+        /// </summary>
+        [NotMapped]
+        public int SoNgayConLai
+        {
+            get
+            {
+                if (!ThoiGianBatDau.HasValue)
+                    return 0;
+
+                return (ThoiGianBatDau.Value.Date - DateTime.Now.Date).Days;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị thông tin ca học đầy đủ
+        /// </summary>
+        [NotMapped]
+        public string ThongTinCaHoc
+        {
+            get
+            {
+                if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
+                    return CaHoc ?? "Chưa xác định";
+
+                return string.Format("{0} | {1:dd/MM/yyyy} - {2:dd/MM/yyyy}",
+                    CaHoc ?? "Chưa xác định",
+                    ThoiGianBatDau.Value,
+                    ThoiGianKetThuc.Value);
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị thông tin đầy đủ cho DataGridView
+        /// </summary>
+        [NotMapped]
+        public string ThongTinDayDu
+        {
+            get
+            {
+                return string.Format("Lớp {0} - {1} - GS: {2} - HV: {3}",
+                    MaLop,
+                    MonHoc ?? "N/A",
+                    GiaSu?.HoTen ?? "N/A",
+                    HocVien?.HoTen ?? "N/A");
+            }
+        }
+
+        // ===================================================================
+        // ✨ HELPER METHODS - MỚI CHO OPTION 2
+        // ===================================================================
+
+        /// <summary>
+        /// Kiểm tra xem lớp có trùng thời gian với lớp khác không
+        /// </summary>
+        /// <param name="other">Lớp học khác cần so sánh</param>
+        /// <returns>True nếu trùng thời gian</returns>
+        public bool TrungThoiGian(LopHoc other)
+        {
+            if (other == null || !ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue ||
+                !other.ThoiGianBatDau.HasValue || !other.ThoiGianKetThuc.HasValue)
+                return false;
+
+            // Kiểm tra overlap: (StartA <= EndB) AND (EndA >= StartB)
+            return ThoiGianBatDau.Value <= other.ThoiGianKetThuc.Value &&
+                   ThoiGianKetThuc.Value >= other.ThoiGianBatDau.Value;
+        }
+
+        /// <summary>
+        /// Kiểm tra xem lớp có trùng ca học với lớp khác không
+        /// </summary>
+        /// <param name="other">Lớp học khác cần so sánh</param>
+        /// <returns>True nếu trùng ca học</returns>
+        public bool TrungCaHoc(LopHoc other)
+        {
+            if (other == null || string.IsNullOrEmpty(CaHoc) || string.IsNullOrEmpty(other.CaHoc))
+                return false;
+
+            return CaHoc.Equals(other.CaHoc, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Trùng lịch = cùng ca học VÀ khoảng ngày học giao nhau.
+        /// (Một gia sư/học viên có thể học nhiều lớp song song nếu khác ca.)
+        /// </summary>
+        public bool TrungLich(LopHoc other)
+        {
+            // MED-01: Kiểm tra null, bỏ dead code và cảnh báo trùng nếu cùng ca học mà thiếu ngày
+            if (other == null || !TrungCaHoc(other)) return false;
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue ||
+                !other.ThoiGianBatDau.HasValue || !other.ThoiGianKetThuc.HasValue) return true;
+            if (!TrungThoiGian(other)) return false;
+
+            // Cùng ca + giao ngày: chỉ trùng khi có ít nhất MỘT ngày cả hai lớp cùng học (xét thứ trong tuần)
+            DateTime tu = ThoiGianBatDau.Value.Date > other.ThoiGianBatDau.Value.Date ? ThoiGianBatDau.Value.Date : other.ThoiGianBatDau.Value.Date;
+            DateTime den = ThoiGianKetThuc.Value.Date < other.ThoiGianKetThuc.Value.Date ? ThoiGianKetThuc.Value.Date : other.ThoiGianKetThuc.Value.Date;
+            for (int i = 0; i < 7 && tu.AddDays(i) <= den; i++)
+            {
+                var d = tu.AddDays(i);
+                if (DoAnWeb.Common.Constants.ThuHoc.CoHoc(ThuHoc, d) && DoAnWeb.Common.Constants.ThuHoc.CoHoc(other.ThuHoc, d)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Validate thời gian của lớp học
+        /// </summary>
+        /// <returns>Thông báo lỗi (null nếu hợp lệ)</returns>
+        public string ValidateThoiGian()
+        {
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
+                return "Vui lòng nhập đầy đủ thời gian bắt đầu và kết thúc.";
+
+            if (ThoiGianBatDau.Value >= ThoiGianKetThuc.Value)
+                return DoAnWeb.Common.Constants.Messages.ThoiGianKhongHopLe;
+
+            if (ThoiGianBatDau.Value < DateTime.Now.Date)
+                return DoAnWeb.Common.Constants.Messages.ThoiGianQuaKhu;
+
+            return null; // Hợp lệ
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái tự động dựa trên thời gian
+        /// </summary>
+        /// <returns>True nếu trạng thái thay đổi</returns>
+        public bool CapNhatTrangThaiTuDong()
+        {
+            if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue)
+                return false;
+
+            if (TrangThai == DoAnWeb.Common.Constants.LopHocStatus.DaHuy)
+                return false;
+
+            string trangThaiMoi = TrangThaiTheoThoiGian;
+
+            if (TrangThai != trangThaiMoi)
+            {
+                TrangThai = trangThaiMoi;
+                return true; // Trạng thái đã thay đổi
+            }
+
+            return false; // Không thay đổi
+        }
+}
