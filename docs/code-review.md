@@ -209,7 +209,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-04] Kéo toàn bộ bảng về bộ nhớ (`_dbSet.ToList()`) gây nghẽn hiệu năng khi tìm kiếm
 - **Vị trí**: `DoAnWD/DAL/Repositories/GiaSuRepository.cs:142`, `DoAnWD/DAL/Repositories/HocVienRepository.cs:22`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `Search` lọc thô bằng SQL (collation không phân biệt dấu, tham số hóa) trước khi nạp về RAM và chuẩn hóa tiếng Việt.
 - **Mô tả vấn đề**:
   Hàm `Search(string keyword)` của cả `GiaSuRepository` và `HocVienRepository` đều thực thi:
   ```csharp

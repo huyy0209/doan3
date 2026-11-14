@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using DoAnWD.Models;
 
 namespace DoAnWD.DAL.Repositories
@@ -18,9 +21,35 @@ namespace DoAnWD.DAL.Repositories
             if (string.IsNullOrWhiteSpace(keyword))
                 return GetAll();
 
-            // Lọc trong bộ nhớ để không phân biệt dấu tiếng Việt
-            return _dbSet.ToList().Where(h => Common.TimKiem.Khop(keyword,
-                h.HoTen, h.SDT, h.DiaChi, h.TenPhuHuynh, h.SDTPhuHuynh, h.TruongLop, h.TrinhDo)).ToList();
+            // HIGH-04: lọc thô ngay trên SQL Server (chỉ nạp các dòng có khả năng khớp) thay vì
+            // kéo toàn bộ bảng về RAM. Dùng collation không phân biệt dấu + đổi "đ" thành "d"
+            // để tương đương cách TimKiem.ChuanHoa, rồi vẫn lọc lại bằng TimKiem.Khop cho chắc.
+            var tuKhoa = keyword.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string cot = "REPLACE(REPLACE((" +
+                "ISNULL(HoTen, N'') + N' ' + ISNULL(SDT, N'') + N' ' + ISNULL(DiaChi, N'') + N' ' + " +
+                "ISNULL(TenPhuHuynh, N'') + N' ' + ISNULL(SDTPhuHuynh, N'') + N' ' + " +
+                "ISNULL(TruongLop, N'') + N' ' + ISNULL(TrinhDo, N'')) " +
+                "COLLATE Latin1_General_CI_AI, N'đ', N'd'), N'Đ', N'd')";
+
+            var sql = new StringBuilder("SELECT * FROM dbo.HocVien WHERE 1 = 1");
+            var thamSo = new List<object>();
+            for (int i = 0; i < tuKhoa.Length; i++)
+            {
+                sql.Append($" AND {cot} LIKE @p{i} ESCAPE '\\'");
+                thamSo.Add(new SqlParameter($"@p{i}", "%" + EscapeLike(Common.TimKiem.ChuanHoa(tuKhoa[i])) + "%"));
+            }
+
+            return _dbSet.SqlQuery(sql.ToString(), thamSo.ToArray())
+                .ToList()
+                .Where(h => Common.TimKiem.Khop(keyword,
+                    h.HoTen, h.SDT, h.DiaChi, h.TenPhuHuynh, h.SDTPhuHuynh, h.TruongLop, h.TrinhDo))
+                .ToList();
+        }
+
+        /// <summary>Thoát các ký tự đặc biệt của LIKE để từ khóa được hiểu theo nghĩa đen</summary>
+        private static string EscapeLike(string s)
+        {
+            return s.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_").Replace("[", "\\[");
         }
 
         /// <summary>
