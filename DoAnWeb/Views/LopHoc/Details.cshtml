@@ -1,0 +1,176 @@
+@model DoAnWeb.Services.Dto.LopHocDong
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Chi tiết lớp";
+    ViewData["PageSub"] = Model.TenLop;
+    string TagClass(string tt)
+    {
+        if (tt == Constants.LopHocStatus.ChuaBatDau) return "vo-tag-info";
+        if (tt == Constants.LopHocStatus.DangDienRa || tt == Constants.LopHocStatus.DangHoc) return "vo-tag-success";
+        if (tt == Constants.LopHocStatus.DaHuy) return "vo-tag-danger";
+        if (tt == Constants.LopHocStatus.DaKetThuc) return "vo-tag-neutral";
+        return "vo-tag-ink";
+    }
+    bool conHoatDong = Constants.LopHocStatus.LaHoatDong(Model.TrangThai);
+}
+
+<div id="lop-hoc-details" data-ma-lop="@Model.MaLop">
+    <div class="vo-toolbar">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <partial name="_Icon" model='"chevron-down"' />Danh sách lớp
+        </a>
+        @if (Model.TrangThai != Constants.LopHocStatus.DaHuy)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaLop" class="btn btn-primary">
+                <partial name="_Icon" model='"edit"' />Sửa lớp
+            </a>
+        }
+        @if (Model.MaHV.HasValue)
+        {
+            <a href="/HocTap/KetQua/@Model.MaHV" class="btn btn-outline-secondary">
+                <partial name="_Icon" model='"users"' />Mở trang học viên
+            </a>
+        }
+        <div class="ms-auto d-flex gap-2">
+            @if (conHoatDong)
+            {
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modal-xac-nhan"
+                        data-xac-nhan-action="@Url.Action("Huy", new { id = Model.MaLop })"
+                        data-xac-nhan-title="Hủy lớp"
+                        data-xac-nhan-body="Hủy lớp &quot;@Model.TenLop&quot;? Lớp được giữ lại trong lịch sử, lịch của gia sư và học viên được giải phóng."
+                        data-xac-nhan-nut="Hủy lớp">
+                    <partial name="_Icon" model='"x"' />Hủy lớp
+                </button>
+            }
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-xac-nhan"
+                    data-xac-nhan-action="@Url.Action("Delete", new { id = Model.MaLop })"
+                    data-xac-nhan-title="Xóa lớp"
+                    data-xac-nhan-body="Xóa hẳn lớp &quot;@Model.TenLop&quot;? Thao tác này không hoàn tác được. Lớp đã có điểm danh hoặc học phí thì không xóa được, hãy dùng Hủy lớp."
+                    data-xac-nhan-nut="Xóa lớp">
+                <partial name="_Icon" model='"trash"' />Xóa
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="vo-section">
+                <div class="vo-section-head">
+                    <h2 class="vo-section-title">@Model.TenLop</h2>
+                    <span class="vo-tag @TagClass(Model.TrangThai)">@Model.TrangThai</span>
+                </div>
+
+                <dl class="lop-thong-tin">
+                    <dt>Môn học</dt>
+                    <dd>@Model.MonHoc <span class="vo-tag vo-tag-ink">@Model.LoaiMon</span></dd>
+
+                    <dt>Học viên</dt>
+                    <dd>@Model.HocVien</dd>
+
+                    <dt>Gia sư</dt>
+                    <dd>@Model.GiaSu</dd>
+
+                    <dt>Ca học</dt>
+                    <dd>@Model.CaHoc</dd>
+
+                    <dt>Thứ học</dt>
+                    <dd>@Model.ThuHoc</dd>
+
+                    <dt>Thời gian</dt>
+                    <dd>
+                        @(Model.BatDau?.ToString("dd/MM/yyyy") ?? "—")
+                        <span class="vo-muted">→</span>
+                        @(Model.KetThuc?.ToString("dd/MM/yyyy") ?? "—")
+                        <span class="vo-muted">(@Model.SoBuoi buổi)</span>
+                    </dd>
+
+                    <dt>Học phí</dt>
+                    <dd class="vo-cell-strong">@SoTien.Dinh(Model.HocPhi) đ</dd>
+
+                    <dt>Trạng thái</dt>
+                    <dd><span class="vo-tag @TagClass(Model.TrangThai)">@Model.TrangThai</span></dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="vo-section h-100">
+                <h2 class="vo-section-title">Đánh giá</h2>
+                @if (Model.TienTrinh != null)
+                {
+                    var t = Model.TienTrinh;
+                    <div class="lop-danh-gia">
+                        <div class="lop-cap-hien-tai">Cấp hiện tại: <strong>@t.CapHienTai</strong></div>
+                        @if (!string.IsNullOrWhiteSpace(t.CapDauVao) && t.CapDauVao != t.CapHienTai)
+                        {
+                            <div class="vo-muted">Vào lớp: @t.CapDauVao</div>
+                        }
+                        <div class="vo-muted">Cấp kế tiếp: @(t.CapKeTiep ?? "đã ở cấp cao nhất")</div>
+                        <div class="vo-divider my-2"></div>
+                        @if (t.BaiThi.Count == 0)
+                        {
+                            <div class="vo-muted">Chưa có bài thi lên cấp.</div>
+                        }
+                        else
+                        {
+                            <ul class="lop-bai-thi">
+                                @foreach (var b in t.BaiThi)
+                                {
+                                    <li>
+                                        <span>@b.Ngay.ToString("dd/MM/yyyy") – thi lên @b.CapThi</span>
+                                        <span class="vo-tag @(b.Dat ? "vo-tag-success" : "vo-tag-warning")">
+                                            @(b.Diem.HasValue ? b.Diem.Value.ToString("0.##") + " điểm" : "chưa có điểm")
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+                else if (Model.DiemTB.HasValue)
+                {
+                    <div class="lop-danh-gia">
+                        <div class="lop-cap-hien-tai">Điểm TB <strong>@Model.DiemTB.Value.ToString("0.##")</strong></div>
+                        <div class="vo-muted">Xếp loại: @Model.DanhGia</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="vo-empty py-3">
+                        <partial name="_Icon" model='"check"' />
+                        <div class="vo-empty-title">Chưa có bài test</div>
+                        <div class="vo-empty-note">Điểm đánh giá sẽ hiện sau khi điểm danh / nhập điểm.</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Hộp xác nhận dùng chung cho Hủy lớp và Xóa lớp (không dùng alert) *@
+<div class="modal fade" id="modal-xac-nhan" tabindex="-1" aria-labelledby="modal-xac-nhan-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" id="form-xac-nhan">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-xac-nhan-title">Xác nhận</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="modal-xac-nhan-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Không</button>
+                    <button type="submit" class="btn btn-danger" id="modal-xac-nhan-nut">Đồng ý</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/lophoc.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/lophoc.css" asp-append-version="true" />
+}

@@ -29,7 +29,7 @@ public class HocVienListItemVM
 public class HocVienDetailsVM
 {
     public HocVienEntity HocVien { get; set; }
-    public List<LopHoc> LopHocs { get; set; } = new();
+    public List<DoAnWeb.Data.Entities.LopHoc> LopHocs { get; set; } = new();
     public bool LaQuanLy { get; set; }
 }
 

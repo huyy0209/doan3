@@ -1,0 +1,400 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DoAnWeb.Common;
+using DoAnWeb.Data.Entities;
+using DoAnWeb.Services;
+using DoAnWeb.Services.Dto;
+using DoAnWeb.ViewModels.LopHoc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Trang Lớp học (frmLopHoc.cs), ghép lớp (frmChucNangGhepLop.cs),
+    /// sửa lớp (dlgSuaLop.cs), hủy / xóa lớp. Chỉ quản lý.
+    /// Mọi nghiệp vụ nằm trong LopHocService – controller chỉ chuẩn bị dữ liệu và bắt lỗi.
+    /// </summary>
+    [Authorize(Roles = "QuanLy")]
+    public class LopHocController : Controller
+    {
+        private readonly LopHocService _lopHoc;
+        private readonly GiaSuService _giaSu;
+        private readonly HocVienService _hocVien;
+        private readonly MonHocService _monHoc;
+
+        public LopHocController(LopHocService lopHoc, GiaSuService giaSu,
+            HocVienService hocVien, MonHocService monHoc)
+        {
+            _lopHoc = lopHoc;
+            _giaSu = giaSu;
+            _hocVien = hocVien;
+            _monHoc = monHoc;
+        }
+
+        // ===================================================================
+        // DANH SÁCH + CHI TIẾT
+        // ===================================================================
+
+        /// <summary>Danh sách lớp, tìm không dấu và lọc trạng thái / ca / môn / gia sư.</summary>
+        [HttpGet]
+        public IActionResult Index(string q, string trangThai, string ca, string mon, int? maGS, int? chon)
+        {
+            var tatCa = _lopHoc.GetDanhSachLop();
+            var vm = new LopHocIndexVM
+            {
+                TuKhoa = q,
+                TrangThai = string.IsNullOrWhiteSpace(trangThai) ? "Còn hoạt động" : trangThai,
+                CaHoc = ca,
+                MonHoc = mon,
+                MaGS = maGS,
+                ChonMaLop = chon,
+                TongSoTatCa = tatCa.Count,
+                GiaSus = _giaSu.GetAll(),
+                MonHocs = tatCa.Select(l => l.MonHoc).Where(m => !string.IsNullOrWhiteSpace(m))
+                    .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(m => m).ToList()
+            };
+
+            IEnumerable<LopHocDong> ds = tatCa;
+            if (vm.TrangThai == "Còn hoạt động")
+                ds = ds.Where(l => Constants.LopHocStatus.LaHoatDong(l.TrangThai));
+            else if (vm.TrangThai != "Tất cả")
+                ds = ds.Where(l => l.TrangThai == vm.TrangThai);
+
+            if (!string.IsNullOrWhiteSpace(vm.CaHoc)) ds = ds.Where(l => l.CaHoc == vm.CaHoc);
+            if (!string.IsNullOrWhiteSpace(vm.MonHoc))
+                ds = ds.Where(l => string.Equals(l.MonHoc, vm.MonHoc, StringComparison.OrdinalIgnoreCase));
+            if (vm.MaGS.HasValue) ds = ds.Where(l => l.MaGS == vm.MaGS.Value);
+
+            vm.DanhSach = ds
+                .Where(l => TimKiem.Khop(vm.TuKhoa, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc))
+                .ToList();
+            vm.TongSo = vm.DanhSach.Count;
+            return View(vm);
+        }
+
+        /// <summary>Chi tiết một lớp: thông tin, đánh giá / tiến trình cấp độ, nút sửa – hủy – xóa.</summary>
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var lop = _lopHoc.GetDanhSachLop().FirstOrDefault(l => l.MaLop == id);
+            if (lop == null)
+            {
+                TempData["Loi"] = "Không tìm thấy lớp học.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(lop);
+        }
+
+        // ===================================================================
+        // GHÉP LỚP
+        // ===================================================================
+
+        [HttpGet]
+        public IActionResult GhepLop()
+        {
+            var vm = new GhepLopVM
+            {
+                BatDau = DateTime.Today.AddDays(1),
+                KetThuc = DateTime.Today.AddDays(1).AddMonths(1),
+                ThuHoc = string.Join(",", Constants.ThuHoc.TatCa)
+            };
+            NapGhepLop(vm);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GhepLop(GhepLopVM vm)
+        {
+            if (!vm.BatDau.HasValue || !vm.KetThuc.HasValue)
+                ModelState.AddModelError(string.Empty, "Chọn ngày bắt đầu và ngày kết thúc.");
+            if (string.IsNullOrWhiteSpace(vm.CaHoc))
+                ModelState.AddModelError(string.Empty, Constants.Messages.VuiLongChonCaHoc);
+            if (!SoTien.TryParse(vm.HocPhi, out decimal hocPhi))
+                ModelState.AddModelError(string.Empty, "Học phí phải là số, ví dụ 1.500.000.");
+
+            if (!ModelState.IsValid)
+            {
+                NapGhepLop(vm);
+                return View(vm);
+            }
+
+            try
+            {
+                // Giờ bắt đầu / kết thúc lấy theo ca như app (LH-09).
+                LopHocGhepLopLogic.LayKhoang(vm.CaHoc, vm.BatDau.Value, vm.KetThuc.Value, out var bd, out var kt);
+                var lop = _lopHoc.GhepLop(new GhepLopYeuCau
+                {
+                    MaHV = vm.MaHV ?? 0,
+                    MaGS = vm.MaGS ?? 0,
+                    MonHoc = vm.MonHoc,
+                    HocPhi = hocPhi,
+                    BatDau = bd,
+                    KetThuc = kt,
+                    CaHoc = vm.CaHoc,
+                    ThuHoc = vm.ThuHoc,
+                    TenLop = vm.TenLop,
+                    CapDoDauVao = vm.CapDoDauVao
+                });
+                TempData["ThongBao"] = $"Đã ghép lớp \"{lop.TenLop}\".";
+                return RedirectToAction(nameof(Details), new { id = lop.MaLop });
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Lỗi khi ghép lớp: " + ex.GetBaseException().Message);
+            }
+
+            NapGhepLop(vm);
+            return View(vm);
+        }
+
+        /// <summary>
+        /// Kiểm tra real-time cho dòng trạng thái ở form ghép lớp.
+        /// Trả JSON: ok, mucDo (loi | canhbao | ok | trong), thongBao, soBuoi, moTa, gio.
+        /// </summary>
+        [HttpGet]
+        public IActionResult KiemTra(int? maHV, int? maGS, string monHoc, string caHoc,
+            DateTime? batDau, DateTime? ketThuc, string thuHoc, string tenLop)
+        {
+            JsonResult Kq(string mucDo, string thongBao, int soBuoi = 0, string moTa = null, string gio = null) =>
+                Json(new
+                {
+                    ok = mucDo == "ok",
+                    mucDo,
+                    thongBao,
+                    soBuoi,
+                    moTa = moTa ?? Constants.ThuHoc.MoTa(thuHoc),
+                    gio
+                });
+
+            if (string.IsNullOrWhiteSpace(caHoc) || !Constants.CaHoc.TatCaCaHoc.Contains(caHoc))
+                return Kq("trong", "Chọn một ca học.");
+            if (!batDau.HasValue || !ketThuc.HasValue)
+                return Kq("loi", "Chọn ngày bắt đầu và ngày kết thúc.");
+            if (ketThuc.Value.Date <= batDau.Value.Date)
+                return Kq("loi", "Ngày kết thúc phải sau ngày bắt đầu.");
+
+            LopHocGhepLopLogic.LayKhoang(caHoc, batDau.Value, ketThuc.Value, out var bd, out var kt);
+            string gio = $"{bd:HH:mm}–{kt:HH:mm}";
+            int soBuoi = new Data.Entities.LopHoc
+            {
+                ThoiGianBatDau = bd,
+                ThoiGianKetThuc = kt,
+                ThuHoc = thuHoc
+            }.DemSoBuoi();
+            if (soBuoi == 0)
+                return Kq("loi", "Khoảng ngày này không có buổi nào rơi vào các thứ đã chọn.", soBuoi, gio: gio);
+
+            if (!string.IsNullOrWhiteSpace(tenLop) && _lopHoc.TrungTenLop(tenLop))
+                return Kq("loi", $"Đã có lớp tên \"{tenLop.Trim()}\". Hãy đặt tên khác.", soBuoi, gio: gio);
+
+            // Khi đã chọn đủ người dùng TimXungDot của service (đúng luật LH-11..LH-15);
+            // mới chọn một bên thì chỉ kiểm tra bên đó như app.
+            string xungDot = null;
+            if (maHV.HasValue && maHV.Value > 0 && maGS.HasValue && maGS.Value > 0)
+            {
+                xungDot = _lopHoc.TimXungDot(maGS.Value, maHV.Value, monHoc, caHoc, bd, kt, thuHoc);
+            }
+            else
+            {
+                var lopHoatDong = _lopHoc.GetLopConHoatDong();
+                if (maHV.HasValue && maHV.Value > 0)
+                {
+                    var trung = LopHocGhepLopLogic.TimLopTrung(lopHoatDong, l => l.MaHV == maHV.Value,
+                        caHoc, thuHoc, batDau.Value, ketThuc.Value);
+                    if (trung != null)
+                        xungDot = $"Học viên đã có lớp {trung.MonHoc} ở ca {trung.CaHoc}, đến {trung.ThoiGianKetThuc:dd/MM/yyyy}.";
+                }
+                if (xungDot == null && maGS.HasValue && maGS.Value > 0)
+                {
+                    var trung = LopHocGhepLopLogic.TimLopTrung(lopHoatDong, l => l.MaGS == maGS.Value,
+                        caHoc, thuHoc, batDau.Value, ketThuc.Value);
+                    if (trung != null)
+                        xungDot = $"Gia sư đã có lớp {trung.MonHoc} ở ca {trung.CaHoc}, đến {trung.ThoiGianKetThuc:dd/MM/yyyy}.";
+                }
+            }
+
+            if (xungDot != null) return Kq("loi", xungDot, soBuoi, gio: gio);
+
+            if (maGS.HasValue && maGS.Value > 0)
+            {
+                var gs = _giaSu.GetById(maGS.Value);
+                if (gs != null && !gs.NhanCa(caHoc))
+                    return Kq("canhbao",
+                        $"Lưu ý: {gs.HoTen} chỉ nhận ca {gs.CaNhanDay?.Replace(",", ", ")}. Vẫn ghép được nếu đã thống nhất.",
+                        soBuoi, gio: gio);
+            }
+
+            if (!maHV.HasValue || maHV.Value <= 0 || !maGS.HasValue || maGS.Value <= 0)
+                return Kq("trong", "Chọn học viên và gia sư để kiểm tra trùng lịch.", soBuoi, gio: gio);
+
+            return Kq("ok", $"{soBuoi} buổi ({Constants.ThuHoc.MoTa(thuHoc)}), {gio}.", soBuoi, gio: gio);
+        }
+
+        /// <summary>Gợi ý tên lớp "Môn - Học viên - Ca", tự thêm (2), (3)… nếu trùng.</summary>
+        [HttpGet]
+        public IActionResult GoiYTen(string monHoc, int? maHV, string caHoc)
+        {
+            var hv = maHV.HasValue && maHV.Value > 0 ? _hocVien.GetById(maHV.Value) : null;
+            var daCo = new HashSet<string>(
+                _lopHoc.GetAll().Where(l => !string.IsNullOrWhiteSpace(l.TenLop)).Select(l => l.TenLop),
+                StringComparer.OrdinalIgnoreCase);
+            string ten = LopHocGhepLopLogic.GoiYTenLop(monHoc, hv?.HoTen, caHoc, daCo);
+            return Json(new { ten });
+        }
+
+        // ===================================================================
+        // SỬA LỚP
+        // ===================================================================
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var lop = _lopHoc.GetDanhSachLop().FirstOrDefault(l => l.MaLop == id);
+            if (lop == null)
+            {
+                TempData["Loi"] = "Không tìm thấy lớp học.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var vm = new SuaLopVM
+            {
+                MaLop = lop.MaLop,
+                TenLop = lop.TenLop,
+                HocPhi = lop.HocPhi.ToString("0"),
+                KetThuc = lop.KetThuc?.Date,
+                ThuHoc = lop.ThuHocGoc,
+                MaGS = lop.MaGS ?? 0,
+                Lop = lop
+            };
+            NapSuaLop(vm);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, SuaLopVM vm)
+        {
+            vm.MaLop = id;
+            if (vm.KetThuc == null)
+                ModelState.AddModelError(string.Empty, "Chọn ngày kết thúc.");
+            if (!SoTien.TryParse(vm.HocPhi, out decimal hocPhi))
+                ModelState.AddModelError(string.Empty, "Học phí phải là số, ví dụ 1.500.000.");
+            if (vm.MaGS <= 0)
+                ModelState.AddModelError(string.Empty, Constants.Messages.VuiLongChonGiaSu);
+
+            if (!ModelState.IsValid)
+            {
+                NapSuaLop(vm);
+                return View(vm);
+            }
+
+            try
+            {
+                _lopHoc.SuaLop(id, new SuaLopYeuCau
+                {
+                    TenLop = vm.TenLop,
+                    HocPhi = hocPhi,
+                    KetThuc = vm.KetThuc.Value.Date,
+                    ThuHoc = vm.ThuHoc,
+                    MaGS = vm.MaGS
+                });
+                TempData["ThongBao"] = "Đã lưu thay đổi của lớp.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Lỗi khi sửa lớp: " + ex.GetBaseException().Message);
+            }
+
+            NapSuaLop(vm);
+            return View(vm);
+        }
+
+        // ===================================================================
+        // HỦY / XÓA
+        // ===================================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Huy(int id)
+        {
+            try
+            {
+                _lopHoc.HuyLop(id);
+                TempData["ThongBao"] = "Đã hủy lớp.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+            {
+                TempData["Loi"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            try
+            {
+                _lopHoc.Delete(id);
+                TempData["ThongBao"] = Constants.Messages.XoaThanhCong;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+            {
+                TempData["Loi"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        // ===================================================================
+        // NẠP DỮ LIỆU CHO BIỂU MẪU
+        // ===================================================================
+
+        private void NapGhepLop(GhepLopVM vm)
+        {
+            vm.HocViens = _hocVien.GetAll();
+            vm.GiaSus = _giaSu.GetForGhepLop();
+            vm.MonHocs = _monHoc.GetAll(kemNgungDay: false);
+            vm.LopHoatDong = _lopHoc.GetLopConHoatDong();
+            vm.TenLopDaCo = new HashSet<string>(
+                _lopHoc.GetAll().Where(l => !string.IsNullOrWhiteSpace(l.TenLop)).Select(l => l.TenLop),
+                StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(vm.ThuHoc))
+                vm.ThuHoc = string.Join(",", Constants.ThuHoc.TatCa);
+        }
+
+        private void NapSuaLop(SuaLopVM vm)
+        {
+            var lop = _lopHoc.GetDanhSachLop().FirstOrDefault(l => l.MaLop == vm.MaLop);
+            vm.Lop = lop;
+            if (lop == null) return;
+
+            var ds = _giaSu.GetForGhepLop().OrderBy(g => g.HoTen).ToList();
+            // Gia sư hiện tại đang tạm nghỉ vẫn phải hiện để giữ nguyên được.
+            if (lop.MaGS.HasValue && ds.All(g => g.MaGS != lop.MaGS.Value))
+            {
+                var gsCu = _giaSu.GetById(lop.MaGS.Value);
+                if (gsCu != null) ds.Insert(0, gsCu);
+            }
+            vm.GiaSus = ds;
+            if (vm.MaGS <= 0 && lop.MaGS.HasValue) vm.MaGS = lop.MaGS.Value;
+            if (vm.KetThuc == null) vm.KetThuc = lop.KetThuc?.Date;
+            if (vm.ThuHoc == null) vm.ThuHoc = lop.ThuHocGoc;
+            if (string.IsNullOrWhiteSpace(vm.TenLop)) vm.TenLop = lop.TenLop;
+            if (string.IsNullOrWhiteSpace(vm.HocPhi)) vm.HocPhi = lop.HocPhi.ToString("0");
+        }
+    }
+}

@@ -1,0 +1,185 @@
+@model DoAnWeb.ViewModels.MonHoc.MonHocVM
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Môn học";
+    ViewData["PageSub"] = "Danh mục môn: môn chính xếp loại theo điểm, môn năng khiếu đánh giá theo cấp độ.";
+    var dangSua = Model.MaMon.HasValue && Model.MaMon.Value > 0;
+}
+
+<div id="mon-hoc-page">
+    <div class="vo-toolbar">
+        <a asp-controller="LopHoc" asp-action="Index" class="btn btn-outline-secondary">
+            <partial name="_Icon" model='"chevron-down"' />Lớp học
+        </a>
+        <a asp-action="Index" class="btn btn-ghost">
+            <partial name="_Icon" model='"refresh"' />Làm mới danh sách
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="vo-section h-100">
+                <div class="vo-section-head">
+                    <h2 class="vo-section-title">Các môn</h2>
+                    <a asp-action="Index" class="btn btn-sm btn-primary">
+                        <partial name="_Icon" model='"plus"' />Thêm môn
+                    </a>
+                </div>
+
+                <div class="mon-list">
+                    @foreach (var mon in Model.DanhSach)
+                    {
+                        int soLop = Model.SoLop(mon);
+                        <a class="mon-item @(Model.MaMon == mon.MaMon ? "is-selected" : "")"
+                           asp-action="Index" asp-route-maMon="@mon.MaMon">
+                            <span class="mon-item-main">
+                                <span class="mon-item-ten @(mon.NgungDay ? "is-ngung" : "")">
+                                    @mon.TenMon@(mon.NgungDay ? " (ngừng dạy)" : "")
+                                </span>
+                                <span class="mon-item-phu">
+                                    @soLop lớp
+                                    @if (mon.LaNangKhieu && mon.DanhSachCapDo.Count > 0)
+                                    {
+                                        <span> · @string.Join(" → ", mon.DanhSachCapDo)</span>
+                                    }
+                                </span>
+                            </span>
+                            <span class="vo-tag @(mon.LaNangKhieu ? "vo-tag-warning" : "vo-tag-ink")">
+                                @(mon.LaNangKhieu ? "Năng khiếu" : "Môn chính")
+                            </span>
+                        </a>
+                    }
+                    @if (Model.DanhSach.Count == 0)
+                    {
+                        <div class="vo-empty py-3">
+                            <div class="vo-empty-title">Chưa có môn nào</div>
+                            <div class="vo-empty-note">Bấm “Thêm môn” để tạo môn đầu tiên.</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="vo-section">
+                <h2 class="vo-section-title">@(dangSua ? "Sửa môn " + Model.TenMon : "Thêm môn mới")</h2>
+
+                <form method="post" asp-action="Luu" id="form-mon-hoc">
+                    @Html.AntiForgeryToken()
+                    @if (dangSua)
+                    {
+                        <input type="hidden" name="MaMon" value="@Model.MaMon" />
+                    }
+
+                    <div class="vo-form-grid">
+                        <div class="vo-field vo-field-required vo-span-2">
+                            <label class="form-label" for="ten-mon">Tên môn</label>
+                            <input type="text" class="form-control" id="ten-mon" name="TenMon"
+                                   maxlength="50" value="@Model.TenMon" placeholder="Ví dụ: Cờ vua" />
+                        </div>
+
+                        <div class="vo-field vo-span-2">
+                            <label class="form-label">Loại môn</label>
+                            <div class="mon-loai">
+                                <label class="mon-radio">
+                                    <input type="radio" name="LoaiMon" value="@Constants.LoaiMon.Chinh"
+                                           checked="@(Model.LoaiMon != Constants.LoaiMon.NangKhieu)" />
+                                    <span>
+                                        <strong>Môn chính</strong>
+                                        <small>Xếp loại Yếu / Trung bình / Khá / Giỏi theo điểm TB</small>
+                                    </span>
+                                </label>
+                                <label class="mon-radio">
+                                    <input type="radio" name="LoaiMon" value="@Constants.LoaiMon.NangKhieu"
+                                           checked="@(Model.LoaiMon == Constants.LoaiMon.NangKhieu)" />
+                                    <span>
+                                        <strong>Năng khiếu</strong>
+                                        <small>Đánh giá theo cấp độ, có thi lên cấp</small>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="vo-field vo-span-2" id="khung-cap-do">
+                            <label class="form-label" for="cap-do">Cấp độ, từ thấp đến cao (mỗi dòng một cấp)</label>
+                            <textarea class="form-control" id="cap-do" name="CapDoText" rows="6"
+                                      placeholder="Cấp 1&#10;Cấp 2&#10;Cấp 3">@Model.CapDoText</textarea>
+                            <div class="form-text">Môn năng khiếu cần ít nhất 2 cấp; tên cấp không chứa dấu chấm phẩy.</div>
+                        </div>
+
+                        <div class="vo-field vo-span-2">
+                            <label class="form-check mon-check">
+                                <input class="form-check-input" type="checkbox" id="ngung-day" name="NgungDay"
+                                       value="true" checked="@Model.NgungDay" />
+                                <span class="form-check-label">Ngừng dạy (ẩn khỏi ghép lớp mới, lớp cũ giữ nguyên)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mon-goi-y">
+                        @if (!dangSua)
+                        {
+                            <span>Đổi tên môn sau này sẽ cập nhật luôn các lớp và chuyên môn gia sư đang dùng tên đó.</span>
+                        }
+                        else if (Model.SoLopCuaMon > 0)
+                        {
+                            <span>Môn đang có <strong>@Model.SoLopCuaMon lớp</strong>: đổi tên sẽ cập nhật theo; không xóa được (chọn Ngừng dạy).</span>
+                        }
+                        else
+                        {
+                            <span>Môn chưa có lớp nào, xóa được.</span>
+                        }
+                    </div>
+
+                    <div class="vo-toolbar mt-3 mb-0">
+                        <button type="submit" class="btn btn-primary">
+                            <partial name="_Icon" model='"check"' />@(dangSua ? "Lưu" : "Thêm")
+                        </button>
+                        @if (dangSua)
+                        {
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-xoa-mon">
+                                <partial name="_Icon" model='"trash"' />Xóa môn
+                            </button>
+                        }
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <partial name="_Icon" model='"x"' />Đóng
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (dangSua)
+{
+    <div class="modal fade" id="modal-xoa-mon" tabindex="-1" aria-labelledby="modal-xoa-mon-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" asp-action="Xoa">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maMon" value="@Model.MaMon" />
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modal-xoa-mon-title">Xóa môn học</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        Xóa môn <strong>@Model.TenMon</strong>? Môn đang có lớp sẽ không xóa được, hãy dùng “Ngừng dạy”.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Không</button>
+                        <button type="submit" class="btn btn-danger">Xóa môn</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/lophoc.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/lophoc.js" asp-append-version="true"></script>
+}
