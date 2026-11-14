@@ -2,17 +2,19 @@
 
 Ứng dụng desktop WinForms quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho một trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm bài test cuối buổi, học bù cho buổi vắng, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả cho phụ huynh, học phí, lịch học, trang tổng quan "hôm nay làm gì" và phân quyền Quản lý / Gia sư. Kiến trúc 3 lớp (UI → BLL → DAL).
 
-> Chạy nhanh: cài / nâng cấp CSDL bằng `CaiDatCSDL.bat`, sau đó bấm đúp `start.bat` để build Release và mở ứng dụng. Có thể dùng `stop.bat` để đóng ứng dụng.
+> Chạy nhanh: bấm đúp **`QuanLyGiaSu.bat`** rồi chọn trong menu (mở / tắt ứng dụng, cài CSDL, sao lưu, tạo shortcut Desktop). Lần đầu chọn "3. Cài / nâng cấp CSDL" trước.
 >
-> Bản này cần **CSDL v6**. Nếu mở app thấy báo thiếu cột / bảng, chạy lại `CaiDatCSDL.bat` (không mất dữ liệu).
+> Đây là nhánh **`app`** (bản WinForms). Bản web nằm ở nhánh **`web`**.
+>
+> Bản này cần **CSDL v6**. Nếu mở app thấy báo thiếu cột / bảng, chạy lại `QuanLyGiaSu.bat cai-csdl` (không mất dữ liệu).
 
 ## Yêu cầu cài đặt
 
 - Windows 10/11.
 - .NET Framework 4.8 Runtime (trên Windows 10/11 thường đã có sẵn; để build cần **.NET Framework 4.8 Developer Pack/Targeting Pack**).
-- Visual Studio 2022 với workload **.NET desktop development** để `start.bat` tìm được MSBuild và build ứng dụng. `DoAnWD.slnx` cần Visual Studio 2022 phiên bản 17.13 trở lên.
+- Visual Studio 2022 với workload **.NET desktop development** để `QuanLyGiaSu.bat app` tìm được MSBuild và build ứng dụng. `DoAnWD.slnx` cần Visual Studio 2022 phiên bản 17.13 trở lên.
 - Microsoft SQL Server 2016 trở lên (Express hoặc Developer đều được), đang chạy và cho phép kết nối Windows Authentication.
-- `sqlcmd` để cài CSDL bằng `CaiDatCSDL.bat`; nếu không có, có thể chạy lần lượt các script bằng SQL Server Management Studio (SSMS).
+- `sqlcmd` để cài CSDL bằng `QuanLyGiaSu.bat cai-csdl`; nếu không có, có thể chạy lần lượt các script bằng SQL Server Management Studio (SSMS).
 - Kết nối Internet trong lần build đầu để khôi phục các gói NuGet nếu chúng chưa có trên máy.
 
 ## Công nghệ
@@ -26,16 +28,18 @@
 
 ## Chạy nhanh (Windows)
 
-| Bước | Làm gì | Khi nào |
-|---|---|---|
-| 1 | Bấm đúp **`CaiDatCSDL.bat`**: tạo CSDL `QuanLyGiaSu`, nâng cấp cấu trúc, hỏi có thêm dữ liệu mẫu không | Lần đầu, và mỗi khi `git pull` có script mới trong `Database/` |
-| 2 | Bấm đúp **`start.bat`**: tìm MSBuild bằng `vswhere`, build cấu hình Release rồi mở ứng dụng | Mỗi lần dùng |
+Bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo để mở menu, hoặc chạy thẳng một lệnh:
 
-- `CaiDatCSDL.bat` cần lệnh `sqlcmd` (cài cùng SQL Server / SSMS). Mặc định dùng SQL Server trên máy (`.`); instance khác thì chạy `CaiDatCSDL.bat .\SQLEXPRESS` và sửa `data source` trong `DoAnWD/App.config` cho khớp.
-- `start.bat` chỉ build lại phần thay đổi nên lần sau mở rất nhanh. Máy không có Visual Studio thì nó mở bản đã build trước đó (`DoAnWD/bin/Release/DoAnWD.exe`); nếu chưa có bản build nào hoặc build thất bại thì báo lỗi rõ ràng. Có thể tạo shortcut của `start.bat` ra Desktop.
-- Bấm đúp **`stop.bat`** để đóng tiến trình `DoAnWD.exe`; script thông báo nếu ứng dụng chưa chạy.
+| Menu | Lệnh thẳng | Làm gì | Script con |
+|---|---|---|---|
+| 1 | `QuanLyGiaSu.bat app` | Tìm MSBuild bằng `vswhere`, build Release rồi mở ứng dụng | `scripts/start.bat` |
+| 2 | `QuanLyGiaSu.bat stop` | Đóng tiến trình `DoAnWD.exe` | `scripts/stop.bat` |
+| 3 | `QuanLyGiaSu.bat cai-csdl [.\SQLEXPRESS]` | Tạo CSDL `QuanLyGiaSu`, nâng cấp cấu trúc, hỏi thêm dữ liệu mẫu (lần đầu và mỗi khi có script mới trong `Database/`) | `scripts/CaiDatCSDL.bat` |
+| 4 | `QuanLyGiaSu.bat sao-luu` | Sao lưu CSDL ra file `.bak` có ngày giờ (nên chạy mỗi tuần và trước khi nâng cấp) | `scripts/SaoLuuCSDL.bat` |
+| 5 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư (App)" trên Desktop với icon `assets/QuanLyGiaSu.ico` | – |
 
-- **`SaoLuuCSDL.bat`**: sao lưu CSDL ra file `.bak` có ngày giờ trong tên. Nên chạy mỗi tuần một lần và trước khi nâng cấp.
+- Cài CSDL cần lệnh `sqlcmd` (cài cùng SQL Server / SSMS). Instance khác `.` thì truyền tên instance và sửa `data source` trong `DoAnWD/App.config` cho khớp.
+- Mở ứng dụng chỉ build lại phần thay đổi nên lần sau rất nhanh. Máy không có Visual Studio thì mở bản đã build trước đó (`DoAnWD/bin/Release/DoAnWD.exe`); chưa có bản build hoặc build lỗi thì báo rõ.
 
 **Đăng nhập lần đầu:** `admin` / `admin123` (ứng dụng tự tạo khi chưa có tài khoản nào). Đăng nhập bằng mật khẩu mặc định thì ứng dụng **bắt đặt mật khẩu mới ngay** rồi mới cho vào. Sau đó vào **Cài đặt trung tâm** (cuối menu trái) nhập tên, địa chỉ, số điện thoại trung tâm, rồi tạo tài khoản cho gia sư ở mục **Tài khoản**.
 
@@ -45,10 +49,9 @@ Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã
 
 ```
 doan3/
-├── start.bat                    # Tìm MSBuild, build Release + mở ứng dụng
-├── stop.bat                     # Đóng ứng dụng đang chạy
-├── CaiDatCSDL.bat               # Tạo / nâng cấp CSDL, thêm dữ liệu mẫu
-├── SaoLuuCSDL.bat               # Sao lưu CSDL ra file .bak
+├── QuanLyGiaSu.bat              # Menu khởi động: mở/tắt app, cài CSDL, sao lưu, shortcut
+├── scripts/                     # start.bat, stop.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat (menu gọi tới)
+├── assets/                      # QuanLyGiaSu.ico + tao-icon.ps1 (icon shortcut)
 ├── DoAnWD.slnx                  # Solution (Visual Studio 2022 17.13+)
 ├── Database/                    # Script SQL, đánh số theo thứ tự chạy
 │   ├── 01_QuanLyGiaSu.sql       #   tạo CSDL + bảng gốc
@@ -104,7 +107,7 @@ doan3/
    Mọi script chạy lại nhiều lần được, không xóa dữ liệu đang có. Dòng lệnh: `sqlcmd -S . -E -C -I -f 65001 -i Database\01_QuanLyGiaSu.sql` (tương tự cho các file khác).
 3. **Kiểm tra connection string** trong `DoAnWD/App.config`. Mặc định là instance mặc định trên máy (`data source=.`). Nếu dùng SQL Express, đổi thành `data source=.\SQLEXPRESS;`.
 4. Build và chạy bằng một trong hai cách:
-   - Bấm đúp `start.bat` để script tìm MSBuild qua `vswhere`, khôi phục gói NuGet, build cấu hình Release và mở `DoAnWD/bin/Release/DoAnWD.exe`.
+   - Bấm đúp `QuanLyGiaSu.bat app` để script tìm MSBuild qua `vswhere`, khôi phục gói NuGet, build cấu hình Release và mở `DoAnWD/bin/Release/DoAnWD.exe`.
    - Hoặc mở `DoAnWD.slnx` bằng Visual Studio 2022 17.13+, restore NuGet packages rồi chạy bằng **F5**.
 
 Nếu không kết nối được CSDL hoặc CSDL chưa nâng cấp, ứng dụng báo rõ cần làm gì thay vì văng lỗi.
@@ -113,10 +116,10 @@ Nếu không kết nối được CSDL hoặc CSDL chưa nâng cấp, ứng dụ
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| `CaiDatCSDL.bat` báo không tìm thấy `sqlcmd` | Cài SQL Server Command Line Utilities, hoặc chạy các file SQL bằng SSMS theo đúng thứ tự ở trên. |
-| Không kết nối được SQL Server / lỗi đăng nhập | Kiểm tra dịch vụ SQL Server đang chạy, tên instance trong `CaiDatCSDL.bat` và `data source` trong `DoAnWD/App.config` khớp nhau; tài khoản Windows cần quyền tạo / sửa CSDL khi cài. |
-| Ứng dụng báo thiếu bảng hoặc cột | Chạy lại `CaiDatCSDL.bat` để nâng cấp lên CSDL v6; các script nâng cấp được thiết kế để chạy lại và giữ dữ liệu hiện có. |
-| `start.bat` không tìm thấy MSBuild | Cài Visual Studio 2022 cùng workload **.NET desktop development**; kiểm tra có `vswhere.exe` tại thư mục cài đặt Visual Studio. |
+| `QuanLyGiaSu.bat cai-csdl` báo không tìm thấy `sqlcmd` | Cài SQL Server Command Line Utilities, hoặc chạy các file SQL bằng SSMS theo đúng thứ tự ở trên. |
+| Không kết nối được SQL Server / lỗi đăng nhập | Kiểm tra dịch vụ SQL Server đang chạy, tên instance trong `scripts/CaiDatCSDL.bat` và `data source` trong `DoAnWD/App.config` khớp nhau; tài khoản Windows cần quyền tạo / sửa CSDL khi cài. |
+| Ứng dụng báo thiếu bảng hoặc cột | Chạy lại `QuanLyGiaSu.bat cai-csdl` để nâng cấp lên CSDL v6; các script nâng cấp được thiết kế để chạy lại và giữ dữ liệu hiện có. |
+| `QuanLyGiaSu.bat app` không tìm thấy MSBuild | Cài Visual Studio 2022 cùng workload **.NET desktop development**; kiểm tra có `vswhere.exe` tại thư mục cài đặt Visual Studio. |
 | Build báo lỗi tham chiếu hoặc thiếu .NET Framework | Cài .NET Framework 4.8 Developer Pack/Targeting Pack, kiểm tra kết nối Internet để NuGet restore, rồi chạy lại `start.bat`. |
 | Đăng nhập không được | CSDL mới khởi tạo sẽ tự tạo `admin` / `admin123` nếu chưa có tài khoản; mật khẩu này buộc đổi ngay lần đầu. Nếu đã chọn thêm dữ liệu mẫu, thử tài khoản gia sư `gs<mã gia sư>` / `123456`. |
 
@@ -229,7 +232,7 @@ Tìm kiếm ở mọi nơi **không cần gõ dấu**: "ngoc 0981" vẫn tìm ra
 - Đăng nhập bằng mật khẩu mặc định `admin123` bị buộc đặt mật khẩu mới; không đặt lại được về mật khẩu mặc định.
 - **Phân quyền kiểm tra ở tầng nghiệp vụ**, không chỉ ẩn nút: ghép / sửa / hủy / xóa lớp, lưu / xóa hồ sơ, học phí, danh mục môn, tài khoản, cài đặt đều từ chối khi người đăng nhập không phải quản lý.
 - Luôn còn ít nhất một quản lý đang hoạt động; không tự khóa tài khoản đang dùng.
-- Sao lưu: `SaoLuuCSDL.bat`. Khôi phục bằng SSMS (Restore Database → chọn file `.bak`).
+- Sao lưu: `QuanLyGiaSu.bat sao-luu`. Khôi phục bằng SSMS (Restore Database → chọn file `.bak`).
 
 ## Giao diện
 

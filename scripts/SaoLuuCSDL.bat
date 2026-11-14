@@ -8,6 +8,8 @@ rem  Khoi phuc: mo SSMS > chuot phai Databases > Restore Database > chon file .b
 rem ==========================================================================
 setlocal EnableExtensions
 title Quan ly gia su - Sao luu CSDL
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 set "SERVER=%~1"
 if "%SERVER%"=="" set "SERVER=."
 
