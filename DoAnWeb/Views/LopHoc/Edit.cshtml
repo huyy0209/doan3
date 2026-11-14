@@ -1,0 +1,118 @@
+@model DoAnWeb.ViewModels.LopHoc.SuaLopVM
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Sửa lớp";
+    ViewData["PageSub"] = Model.Lop?.TenLop;
+    var thuChon = Constants.ThuHoc.Doc(Model.ThuHoc);
+    bool chonTatCaThu = thuChon.Count == 0;
+}
+
+<div id="sua-lop-page" data-bat-dau="@Model.Lop?.BatDau?.ToString("yyyy-MM-dd")">
+    <form method="post" asp-action="Edit" asp-route-id="@Model.MaLop" id="form-sua-lop">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="vo-alert vo-alert-danger mb-3"></div>
+
+        @if (Model.Lop == null)
+        {
+            <div class="vo-empty">
+                <div class="vo-empty-title">Không tìm thấy lớp học</div>
+                <div class="vo-empty-note">Lớp có thể đã bị xóa.</div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <div class="vo-section">
+                        <h2 class="vo-section-title">Sửa lớp @Model.Lop.TenLop</h2>
+                        <p class="vo-muted mb-3">
+                            Học viên <strong>@Model.Lop.HocVien</strong>, môn <strong>@Model.Lop.MonHoc</strong>,
+                            ca <strong>@Constants.CaHoc.TenNgan(Model.Lop.CaHoc)</strong>,
+                            bắt đầu <strong>@(Model.Lop.BatDau?.ToString("dd/MM/yyyy") ?? "—")</strong>.
+                            Muốn đổi ca hoặc ngày bắt đầu: hủy lớp rồi ghép lớp mới.
+                        </p>
+
+                        <div class="vo-form-grid">
+                            <div class="vo-field vo-span-2">
+                                <label class="form-label" for="ten-lop">Tên lớp</label>
+                                <input type="text" class="form-control" id="ten-lop" name="TenLop"
+                                       maxlength="150" value="@Model.TenLop" />
+                            </div>
+
+                            <div class="vo-field vo-field-required">
+                                <label class="form-label" for="hoc-phi">Học phí cả khóa (đ)</label>
+                                <input type="text" class="form-control vo-input-tien" id="hoc-phi" name="HocPhi"
+                                       value="@Model.HocPhi" inputmode="numeric" placeholder="Ví dụ: 1.500.000" />
+                            </div>
+
+                            <div class="vo-field vo-field-required">
+                                <label class="form-label" for="ngay-ket-thuc">Ngày kết thúc</label>
+                                <input type="date" class="form-control" id="ngay-ket-thuc" name="KetThuc"
+                                       value="@Model.KetThuc?.ToString("yyyy-MM-dd")" />
+                            </div>
+
+                            <div class="vo-field vo-span-2">
+                                <label class="form-label">Học vào các thứ</label>
+                                <div class="thu-grid" id="thu-grid-edit">
+                                    @foreach (var thu in Constants.ThuHoc.TatCa)
+                                    {
+                                        <label class="thu-o">
+                                            <input type="checkbox" class="thu-check-edit" data-thu="@thu"
+                                                   checked="@(chonTatCaThu || thuChon.Contains(thu))" />
+                                            <span>@Constants.ThuHoc.Ten(thu)</span>
+                                        </label>
+                                    }
+                                </div>
+                                <input type="hidden" name="ThuHoc" id="thu-hoc-edit" value="@Model.ThuHoc" />
+                                <div class="form-text" id="so-buoi-hint"></div>
+                            </div>
+
+                            <div class="vo-field vo-span-2">
+                                <label class="form-label" for="cbo-gia-su">Gia sư</label>
+                                <select class="form-select" id="cbo-gia-su" name="MaGS">
+                                    @foreach (var gs in Model.GiaSus)
+                                    {
+                                        <option value="@gs.MaGS" selected="@(gs.MaGS == Model.MaGS)">
+                                            @gs.HoTen@(string.IsNullOrWhiteSpace(gs.ChuyenMon) ? "" : " (" + gs.ChuyenMon + ")")@(gs.TrangThai == Constants.GiaSuStatus.TamNghi ? " – đang tạm nghỉ" : "")
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="vo-toolbar mt-3 mb-0">
+                            <button type="submit" class="btn btn-primary">
+                                <partial name="_Icon" model='"check"' />Lưu thay đổi
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.MaLop" class="btn btn-outline-secondary">
+                                <partial name="_Icon" model='"x"' />Hủy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="vo-section">
+                        <h2 class="vo-section-title">Thông tin không đổi</h2>
+                        <dl class="lop-thong-tin">
+                            <dt>Học viên</dt>
+                            <dd>@Model.Lop.HocVien</dd>
+                            <dt>Môn học</dt>
+                            <dd>@Model.Lop.MonHoc</dd>
+                            <dt>Ca học</dt>
+                            <dd>@Model.Lop.CaHoc</dd>
+                            <dt>Bắt đầu</dt>
+                            <dd>@(Model.Lop.BatDau?.ToString("dd/MM/yyyy") ?? "—")</dd>
+                            <dt>Số buổi hiện tại</dt>
+                            <dd>@Model.Lop.SoBuoi</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        }
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/lophoc.js" asp-append-version="true"></script>
+}

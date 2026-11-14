@@ -1,0 +1,156 @@
+@model DoAnWeb.ViewModels.LopHoc.LopHocIndexVM
+@using DoAnWeb.Common
+@using DoAnWeb.Services.Dto
+@{
+    ViewData["Title"] = "Lớp học";
+    ViewData["PageSub"] = "Tìm lớp theo tên, học viên, gia sư hoặc môn. Chọn một lớp để xem đánh giá, sửa, hủy.";
+    var dsTrangThai = new[]
+    {
+        "Còn hoạt động", "Tất cả",
+        Constants.LopHocStatus.ChuaBatDau, Constants.LopHocStatus.DangDienRa,
+        Constants.LopHocStatus.DaKetThuc, Constants.LopHocStatus.DaHuy
+    };
+    string TagClass(string tt)
+    {
+        if (tt == Constants.LopHocStatus.ChuaBatDau) return "vo-tag-info";
+        if (tt == Constants.LopHocStatus.DangDienRa || tt == Constants.LopHocStatus.DangHoc) return "vo-tag-success";
+        if (tt == Constants.LopHocStatus.DaHuy) return "vo-tag-danger";
+        if (tt == Constants.LopHocStatus.DaKetThuc) return "vo-tag-neutral";
+        return "vo-tag-ink";
+    }
+}
+
+<div id="lop-hoc-page">
+    <form method="get" asp-action="Index" class="vo-toolbar" id="bo-loc-lop">
+        <div class="vo-search">
+            <partial name="_Icon" model='"search"' />
+            <input type="text" class="form-control" name="q" value="@Model.TuKhoa"
+                   placeholder="Tìm tên lớp, học viên, gia sư, môn… (không cần dấu)" />
+        </div>
+        <select class="form-select" name="trangThai" aria-label="Lọc trạng thái">
+            @foreach (var tt in dsTrangThai)
+            {
+                <option value="@tt" selected="@(tt == Model.TrangThai)">@tt</option>
+            }
+        </select>
+        <select class="form-select" name="ca" aria-label="Lọc ca học">
+            <option value="">Mọi ca</option>
+            @foreach (var ca in Constants.CaHoc.TatCaCaHoc)
+            {
+                <option value="@ca" selected="@(ca == Model.CaHoc)">@Constants.CaHoc.TenNgan(ca)</option>
+            }
+        </select>
+        <select class="form-select" name="mon" aria-label="Lọc môn học">
+            <option value="">Mọi môn</option>
+            @foreach (var mon in Model.MonHocs)
+            {
+                <option value="@mon" selected="@(string.Equals(mon, Model.MonHoc, StringComparison.OrdinalIgnoreCase))">@mon</option>
+            }
+        </select>
+        <select class="form-select" name="maGS" aria-label="Lọc gia sư">
+            <option value="">Mọi gia sư</option>
+            @foreach (var gs in Model.GiaSus)
+            {
+                <option value="@gs.MaGS" selected="@(Model.MaGS == gs.MaGS)">@gs.HoTen</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-ink-soft">
+            <partial name="_Icon" model='"search"' />Lọc
+        </button>
+        <a asp-action="GhepLop" class="btn btn-primary">
+            <partial name="_Icon" model='"plus"' />Ghép lớp mới
+        </a>
+        <a asp-controller="MonHoc" asp-action="Index" class="btn btn-outline-secondary">
+            <partial name="_Icon" model='"book"' />Môn học
+        </a>
+    </form>
+
+    <div class="vo-section">
+        <div class="vo-section-head">
+            <h2 class="vo-section-title">Danh sách lớp</h2>
+            <span class="vo-page-sub mb-0">
+                @if (Model.TongSo == 0)
+                {
+                    <span>Không có lớp nào khớp bộ lọc.</span>
+                }
+                else
+                {
+                    <span>@Model.TongSo / @Model.TongSoTatCa lớp</span>
+                }
+            </span>
+        </div>
+
+        @if (Model.DanhSach.Count == 0)
+        {
+            <div class="vo-empty">
+                <partial name="_Icon" model='"book"' />
+                <div class="vo-empty-title">Không có lớp nào</div>
+                <div class="vo-empty-note">Thử bỏ bớt bộ lọc hoặc bấm “Ghép lớp mới” để tạo lớp đầu tiên.</div>
+            </div>
+        }
+        else
+        {
+            <div class="vo-table-wrap">
+                <table class="vo-table">
+                    <thead>
+                        <tr>
+                            <th>Tên lớp</th>
+                            <th>Học viên</th>
+                            <th>Gia sư</th>
+                            <th>Môn</th>
+                            <th>Loại môn</th>
+                            <th>Ca</th>
+                            <th>Thứ học</th>
+                            <th class="vo-cell-number">Số buổi</th>
+                            <th>Bắt đầu</th>
+                            <th>Kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th class="vo-cell-number">Học phí</th>
+                            <th>Đánh giá</th>
+                            <th class="vo-cell-actions">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lop in Model.DanhSach)
+                        {
+                            <tr class="@(Model.ChonMaLop == lop.MaLop ? "is-selected" : "")">
+                                <td class="vo-cell-strong">
+                                    <a asp-action="Details" asp-route-id="@lop.MaLop" class="vo-link-strong">@lop.TenLop</a>
+                                </td>
+                                <td>@lop.HocVien</td>
+                                <td>@lop.GiaSu</td>
+                                <td>@lop.MonHoc</td>
+                                <td>@lop.LoaiMon</td>
+                                <td title="@lop.CaHoc">@Constants.CaHoc.TenNgan(lop.CaHoc)</td>
+                                <td>@lop.ThuHoc</td>
+                                <td class="vo-cell-number">@lop.SoBuoi</td>
+                                <td>@(lop.BatDau?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td>@(lop.KetThuc?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td><span class="vo-tag @TagClass(lop.TrangThai)">@lop.TrangThai</span></td>
+                                <td class="vo-cell-number">@SoTien.Dinh(lop.HocPhi)</td>
+                                <td>
+                                    <span class="vo-cell-strong">@lop.DanhGia</span>
+                                    @if (lop.DiemTB.HasValue)
+                                    {
+                                        <span class="vo-cell-muted d-block">TB @lop.DiemTB.Value.ToString("0.##")</span>
+                                    }
+                                </td>
+                                <td class="vo-cell-actions">
+                                    <a asp-action="Details" asp-route-id="@lop.MaLop" class="btn btn-sm btn-outline-secondary">
+                                        <partial name="_Icon" model='"search"' />Xem
+                                    </a>
+                                    @if (lop.TrangThai != Constants.LopHocStatus.DaHuy)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@lop.MaLop" class="btn btn-sm btn-outline-secondary">
+                                            <partial name="_Icon" model='"edit"' />Sửa
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

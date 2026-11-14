@@ -1,0 +1,261 @@
+@model DoAnWeb.ViewModels.LopHoc.GhepLopVM
+@using System.Text.Json
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Ghép lớp mới";
+    ViewData["PageSub"] = "Chọn học viên, môn, ca và thứ học, cuối cùng là gia sư còn trống lịch. Tên lớp tự gợi ý, sửa được.";
+
+    var thuChon = Constants.ThuHoc.Doc(Model.ThuHoc);
+    bool chonTatCaThu = thuChon.Count == 0;
+
+    var duLieu = new
+    {
+        hocViens = Model.HocViens.Select(h => new
+        {
+            ma = h.MaHV,
+            ten = h.HoTen,
+            sdt = h.SDT,
+            tenPh = h.TenPhuHuynh,
+            sdtPh = h.SDTPhuHuynh,
+            trinhDo = h.TrinhDo,
+            soLop = Model.LopHoatDong.Count(l => l.MaHV == h.MaHV),
+            lopText = string.Join("; ", Model.LopHoatDong.Where(l => l.MaHV == h.MaHV)
+                .Select(l => $"{l.MonHoc} ({Constants.CaHoc.TenNgan(l.CaHoc)})"))
+        }),
+        giaSus = Model.GiaSus.Select(g => new
+        {
+            ma = g.MaGS,
+            ten = g.HoTen,
+            sdt = g.SDT,
+            chuyenMon = g.ChuyenMon,
+            caNhanDay = g.CaNhanDay,
+            nhanCa = Constants.CaHoc.TatCaCaHoc.Select(c => g.NhanCa(c)).ToArray(),
+            soLop = Model.LopHoatDong.Count(l => l.MaGS == g.MaGS),
+            lichText = string.Join("; ", Model.LopHoatDong.Where(l => l.MaGS == g.MaGS)
+                .OrderBy(l => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, l.CaHoc))
+                .Select(l => $"{Constants.CaHoc.TenNgan(l.CaHoc)} {l.MonHoc} đến {l.ThoiGianKetThuc:dd/MM}"))
+        }),
+        mons = Model.MonHocs.Select(m => new
+        {
+            ten = m.TenMon,
+            nangKhieu = m.LaNangKhieu,
+            caps = m.DanhSachCapDo
+        }),
+        lops = Model.LopHoatDong.Select(l => new
+        {
+            ma = l.MaLop,
+            maGS = l.MaGS,
+            maHV = l.MaHV,
+            ca = l.CaHoc,
+            batDau = l.ThoiGianBatDau?.ToString("yyyy-MM-dd"),
+            ketThuc = l.ThoiGianKetThuc?.ToString("yyyy-MM-dd"),
+            thu = l.ThuHoc,
+            ten = l.TenHienThi,
+            mon = l.MonHoc
+        }),
+        tenLopDaCo = Model.TenLopDaCo.OrderBy(x => x).ToList()
+    };
+}
+
+<div id="ghep-lop-page"
+     data-kiemtra-url="@Url.Action("KiemTra")"
+     data-goiyten-url="@Url.Action("GoiYTen")">
+    <form method="post" asp-action="GhepLop" id="form-ghep-lop">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="vo-alert vo-alert-danger mb-3"></div>
+
+        <div class="row g-3">
+            @* ================= 1. HỌC VIÊN ================= *@
+            <div class="col-xl-4 col-lg-6">
+                <section class="vo-section h-100 ghep-cot">
+                    <h2 class="vo-section-title">1. Học viên</h2>
+                    <div class="vo-search mb-2">
+                        <partial name="_Icon" model='"search"' />
+                        <input type="text" id="tim-hv" class="form-control" autocomplete="off"
+                               placeholder="Tìm tên, SĐT, phụ huynh, trường…" />
+                    </div>
+                    <div class="ghep-list" id="ds-hv">
+                        @foreach (var hv in Model.HocViens)
+                        {
+                            int soLop = Model.LopHoatDong.Count(l => l.MaHV == hv.MaHV);
+                            <label class="ghep-item" data-ma="@hv.MaHV"
+                                   data-ten="@hv.HoTen" data-sdt="@hv.SDT"
+                                   data-ph="@hv.TenPhuHuynh" data-sdtph="@hv.SDTPhuHuynh"
+                                   data-trinhdo="@hv.TrinhDo">
+                                <input type="radio" name="MaHV" value="@hv.MaHV" class="ghep-radio-hv"
+                                       checked="@(Model.MaHV == hv.MaHV)" />
+                                <span class="ghep-item-main">
+                                    <span class="ghep-item-ten">@hv.HoTen</span>
+                                    <span class="ghep-item-phu">
+                                        @(string.IsNullOrWhiteSpace(hv.TenPhuHuynh) ? "" : "PH " + hv.TenPhuHuynh)
+                                        @(string.IsNullOrWhiteSpace(hv.SDTPhuHuynh) && string.IsNullOrWhiteSpace(hv.SDT) ? "" : " · " + hv.SDTLienHe)
+                                        @(string.IsNullOrWhiteSpace(hv.TrinhDo) ? "" : " · " + hv.TrinhDo)
+                                    </span>
+                                </span>
+                                @if (soLop > 0)
+                                {
+                                    <span class="vo-tag vo-tag-ink">@soLop lớp</span>
+                                }
+                            </label>
+                        }
+                    </div>
+                    <div class="vo-empty py-3" id="hv-trong" hidden>
+                        <div class="vo-empty-title">Không tìm thấy học viên</div>
+                        <div class="vo-empty-note">Thử từ khóa khác hoặc thêm học viên ở trang Học viên trước.</div>
+                    </div>
+                    <div class="ghep-note" id="hv-info"></div>
+                </section>
+            </div>
+
+            @* ================= 2. LỚP HỌC ================= *@
+            <div class="col-xl-4 col-lg-6">
+                <section class="vo-section h-100 ghep-cot">
+                    <h2 class="vo-section-title">2. Lớp học</h2>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-7">
+                            <label class="form-label">Môn học</label>
+                            <select class="form-select" id="cbo-mon" name="MonHoc">
+                                <option value="">Chọn môn học…</option>
+                                @foreach (var mon in Model.MonHocs)
+                                {
+                                    <option value="@mon.TenMon" data-nk="@(mon.LaNangKhieu ? "1" : "0")"
+                                            selected="@(string.Equals(mon.TenMon, Model.MonHoc, StringComparison.OrdinalIgnoreCase))">
+                                        @mon.TenMon@(mon.LaNangKhieu ? " (năng khiếu)" : "")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-5" id="khung-cap" hidden>
+                            <label class="form-label">Cấp độ đầu vào</label>
+                            <select class="form-select" id="cbo-cap" name="CapDoDauVao"></select>
+                        </div>
+                    </div>
+
+                    <label class="form-label">Ca học</label>
+                    <div class="ca-grid" id="ca-grid">
+                        @foreach (var ca in Constants.CaHoc.TatCaCaHoc)
+                        {
+                            Constants.CaHoc.TryGetGio(ca, out int gioBD, out int gioKT);
+                            <label class="ca-o" data-ca="@ca">
+                                <input type="radio" name="CaHoc" value="@ca" checked="@(Model.CaHoc == ca)" />
+                                <span class="ca-ten">@Constants.CaHoc.TenNgan(ca)</span>
+                                <span class="ca-gio">@gioBD h–@gioKT h</span>
+                                <span class="ca-ban"></span>
+                            </label>
+                        }
+                    </div>
+
+                    <label class="form-label mt-2">Học vào các thứ</label>
+                    <div class="thu-grid" id="thu-grid">
+                        @foreach (var thu in Constants.ThuHoc.TatCa)
+                        {
+                            <label class="thu-o">
+                                <input type="checkbox" class="thu-check" data-thu="@thu"
+                                       checked="@(chonTatCaThu || thuChon.Contains(thu))" />
+                                <span>@Constants.ThuHoc.Ten(thu)</span>
+                            </label>
+                        }
+                    </div>
+                    <input type="hidden" name="ThuHoc" id="thu-hoc" value="@Model.ThuHoc" />
+
+                    <label class="form-label mt-2">Từ ngày – đến ngày</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="date" class="form-control" name="BatDau" id="ngay-bat-dau"
+                                   value="@Model.BatDau?.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-6">
+                            <input type="date" class="form-control" name="KetThuc" id="ngay-ket-thuc"
+                                   value="@Model.KetThuc?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="button" class="btn btn-sm btn-ghost" data-thang="1">1 tháng</button>
+                        <button type="button" class="btn btn-sm btn-ghost" data-thang="2">2 tháng</button>
+                        <button type="button" class="btn btn-sm btn-ghost" data-thang="3">3 tháng</button>
+                    </div>
+
+                    <label class="form-label mt-3">Học phí cả khóa (đ)</label>
+                    <input type="text" class="form-control vo-input-tien" name="HocPhi" id="hoc-phi"
+                           value="@Model.HocPhi" placeholder="Ví dụ: 1.500.000" inputmode="numeric" />
+
+                    <div id="ghep-status" class="ghep-status is-trong">Chọn một ca học.</div>
+                </section>
+            </div>
+
+            @* ================= 3. GIA SƯ ================= *@
+            <div class="col-xl-4 col-lg-12">
+                <section class="vo-section h-100 ghep-cot">
+                    <h2 class="vo-section-title">3. Gia sư</h2>
+                    <div class="vo-search mb-2">
+                        <partial name="_Icon" model='"search"' />
+                        <input type="text" id="tim-gs" class="form-control" autocomplete="off"
+                               placeholder="Tìm tên, SĐT gia sư…" />
+                    </div>
+                    <label class="ghep-check">
+                        <input type="checkbox" id="chi-cung-mon" checked />
+                        <span>Chỉ hiện gia sư dạy môn này</span>
+                    </label>
+                    <label class="ghep-check">
+                        <input type="checkbox" id="chi-trong" checked />
+                        <span>Chỉ hiện gia sư nhận và còn trống ca này</span>
+                    </label>
+
+                    <div class="ghep-list ghep-list-gs" id="ds-gs">
+                        @foreach (var gs in Model.GiaSus)
+                        {
+                            int soLop = Model.LopHoatDong.Count(l => l.MaGS == gs.MaGS);
+                            <label class="ghep-item" data-ma="@gs.MaGS"
+                                   data-ten="@gs.HoTen" data-sdt="@gs.SDT" data-chuyenmon="@gs.ChuyenMon"
+                                   data-canhan="@gs.CaNhanDay">
+                                <input type="radio" name="MaGS" value="@gs.MaGS" class="ghep-radio-gs"
+                                       checked="@(Model.MaGS == gs.MaGS)" />
+                                <span class="ghep-item-main">
+                                    <span class="ghep-item-ten">@gs.HoTen</span>
+                                    <span class="ghep-item-phu">
+                                        @(string.IsNullOrWhiteSpace(gs.ChuyenMon) ? "Chưa có chuyên môn" : gs.ChuyenMon)
+                                        · @(soLop == 0 ? "chưa có lớp" : soLop + " lớp đang dạy")
+                                    </span>
+                                </span>
+                                <span class="gs-tag"></span>
+                            </label>
+                        }
+                    </div>
+                    <div class="vo-empty py-3" id="gs-trong" hidden>
+                        <div class="vo-empty-title">Không có gia sư phù hợp</div>
+                        <div class="vo-empty-note">Bỏ dấu ở hai ô lọc phía trên để xem mọi gia sư, hoặc đổi ca / thứ học.</div>
+                    </div>
+                    <div class="ghep-note" id="lich-gs"></div>
+                </section>
+            </div>
+        </div>
+
+        @* ================= CHÂN: TÊN LỚP + TÓM TẮT ================= *@
+        <div class="vo-section ghep-chan">
+            <div class="ghep-ten">
+                <label class="form-label mb-0">Tên lớp</label>
+                <input type="text" class="form-control" name="TenLop" id="ten-lop" maxlength="150"
+                       value="@Model.TenLop" placeholder="Tên lớp, ví dụ: Cờ vua - Bảo Ngọc - Tối" />
+                <button type="button" class="btn btn-ghost" id="goi-y-ten">
+                    <partial name="_Icon" model='"refresh"' />Gợi ý lại
+                </button>
+            </div>
+            <div class="ghep-footer">
+                <div id="ghep-tom-tat" class="ghep-tom-tat">Còn thiếu: học viên, môn học, ca học, gia sư, học phí.</div>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <partial name="_Icon" model='"x"' />Hủy
+                </a>
+                <button type="submit" class="btn btn-primary" id="nut-ghep" disabled>
+                    <partial name="_Icon" model='"check"' />Ghép lớp
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <script id="du-lieu-ghep" type="application/json">@Html.Raw(JsonSerializer.Serialize(duLieu))</script>
+</div>
+
+@section Scripts {
+    <script src="~/js/lophoc.js" asp-append-version="true"></script>
+}
