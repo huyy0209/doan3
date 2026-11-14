@@ -236,4 +236,29 @@ cần sửa file chung (Program.cs, _Layout, Services) thì `ask` coordinator.
 | W3 | deepseek → copilot → opencode | `new-child` tên `web-w3` | `DoAnWeb.Tests/**`, `docs/progress/W3.md` | mọi thứ khác (kể cả `DoAnWD.slnx` – coordinator thêm khi merge) | xUnit test luật ở mục 3 (mã luật trong `[Trait("Luat", …)]`), bắt buộc có TK-01..03 (hash seed 123456), LH-11..15, LH-18 (rollback), TK-06..09. Lỗi thật trong service → báo coordinator, không tự sửa service |
 | W4 | antigravity → (bỏ, coordinator review 10 mục) | `new-child` tên `web-w4`, **chỉ chạy sau khi W1–W3 merge** | `docs/web-review.md` | mọi file code | Review bản web, tối đa 15 mục, xếp theo mức độ |
 
-Thứ tự: GĐ1 (commit "feat(web): dựng khung ASP.NET Core") → W1, W2, W3 song song → merge + build + test → W4 → GĐ3 (start-web.bat, stop-web.bat, README, push).
+Thứ tự: GĐ1 (commit "feat(web): dựng khung ASP.NET Core") → W1, W2, W3, W5, W6 song song → merge + build + test → W4 → GĐ3 (start-web.bat, stop-web.bat, README, push).
+
+### 6.1 Bổ sung sau khi duyệt (người dùng yêu cầu web hoàn thiện, giao diện y như app)
+
+Mọi màn hình ở mục 1 đều phải làm. Giao diện bám bộ "Vở ô li" của app (`DoAnWD/UI/Theme/Theme.cs:23-60`):
+sidebar xanh bảng `#1D4A40`, nút chính `#1B7A5E`, nền `#F2F5F3`, phấn vàng `#F3C44F`, bút đỏ `#C4403C`,
+font Be Vietnam Pro; khung sẵn trong `DoAnWeb/wwwroot/css/site.css` (biến CSS `--vo-*`) + `_Layout` do coordinator làm.
+Worker dùng class có sẵn, không tự đổi `site.css` (cần thêm style riêng → file css riêng của task).
+
+| Task | Agent (dự phòng) | Worktree | Được sửa | Nội dung |
+|---|---|---|---|---|
+| W2 (mở rộng) | opencode → copilot → deepseek | `web-w2` | thêm `Controllers/MonHocController.cs`, `Views/MonHoc/**`, `ViewModels/MonHoc/**` | + danh mục môn học (MH-*) – trong app mở từ trang Lớp học |
+| W5 | copilot → opencode → deepseek | `web-w5` | `Controllers/DiemDanhController.cs`, `HocTapController.cs`; `Views/DiemDanh/**`, `Views/HocTap/**`; `ViewModels/HocTap/**`; `wwwroot/js/hoctap.js`, `wwwroot/css/hoctap.css`; `docs/progress/W5.md` | Điểm danh theo ngày/ca, kết quả học tập theo lớp (biểu đồ điểm), sửa buổi, xếp/hủy học bù, phiếu báo kết quả (in được). Luật HT-* |
+| W6 | opencode → copilot → deepseek | `web-w6` | `Controllers/HocPhiController.cs`, `TongQuanController.cs`, `LichController.cs`, `CaiDatController.cs`, `ThongBaoController.cs`; `Views/HocPhi/**`, `Views/TongQuan/**`, `Views/Lich/**`, `Views/CaiDat/**`, `Views/ThongBao/**`; `ViewModels/<các mục trên>/**`; `wwwroot/js/w6.js`, `wwwroot/css/w6.css`; `docs/progress/W6.md` | Học phí (công nợ, lịch sử, thêm/xóa lần đóng, xuất CSV), Tổng quan, Lịch tháng, Cài đặt trung tâm, thông báo lớp sắp bắt đầu. Luật HP-*, CD-*, TQ-* |
+
+Liên kết giữa trang: dùng route cố định trong bảng mục 1 (vd. `/HocTap/KetQua/{maHV}`, `/LopHoc/Details/{id}`), không cần chờ task khác.
+
+### 6.2 Quyết định đã chốt (trả lời mục 5)
+1. Agent: dùng id `copilot`, `opencode`, `antigravity`; DeepSeek thử `dsh` (người dùng đã bật sẵn trong Orca).
+2. `net8.0` + `RollForward=Major`.
+3. Làm đủ mọi màn hình, giao diện giống app (thêm W5, W6, mở rộng W2).
+4. Build gate = `dotnet build DoAnWeb/DoAnWeb.csproj` + `dotnet test DoAnWeb.Tests`; vẫn thêm 2 project vào `DoAnWD.slnx`.
+5. Web tự tạo `admin/admin123` khi bảng rỗng + bắt đổi mật khẩu mặc định.
+6. Ghép lớp ghi thêm `MaMon`.
+7. Test dùng SQL Server thật: tạo DB riêng `QuanLyGiaSu_Test` (BACKUP/RESTORE từ `QuanLyGiaSu`), tự tạo dữ liệu mẫu; không ghi vào `QuanLyGiaSu`.
+8. Tài khoản demo: quản lý `admin` / `Admin@2026`, gia sư `gs1` / `123456`.

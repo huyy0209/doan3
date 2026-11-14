@@ -4,8 +4,7 @@
 > Kế hoạch chi tiết: `docs/web-plan.md`. Tiến độ từng worker: `docs/progress/<mã task>.md`.
 
 ## Giai đoạn hiện tại
-**GĐ0 – Chốt nghiệp vụ: XONG, đang CHỜ NGƯỜI DÙNG DUYỆT** (trả lời "duyệt" + các câu hỏi mục 5 của web-plan.md).
-Chưa được viết code web trước khi có "duyệt".
+**GĐ1 – Dựng khung: ĐANG LÀM** (người dùng đã "duyệt" 2026-11-14, quyết định ở web-plan.md mục 6.2).
 
 ## Thông tin môi trường
 - Repo worktree: `C:\Users\Admin\orca\workspaces\doan3\cập-nhật-lên-web`, nhánh `huyy0209/cập-nhật-lên-web`.
@@ -18,15 +17,18 @@ Chưa được viết code web trước khi có "duyệt".
 ## Trạng thái task
 | Task | Trạng thái | Agent | Worktree | Nhánh | Ghi chú |
 |---|---|---|---|---|---|
-| GĐ0 | xong (chờ duyệt) | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | web-plan.md, web-progress.md |
-| GĐ1 | chưa bắt đầu | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | |
-| W1 | chưa giao | (copilot) | – | – | |
-| W2 | chưa giao | (opencode) | – | – | |
-| W3 | chưa giao | (deepseek) | – | – | |
-| W4 | chưa giao | (antigravity) | – | – | chỉ chạy sau khi W1–W3 merge |
+| GĐ0 | xong, đã duyệt | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | 3b08cb1 |
+| GĐ1 | đang chạy | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | |
+| W1 | chưa giao | (copilot) | – | – | GS, HV, Tài khoản |
+| W2 | chưa giao | (opencode) | – | – | Lớp, ghép lớp, Môn học |
+| W3 | chưa giao | (dsh) | – | – | xUnit, DB QuanLyGiaSu_Test |
+| W5 | chưa giao | (copilot) | – | – | Điểm danh, kết quả, học bù |
+| W6 | chưa giao | (opencode) | – | – | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
+| W4 | chưa giao | (antigravity) | – | – | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
 
 ## Quyết định đã chốt
-- (chờ trả lời câu hỏi 1–8 trong web-plan.md mục 5)
+Xem `docs/web-plan.md` mục 6.2 (net8+RollForward, làm đủ màn hình giống app, test trên DB `QuanLyGiaSu_Test`,
+ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`).
 
 ## Lịch sử đổi agent
 | Thời điểm | Task | Agent cũ | Agent mới | Lý do |
