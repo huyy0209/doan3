@@ -1387,3 +1387,16 @@ table.vo-table .vo-cell-actions .btn {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Logo (W9) */
+.vo-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.vo-auth-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
