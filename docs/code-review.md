@@ -274,7 +274,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-03] Cách tính doanh thu phản ánh sai dòng tiền thực tế
 - **Vị trí**: `DoAnWD/BLL/Services/ThongKeService.cs:67-73`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tính doanh thu theo dòng tiền thực thu từ bảng ThanhToan thay vì học phí danh nghĩa.
 - **Mô tả vấn đề**:
   Hàm `GetStatistics` tính doanh thu như sau:
   ```csharp

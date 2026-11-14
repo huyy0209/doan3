@@ -63,11 +63,14 @@ namespace DoAnWD.BLL.Services
                 HocVienDangHoc = _context.LopHocs.Where(l => l.MaHV != null && hoatDong.Contains(l.TrangThai))
                     .Select(l => l.MaHV).Distinct().Count(),
 
-                // Doanh thu = tổng học phí (không tính lớp đã hủy)
-                DoanhThuDangHoatDong = _context.LopHocs
-                    .Where(l => hoatDong.Contains(l.TrangThai))
-                    .Sum(l => l.HocPhi) ?? 0,
-                DoanhThuThangNay = _context.LopHocs
+                // MED-03: Doanh thu theo dòng tiền thực thu (ThanhToan) thay vì học phí danh nghĩa
+                DoanhThuDangHoatDong = _context.ThanhToans
+                    .Where(t => hoatDong.Contains(t.LopHoc.TrangThai))
+                    .Sum(t => (decimal?)t.SoTien) ?? 0,
+                DoanhThuThangNay = _context.ThanhToans
+                    .Where(t => t.NgayDong >= dauThang && t.NgayDong < dauThangSau)
+                    .Sum(t => (decimal?)t.SoTien) ?? 0,
+                TongGiaTriLopKhaiGiangThangNay = _context.LopHocs
                     .Where(l => l.TrangThai != Constants.LopHocStatus.DaHuy &&
                                 l.ThoiGianBatDau >= dauThang && l.ThoiGianBatDau < dauThangSau)
                     .Sum(l => l.HocPhi) ?? 0
@@ -123,10 +126,13 @@ namespace DoAnWD.BLL.Services
         public int HocVienDangHoc { get; set; }
         public int GiaSuTamNghi { get; set; }
 
-        /// <summary>Tổng học phí các lớp đang hoạt động</summary>
+        /// <summary>MED-03: Thực thu từ các lớp đang hoạt động theo dòng tiền thực tế</summary>
         public decimal DoanhThuDangHoatDong { get; set; }
 
-        /// <summary>Tổng học phí các lớp khai giảng trong tháng hiện tại</summary>
+        /// <summary>MED-03: Dòng tiền thực thu trong tháng hiện tại (theo bảng ThanhToan)</summary>
         public decimal DoanhThuThangNay { get; set; }
+
+        /// <summary>MED-03: Tổng học phí danh nghĩa các lớp khai giảng trong tháng hiện tại</summary>
+        public decimal TongGiaTriLopKhaiGiangThangNay { get; set; }
     }
 }
