@@ -115,6 +115,52 @@ namespace DoAnWeb.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult GiaSuHocBu(DateTime ngay, string ca, string monHoc)
+        {
+            var ds = _hocTap.GetGiaSuChoHocBu(ngay, ca)
+                .OrderBy(g => g.Ban != null)
+                .ThenBy(g => !string.Equals(g.ChuyenMon, monHoc, StringComparison.OrdinalIgnoreCase))
+                .ThenBy(g => g.HoTen)
+                .Select(g => new { g.MaGS, g.HoTen, g.ChuyenMon, g.Ban })
+                .ToList();
+            return Json(ds);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XepHocBu(int maBuoiVang, DateTime ngay, string ca, int maGSDay, bool boQuaCanhBao = false)
+        {
+            try
+            {
+                var result = _hocTap.XepHocBu(maBuoiVang, ngay, ca, maGSDay, boQuaCanhBao, _nguoiDung.GioiHanGiaSu);
+                if (!string.IsNullOrEmpty(result.CanhBao)) return Json(new { CanhBao = result.CanhBao });
+                if (!result.ThanhCong) return Json(new { Loi = result.Loi ?? "Không xếp được lịch học bù." });
+                return Json(new { ThanhCong = true });
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException)
+            {
+                return Json(new { Loi = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult HuyHocBu(int maBuoiBu, int maHV)
+        {
+            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            try
+            {
+                _hocTap.HuyHocBu(maBuoiBu, _nguoiDung.GioiHanGiaSu);
+                TempData["ThongBao"] = "Đã hủy buổi học bù. Buổi vắng được giữ nguyên.";
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException)
+            {
+                TempData["Loi"] = ex.Message;
+            }
+            return RedirectToAction(nameof(KetQua), new { maHV });
+        }
+
         private HocVienKetQuaViewModel TaoKetQua(HocVien hocVien, IEnumerable<string> loi, IEnumerable<BuoiHocSuaDongInput> posted)
         {
             var classes = _hocTap.GetKetQuaHocVien(hocVien.MaHV, _nguoiDung.GioiHanGiaSu);

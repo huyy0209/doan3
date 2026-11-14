@@ -165,6 +165,22 @@ else
                                         {
                                             <input type="hidden" name="buoi[@i].ThiLenCap" value="false" />
                                         }
+                                        @if (session.ChoXepBu)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary js-open-makeup mt-1"
+                                                    data-ma-buoi="@session.MaBuoi" data-ma-gs="@lop.MaGS" data-mon="@lop.MonHoc"
+                                                    data-ca="@lop.CaHoc" data-ngay-vang="@b.NgayHoc.ToString("dd/MM/yyyy")">
+                                                Xếp bù
+                                            </button>
+                                        }
+                                        @if (session.ChoHuyBu)
+                                        {
+                                            var maBuoiBu = b.LaHocBu ? b.MaBuoi : b.MaBuoiBu.Value;
+                                            <button type="button" class="btn btn-sm btn-outline-danger js-cancel-makeup mt-1"
+                                                    data-ma-buoi-bu="@maBuoiBu" data-ma-hv="@Model.MaHV" data-ngay="@b.NgayHoc.ToString("dd/MM/yyyy")">
+                                                Hủy bù
+                                            </button>
+                                        }
                                         @if (session.KhoaSua) { <span class="small text-muted">Chỉ xem</span> }
                                     </td>
                                 </tr>
@@ -180,6 +196,75 @@ else
         </div>
     </form>
 }
+
+<form asp-action="HuyHocBu" method="post" id="huyHocBuForm" class="d-none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="maBuoiBu" id="huyMaBuoiBu" />
+    <input type="hidden" name="maHV" value="@Model.MaHV" />
+</form>
+
+<div class="modal fade" id="xepHocBuModal" tabindex="-1" aria-labelledby="xepHocBuTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="XepHocBu" method="post" id="xepHocBuForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="maBuoiVang" id="xepMaBuoiVang" />
+                <input type="hidden" name="boQuaCanhBao" id="boQuaCanhBao" value="false" />
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5" id="xepHocBuTitle">Xếp học bù</h2>
+                        <div class="small text-muted" id="xepHocBuMoTa"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="hocBuLoi" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <label for="xepNgay" class="form-label">Ngày học bù</label>
+                            <input type="date" id="xepNgay" name="ngay" class="form-control" required
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="xepCa" class="form-label">Ca</label>
+                            <select id="xepCa" name="ca" class="form-select" required>
+                                @foreach (var ca in Constants.CaHoc.TatCaCaHoc)
+                                {
+                                    <option value="@ca">@Constants.CaHoc.TenNgan(ca)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="xepGiaSu" class="form-label">Gia sư dạy bù</label>
+                        <select id="xepGiaSu" name="maGSDay" class="form-select" required></select>
+                        <div id="xepGiaSuLyDo" class="small mt-1 text-muted" aria-live="polite"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Xếp lịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="xacNhanHocTapModal" tabindex="-1" aria-labelledby="xacNhanHocTapTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="xacNhanHocTapTitle">Xác nhận</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="xacNhanHocTapNoiDung"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Không</button>
+                <button type="button" class="btn btn-primary" id="xacNhanHocTapDongY">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Styles {
     <link rel="stylesheet" href="~/css/hoctap.css" asp-append-version="true" />
