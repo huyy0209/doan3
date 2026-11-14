@@ -49,7 +49,7 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 ## Đợt 2 (sau khi push)
 | Task | Trạng thái | Agent | Worktree | Nội dung |
 |---|---|---|---|---|
-| W8 | đang chạy | copilot (ctx_c372eff249a2) | web-w8 | gộp .bat thành QuanLyGiaSu.bat + scripts/, dọn file thừa DoAnWeb, .gitignore |
+| W8 | đã merge (QuanLyGiaSu.bat web/stop thử OK, 240/240) | copilot (ctx_c372eff249a2) | web-w8 | gộp .bat thành QuanLyGiaSu.bat + scripts/, dọn file thừa DoAnWeb, .gitignore |
 | W9 | đang chạy | zai glm-4.5-flash (ctx_03de6644ea98, terminal riêng, auto mode – người dùng cho phép bypass) | web-w9 | logo SVG, favicon, assets/QuanLyGiaSu.ico |
 
 Thử model mới 2026-11-15: Qwen Code (OAuth free ngừng 15/04/2026) và Gemini CLI (Code Assist cá nhân ngừng, chuyển Antigravity) KHÔNG dùng được miễn phí khi đăng nhập tài khoản; cần key (OpenRouter / Google AI Studio).
