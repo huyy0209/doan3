@@ -5,7 +5,8 @@ rem  Khong dung toi ban WinForms (DoAnWD.exe).
 rem ==========================================================================
 setlocal EnableExtensions
 chcp 65001 >nul
-cd /d "%~dp0"
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 
 powershell -NoProfile -Command ^
   "$ps = Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'DoAnWeb.exe' -or ($_.Name -eq 'dotnet.exe' -and $_.CommandLine -match 'DoAnWeb') };" ^
