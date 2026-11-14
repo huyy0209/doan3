@@ -1,10 +1,11 @@
 @model DoAnWeb.ViewModels.HocVien.HocVienIndexVM
 @{
     ViewData["Title"] = "Học viên";
+    ViewData["PageSub"] = "Danh sách hồ sơ học viên và thông tin liên hệ.";
 }
-<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
-<div class="vo-page-title">Học viên</div>
-<p class="vo-page-sub">Danh sách hồ sơ học viên và thông tin liên hệ.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
 @if (TempData["ThongBao"] != null)
 {
     <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
@@ -25,6 +26,12 @@
     <form method="get" class="vo-toolbar w1-filter-row w1-hocvien-filter">
         <input class="form-control" type="search" name="tuKhoa" value="@Model.TuKhoa"
                placeholder="Tìm tên, SĐT, phụ huynh, trường... (không cần dấu)" />
+        <select class="form-select" name="tinhTrang" aria-label="Lọc tình trạng">
+            <option value="">Mọi tình trạng</option>
+            <option value="Đang học" selected="@(Model.TinhTrang == "Đang học")">Đang học</option>
+            <option value="Chưa có lớp" selected="@(Model.TinhTrang == "Chưa có lớp")">Chưa có lớp</option>
+            <option value="Đã nghỉ" selected="@(Model.TinhTrang == "Đã nghỉ")">Đã nghỉ</option>
+        </select>
         <select class="form-select" name="trinhDo" aria-label="Lọc trình độ">
             <option value="">Mọi trình độ</option>
             @foreach (var item in Model.DanhSachTrinhDo)
@@ -105,5 +112,7 @@
             </div>
         </div>
     </div>
+}
+@section Scripts {
     <script src="~/js/w1.js" asp-append-version="true"></script>
 }

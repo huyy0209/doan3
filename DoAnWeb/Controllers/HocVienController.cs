@@ -11,6 +11,10 @@ namespace DoAnWeb.Controllers;
 [Authorize]
 public class HocVienController : Controller
 {
+    private const string DangHoc = "Đang học";
+    private const string ChuaCoLop = "Chưa có lớp";
+    private const string DaNghi = "Đã nghỉ";
+
     private readonly HocVienService _hocVien;
     private readonly QuanLyGiaSuContext _db;
     private readonly INguoiDungHienTai _nguoiDung;
@@ -23,7 +27,7 @@ public class HocVienController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index(string tuKhoa, string trinhDo)
+    public IActionResult Index(string tuKhoa, string trinhDo, string tinhTrang)
     {
         var ds = _hocVien.GetDuocXem(tuKhoa);
         var levels = ds.Select(h => h.TrinhDo).Where(t => !string.IsNullOrWhiteSpace(t))
@@ -46,11 +50,24 @@ public class HocVienController : Controller
         var dangHoc = lopHoc.Where(l => l.DangHoatDong && Constants.LopHocStatus.LaHoatDong(l.TrangThaiTheoThoiGian))
             .GroupBy(l => l.MaHV.Value)
             .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(l => l.MonHoc).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct()));
+        var coLop = lopHoc.Select(l => l.MaHV.Value).ToHashSet();
+        if (!string.IsNullOrWhiteSpace(tinhTrang))
+        {
+            ds = ds.Where(h =>
+            {
+                bool dangTheoHoc = dangHoc.ContainsKey(h.MaHV);
+                bool coLichSu = coLop.Contains(h.MaHV);
+                return tinhTrang == DangHoc ? dangTheoHoc
+                    : tinhTrang == ChuaCoLop ? !coLichSu
+                    : tinhTrang == DaNghi && coLichSu && !dangTheoHoc;
+            }).ToList();
+        }
 
         return View(new HocVienIndexVM
         {
             TuKhoa = tuKhoa,
             TrinhDo = trinhDo,
+            TinhTrang = tinhTrang,
             DanhSachTrinhDo = levels,
             TongSo = ds.Count,
             LaQuanLy = _nguoiDung.LaQuanLy,

@@ -4,10 +4,11 @@
 @{
     bool sua = Model.MaGS.HasValue;
     ViewData["Title"] = sua ? "Sửa hồ sơ gia sư" : "Thêm gia sư";
+    ViewData["PageSub"] = "Họ tên, số điện thoại và chuyên môn là bắt buộc. Ca không chọn tương đương nhận mọi ca.";
 }
-<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
-<div class="vo-page-title">@(sua ? "Sửa hồ sơ gia sư" : "Thêm gia sư")</div>
-<p class="vo-page-sub">Họ tên, số điện thoại và chuyên môn là bắt buộc. Ca không chọn tương đương nhận mọi ca.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
 <section class="vo-card w1-form-card">
     <form asp-action="@(sua ? "Edit" : "Create")" asp-route-id="@Model.MaGS" method="post">
         @Html.AntiForgeryToken()
@@ -85,4 +86,6 @@
         </div>
     </form>
 </section>
-<partial name="_ValidationScriptsPartial" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

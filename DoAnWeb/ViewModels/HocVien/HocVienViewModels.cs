@@ -10,6 +10,7 @@ public class HocVienIndexVM
 {
     public string TuKhoa { get; set; }
     public string TrinhDo { get; set; }
+    public string TinhTrang { get; set; }
     public List<string> DanhSachTrinhDo { get; set; } = new();
     public List<HocVienListItemVM> HocViens { get; set; } = new();
     public int TongSo { get; set; }

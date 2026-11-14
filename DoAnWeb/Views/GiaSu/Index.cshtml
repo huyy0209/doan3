@@ -2,11 +2,11 @@
 @using DoAnWeb.Common
 @{
     ViewData["Title"] = "Gia sư";
+    ViewData["PageSub"] = "Hồ sơ gia sư, ca nhận dạy và các lớp đang dạy.";
 }
-<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
-<div class="vo-page-title">Gia sư</div>
-<p class="vo-page-sub">Hồ sơ gia sư, ca nhận dạy và các lớp đang dạy.</p>
-
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
 @if (TempData["ThongBao"] != null)
 {
     <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
@@ -113,4 +113,6 @@
         </div>
     </div>
 </div>
-<script src="~/js/w1.js" asp-append-version="true"></script>
+@section Scripts {
+    <script src="~/js/w1.js" asp-append-version="true"></script>
+}

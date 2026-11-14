@@ -3,10 +3,11 @@
 @{
     bool sua = Model.MaHV.HasValue;
     ViewData["Title"] = sua ? "Sửa hồ sơ học viên" : "Thêm học viên";
+    ViewData["PageSub"] = "Chỉ cần họ tên và ít nhất một số điện thoại liên hệ của học viên hoặc phụ huynh.";
 }
-<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
-<div class="vo-page-title">@(sua ? "Sửa hồ sơ học viên" : "Thêm học viên")</div>
-<p class="vo-page-sub">Chỉ cần họ tên và ít nhất một số điện thoại liên hệ của học viên hoặc phụ huynh.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
 <section class="vo-card w1-form-card">
     <form asp-action="@(sua ? "Edit" : "Create")" asp-route-id="@Model.MaHV" method="post">
         @Html.AntiForgeryToken()
@@ -65,4 +66,6 @@
         </div>
     </form>
 </section>
-<partial name="_ValidationScriptsPartial" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
