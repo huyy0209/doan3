@@ -87,7 +87,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [CRIT-02] Crash ứng dụng do vi phạm Foreign Key khi xóa gia sư từng dạy học bù
 - **Vị trí**: `DoAnWD/BLL/Services/GiaSuService.cs:111-135` và `DoAnWD/DAL/Repositories/GiaSuRepository.cs:84-88`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `GiaSuService.Delete` kiểm tra thêm `BuoiHoc.MaGSDay` trước khi xóa, chặn xóa và gợi ý chuyển sang "Tạm nghỉ".
 - **Mô tả vấn đề**:
   Trong script `04_NangCap_v4.sql` (dòng 19), cột `MaGSDay` trong bảng `BuoiHoc` được tạo với khóa ngoại:
   ```sql
