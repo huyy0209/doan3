@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DoAnWeb.Common;
 using DoAnWeb.Data.Entities;
+using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
 using DoAnWeb.ViewModels.LopHoc;
@@ -23,14 +24,17 @@ namespace DoAnWeb.Controllers
         private readonly GiaSuService _giaSu;
         private readonly HocVienService _hocVien;
         private readonly MonHocService _monHoc;
+        private readonly Microsoft.Extensions.Logging.ILogger<LopHocController> _logger;
 
         public LopHocController(LopHocService lopHoc, GiaSuService giaSu,
-            HocVienService hocVien, MonHocService monHoc)
+            HocVienService hocVien, MonHocService monHoc,
+            Microsoft.Extensions.Logging.ILogger<LopHocController> logger)
         {
             _lopHoc = lopHoc;
             _giaSu = giaSu;
             _hocVien = hocVien;
             _monHoc = monHoc;
+            _logger = logger;
         }
 
         // ===================================================================
@@ -147,7 +151,7 @@ namespace DoAnWeb.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "Lỗi khi ghép lớp: " + ex.GetBaseException().Message);
+                ModelState.AddModelError(string.Empty, LoiHeThong.GhiLogVaLayThongBao(_logger, ex, "ghép lớp"));
             }
 
             NapGhepLop(vm);
@@ -314,7 +318,7 @@ namespace DoAnWeb.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "Lỗi khi sửa lớp: " + ex.GetBaseException().Message);
+                ModelState.AddModelError(string.Empty, LoiHeThong.GhiLogVaLayThongBao(_logger, ex, "sửa lớp"));
             }
 
             NapSuaLop(vm);
