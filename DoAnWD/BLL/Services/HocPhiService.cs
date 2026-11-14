@@ -17,6 +17,7 @@ namespace DoAnWD.BLL.Services
         public const string DaDu = "Đã đủ";
         public const string ConNo = "Còn nợ";
         public const string ChuaDong = "Chưa đóng";
+        public const string DaHuy = "Đã hủy";
 
         public static string TinhTrang(decimal hocPhi, decimal daDong)
         {
@@ -48,6 +49,8 @@ namespace DoAnWD.BLL.Services
                     {
                         decimal hp = x.HocPhi ?? 0;
                         var lopTam = new LopHoc { TrangThai = x.TrangThai, ThoiGianBatDau = x.ThoiGianBatDau, ThoiGianKetThuc = x.ThoiGianKetThuc };
+                        // MED-04: Lớp đã hủy không tính/hiển thị còn nợ
+                        bool laHuy = x.TrangThai == huy || lopTam.TrangThaiTheoThoiGian == huy;
                         return new CongNoLop
                         {
                             MaLop = x.MaLop,
@@ -58,8 +61,8 @@ namespace DoAnWD.BLL.Services
                             GiaSu = x.GiaSu,
                             HocPhi = hp,
                             DaDong = x.DaDong,
-                            ConNo = Math.Max(0, hp - x.DaDong),
-                            TinhTrang = TinhTrang(hp, x.DaDong),
+                            ConNo = laHuy ? 0 : Math.Max(0, hp - x.DaDong),
+                            TinhTrang = laHuy ? DaHuy : TinhTrang(hp, x.DaDong),
                             TrangThaiLop = lopTam.TrangThaiTheoThoiGian
                         };
                     })
@@ -93,6 +96,9 @@ namespace DoAnWD.BLL.Services
                 var lop = db.LopHocs.Include(l => l.ThanhToans).FirstOrDefault(l => l.MaLop == maLop);
                 if (lop == null)
                     throw new InvalidOperationException("Không tìm thấy lớp học.");
+                // MED-04: Chặn thu học phí cho lớp đã hủy
+                if (lop.TrangThai == Constants.LopHocStatus.DaHuy)
+                    throw new InvalidOperationException("Không thể ghi nhận học phí cho lớp đã hủy.");
 
                 decimal conNo = (lop.HocPhi ?? 0) - lop.ThanhToans.Sum(t => t.SoTien);
                 if (conNo <= 0)

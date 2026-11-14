@@ -298,7 +298,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-04] Tính sai công nợ và hiển thị số tiền còn nợ cho lớp đã bị hủy
 - **Vị trí**: `DoAnWD/BLL/Services/HocPhiService.cs:43, 61`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Lớp đã hủy gán còn nợ bằng 0 và tình trạng là Đã hủy, chặn ghi nhận học phí cho lớp đã hủy.
 - **Mô tả vấn đề**:
   Trong `HocPhiService.GetCongNo()`:
   - Câu query lọc: `.Where(x => !(x.TrangThai == huy && x.DaDong == 0))`
