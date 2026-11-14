@@ -1,0 +1,174 @@
+@model DoAnWeb.ViewModels.HocTap.DiemDanhViewModel
+@{
+    ViewData["Title"] = "Điểm danh";
+    ViewData["PageSub"] = "Điểm danh và nhập điểm test theo ngày, ca học.";
+}
+
+<section class="vo-section">
+    <div class="vo-toolbar">
+        <form method="get" class="d-flex flex-wrap align-items-end gap-2">
+            <div>
+                <label for="ngay" class="form-label">Ngày</label>
+                <input id="ngay" name="ngay" type="date" class="form-control" value="@Model.Ngay.ToString("yyyy-MM-dd")"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+            <div>
+                <label for="ca" class="form-label">Ca</label>
+                <select id="ca" name="ca" class="form-select">
+                    @foreach (var ca in Model.CacCa)
+                    {
+                        <option value="@ca.Value" selected="@ca.Selected">@ca.Text</option>
+                    }
+                </select>
+            </div>
+            @if (Model.LaQuanLy)
+            {
+                <div>
+                    <label for="maGS" class="form-label">Gia sư</label>
+                    <select id="maGS" name="maGS" class="form-select">
+                        @foreach (var giaSu in Model.GiaSus)
+                        {
+                            <option value="@giaSu.Value" selected="@giaSu.Selected">@giaSu.Text</option>
+                        }
+                    </select>
+                </div>
+            }
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a class="btn btn-outline-secondary" href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")">Hôm nay</a>
+        </form>
+    </div>
+</section>
+
+@if (Model.Loi.Count > 0)
+{
+    <div class="alert alert-warning" role="alert">
+        <strong>Một số dòng chưa lưu:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach (var loi in Model.Loi)
+            {
+                <li>@loi</li>
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="Luu" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Ngay" value="@Model.Ngay.ToString("yyyy-MM-dd")" />
+    <input type="hidden" name="Ca" value="@Model.Ca" />
+    @if (Model.MaGS.HasValue)
+    {
+        <input type="hidden" name="MaGS" value="@Model.MaGS" />
+    }
+
+    <section class="vo-section vo-card">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <h2 class="h5 mb-1">Học viên trong ca</h2>
+                <div class="text-muted small">Gồm lớp theo lịch và học viên đến học bù. Bỏ trống điểm nếu không kiểm tra.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" id="diemDanhTatCa">Tất cả có mặt</button>
+                <button type="submit" class="btn btn-primary">Lưu tất cả</button>
+            </div>
+        </div>
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="vo-empty">Không có học viên nào học vào ngày / ca này.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table vo-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Học viên</th>
+                            <th>Lớp / môn</th>
+                            @if (Model.LaQuanLy) { <th>Gia sư</th> }
+                            <th>Ca</th>
+                            <th>Điểm danh</th>
+                            <th>Điểm test</th>
+                            <th>Nhận xét</th>
+                            <th class="text-center">Thi lên cấp</th>
+                            <th>Ghi chú</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.Rows.Count; i++)
+                    {
+                        var row = Model.Rows[i];
+                        <tr class="@(row.LaHocBu ? "table-info" : "")" data-da-xep-bu="@row.DaXepBu.ToString().ToLowerInvariant()">
+                            <td>
+                                <input type="hidden" name="Rows[@i].MaLop" value="@row.MaLop" />
+                                <input type="hidden" name="Rows[@i].MaBuoi" value="@row.MaBuoi" />
+                                <input type="hidden" name="Rows[@i].MaHV" value="@row.MaHV" />
+                                <input type="hidden" name="Rows[@i].HocVien" value="@row.HocVien" />
+                                <input type="hidden" name="Rows[@i].TenLop" value="@row.TenLop" />
+                                <input type="hidden" name="Rows[@i].MonHoc" value="@row.MonHoc" />
+                                <input type="hidden" name="Rows[@i].GiaSu" value="@row.GiaSu" />
+                                <input type="hidden" name="Rows[@i].CaHoc" value="@row.CaHoc" />
+                                <input type="hidden" name="Rows[@i].GhiChu" value="@row.GhiChu" />
+                                <input type="hidden" name="Rows[@i].LaNangKhieu" value="@row.LaNangKhieu" />
+                                <input type="hidden" name="Rows[@i].CapDoThi" value="@row.CapDoThi" />
+                                <input type="hidden" name="Rows[@i].DaLuu" value="@row.DaLuu" />
+                                <input type="hidden" name="Rows[@i].LaHocBu" value="@row.LaHocBu" />
+                                <input type="hidden" name="Rows[@i].DaXepBu" value="@row.DaXepBu" />
+                                <a asp-controller="HocTap" asp-action="KetQua" asp-route-maHV="@row.MaHV" class="fw-semibold">@row.HocVien</a>
+                            </td>
+                            <td>
+                                <div>@row.TenLop</div>
+                                <small class="text-muted">@row.MonHoc</small>
+                            </td>
+                            @if (Model.LaQuanLy) { <td>@row.GiaSu</td> }
+                            <td>@Constants.CaHoc.TenNgan(row.CaHoc)</td>
+                            <td>
+                                <select name="Rows[@i].DiemDanh" class="form-select form-select-sm">
+                                    @foreach (var trangThai in Constants.DiemDanh.TatCa)
+                                    {
+                                        <option value="@trangThai" selected="@(row.DiemDanh == trangThai)">@trangThai</option>
+                                    }
+                                </select>
+                            </td>
+                            <td style="min-width:105px">
+                                <input name="Rows[@i].DiemText" value="@row.DiemText" class="form-control form-control-sm"
+                                       inputmode="decimal" placeholder="0–10" />
+                            </td>
+                            <td style="min-width:190px">
+                                <input name="Rows[@i].NhanXet" value="@row.NhanXet" maxlength="300" class="form-control form-control-sm" />
+                            </td>
+                            <td class="text-center">
+                                @Html.CheckBoxFor(m => m.Rows[i].ThiLenCap, new { @class = "form-check-input", disabled = !row.LaNangKhieu })
+                            </td>
+                            <td class="small">@row.GhiChu</td>
+                            <td class="small">
+                                @if (row.DaLuu) { <span class="vo-tag vo-tag-success">Đã lưu</span> }
+                                else { <span class="text-muted">Chưa lưu</span> }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-muted small">@Model.Rows.Count dòng. Mỗi lớp chỉ có một buổi thường trong ngày.</div>
+        }
+    </section>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById("diemDanhTatCa")?.addEventListener("click", function () {
+            document.querySelectorAll('select[name$=".DiemDanh"]').forEach(function (select) {
+                if (select.closest("tr")?.dataset.daXepBu !== "true") select.value = "Có mặt";
+            });
+        });
+        document.querySelectorAll('select[name$=".DiemDanh"]').forEach(function (select) {
+            select.addEventListener("change", function () {
+                if (select.value === "Vắng có phép" || select.value === "Vắng không phép") {
+                    const input = select.closest("tr")?.querySelector('input[name$=".DiemText"]');
+                    if (input) input.value = "";
+                }
+            });
+        });
+    </script>
+}
