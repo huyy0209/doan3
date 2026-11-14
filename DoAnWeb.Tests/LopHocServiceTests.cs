@@ -238,3 +238,39 @@ public class LopHocServiceTests : DbTestBase
         }
     }
 }
+
+/// <summary>Review #3 (LH-12, LH-13): kiểm trùng lịch và ghi lớp cùng transaction + khóa ứng dụng.</summary>
+[Collection("Database")]
+public class GhepLopSongSongTests : DbTestBase
+{
+    [Fact]
+    [Trait("Luat", "LH-12")]
+    public async Task GhepLopSongSong_CungGiaSuCaNgay_ChiMotLopDuocTao()
+    {
+        var gs = TaoGiaSu(TenTest(), SdtTest());
+        var mon = TaoMon(TenTest());
+        const int soYeuCau = 4;
+        var hvs = Enumerable.Range(0, soYeuCau).Select(_ => TaoHocVien(TenTest(), SdtTest())).ToList();
+        var batDau = DateTime.Today.AddDays(2);
+        var barrier = new System.Threading.Barrier(soYeuCau);
+
+        var tasks = hvs.Select(hv => Task.Run(() =>
+        {
+            using var db = TestDb.TaoContext();   // mỗi yêu cầu một DbContext như request thật
+            var y = new GhepLopYeuCau
+            {
+                MaGS = gs.MaGS, MaHV = hv.MaHV, MonHoc = mon.TenMon, HocPhi = 500000,
+                BatDau = batDau, KetThuc = batDau.AddDays(10), CaHoc = Constants.CaHoc.Sang,
+                TenLop = TenTest()
+            };
+            barrier.SignalAndWait();
+            try { new LopHocService(db, QuanLy()).GhepLop(y); return (Exception)null; }
+            catch (Exception ex) { return ex; }
+        })).ToArray();
+        await Task.WhenAll(tasks);
+
+        Assert.Single(tasks, t => t.Result == null);
+        Assert.All(tasks.Where(t => t.Result != null), t => Assert.IsType<InvalidOperationException>(t.Result));
+        Assert.Equal(1, Db.LopHocs.Count(l => l.MaGS == gs.MaGS));
+    }
+}

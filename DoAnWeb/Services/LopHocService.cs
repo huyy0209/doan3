@@ -160,37 +160,41 @@ namespace DoAnWeb.Services
             if (tenLop.Length > 150) throw new ArgumentException("Tên lớp tối đa 150 ký tự.");
             if (TrungTenLop(tenLop)) throw new ArgumentException($"Đã có lớp tên \"{tenLop}\". Hãy đặt tên khác.");
 
-            // 4. Kiểm tra trùng lịch (gia sư + học viên)
             string thuHoc = Constants.ThuHoc.Ghi(Constants.ThuHoc.Doc(y.ThuHoc));
-            string xungDot = TimXungDot(y.MaGS, y.MaHV, mon.TenMon, y.CaHoc, y.BatDau, y.KetThuc, thuHoc);
-            if (xungDot != null)
-                throw new InvalidOperationException(xungDot);
 
-            // 5. Tạo lớp - trạng thái tính theo thời gian
-            var lopHoc = new LopHoc
-            {
-                MaHV = y.MaHV,
-                MaGS = y.MaGS,
-                MonHoc = mon.TenMon,
-                MaMon = mon.MaMon,   // quyết định 6: ghi thêm khóa ngoại MaMon (v7)
-                TenLop = tenLop,
-                CapDoDauVao = capDauVao,
-                HocPhi = y.HocPhi,
-                ThoiGianBatDau = y.BatDau,
-                ThoiGianKetThuc = y.KetThuc,
-                CaHoc = y.CaHoc,
-                ThuHoc = thuHoc
-            };
-            if (lopHoc.DemSoBuoi() == 0)
-                throw new ArgumentException("Khoảng ngày đã chọn không có buổi nào rơi vào các thứ học.");
-            lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
-
-            // CRIT-01: ghi lớp + đồng bộ trạng thái gia sư trong cùng một transaction
-            // (dùng chung một DbContext) để không bị bất nhất dữ liệu khi bước sau lỗi.
+            // Review #3 (LH-12, LH-13): kiểm trùng lịch + ghi lớp + đồng bộ gia sư trong CÙNG một transaction,
+            // có khóa ứng dụng để hai yêu cầu ghép/sửa không chạy xen nhau. Lỗi → rollback (LH-18, CRIT-01).
+            LopHoc lopHoc;
             using (var tx = _db.Database.BeginTransaction())
             {
                 try
                 {
+                    LayKhoaGhepLop();
+
+                    // 4. Kiểm tra trùng lịch (gia sư + học viên)
+                    string xungDot = TimXungDot(y.MaGS, y.MaHV, mon.TenMon, y.CaHoc, y.BatDau, y.KetThuc, thuHoc);
+                    if (xungDot != null)
+                        throw new InvalidOperationException(xungDot);
+
+                    // 5. Tạo lớp - trạng thái tính theo thời gian
+                    lopHoc = new LopHoc
+                    {
+                        MaHV = y.MaHV,
+                        MaGS = y.MaGS,
+                        MonHoc = mon.TenMon,
+                        MaMon = mon.MaMon,   // quyết định 6: ghi thêm khóa ngoại MaMon (v7)
+                        TenLop = tenLop,
+                        CapDoDauVao = capDauVao,
+                        HocPhi = y.HocPhi,
+                        ThoiGianBatDau = y.BatDau,
+                        ThoiGianKetThuc = y.KetThuc,
+                        CaHoc = y.CaHoc,
+                        ThuHoc = thuHoc
+                    };
+                    if (lopHoc.DemSoBuoi() == 0)
+                        throw new ArgumentException("Khoảng ngày đã chọn không có buổi nào rơi vào các thứ học.");
+                    lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
+
                     _db.LopHocs.Add(lopHoc);
                     _db.SaveChanges();
 
@@ -208,6 +212,22 @@ namespace DoAnWeb.Services
             }
 
             return lopHoc;
+        }
+
+        /// <summary>
+        /// Lấy khóa ứng dụng SQL 'GhepLop' (Exclusive, gắn với transaction hiện tại, tự nhả khi commit/rollback).
+        /// Hai yêu cầu ghép/sửa lớp xếp hàng chờ nhau nên kiểm trùng lịch luôn thấy lớp của yêu cầu trước.
+        /// Phải gọi sau khi đã mở transaction.
+        /// </summary>
+        private void LayKhoaGhepLop()
+        {
+            var ketQua = new Microsoft.Data.SqlClient.SqlParameter("@kq", System.Data.SqlDbType.Int)
+            { Direction = System.Data.ParameterDirection.Output };
+            _db.Database.ExecuteSqlRaw(
+                "EXEC @kq = sp_getapplock @Resource = N'GhepLop', @LockMode = N'Exclusive', " +
+                "@LockOwner = N'Transaction', @LockTimeout = 15000", ketQua);
+            if ((int)ketQua.Value < 0)
+                throw new InvalidOperationException("Hệ thống đang xử lý ghép lớp khác, vui lòng thử lại sau giây lát.");
         }
 
         /// <summary>Đổi tên lớp (không trùng, không rỗng)</summary>
@@ -276,23 +296,27 @@ namespace DoAnWeb.Services
 
             // Lớp đã kết thúc mà không gia hạn / đổi lịch thì khỏi kiểm tra trùng
             bool doiLich = doiGiaSu || thuHoc != lop.ThuHoc || ketThuc != lop.ThoiGianKetThuc;
-            if (doiLich && ketThuc >= DateTime.Now)
-            {
-                // Chỉ xét phần lịch từ hôm nay trở đi (quá khứ đã xảy ra rồi)
-                DateTime tu = lop.ThoiGianBatDau.Value > DateTime.Now ? lop.ThoiGianBatDau.Value : DateTime.Today;
-                string xungDot = TimXungDot(y.MaGS, lop.MaHV.Value, null, lop.CaHoc, tu, ketThuc, thuHoc, maLop);
-                if (xungDot != null) throw new InvalidOperationException(xungDot);
-            }
 
-            // Thử trước trên bản sao: không còn buổi nào thì báo lỗi mà chưa đụng tới lớp thật
-            if (new LopHoc { ThoiGianBatDau = lop.ThoiGianBatDau, ThoiGianKetThuc = ketThuc, ThuHoc = thuHoc }.DemSoBuoi() == 0)
-                throw new ArgumentException("Khoảng ngày của lớp không có buổi nào rơi vào các thứ học.");
-
-            // CRIT-01: sửa lớp + đồng bộ trạng thái (gia sư cũ/mới) trong cùng một transaction.
+            // Review #3: kiểm trùng lịch nằm trong cùng transaction (và khóa ứng dụng) với bước ghi.
+            // CRIT-01: sửa lớp + đồng bộ trạng thái (gia sư cũ/mới) cũng trong transaction này.
             using (var tx = _db.Database.BeginTransaction())
             {
                 try
                 {
+                    LayKhoaGhepLop();
+
+                    if (doiLich && ketThuc >= DateTime.Now)
+                    {
+                        // Chỉ xét phần lịch từ hôm nay trở đi (quá khứ đã xảy ra rồi)
+                        DateTime tu = lop.ThoiGianBatDau.Value > DateTime.Now ? lop.ThoiGianBatDau.Value : DateTime.Today;
+                        string xungDot = TimXungDot(y.MaGS, lop.MaHV.Value, null, lop.CaHoc, tu, ketThuc, thuHoc, maLop);
+                        if (xungDot != null) throw new InvalidOperationException(xungDot);
+                    }
+
+                    // Thử trước trên bản sao: không còn buổi nào thì báo lỗi mà chưa đụng tới lớp thật
+                    if (new LopHoc { ThoiGianBatDau = lop.ThoiGianBatDau, ThoiGianKetThuc = ketThuc, ThuHoc = thuHoc }.DemSoBuoi() == 0)
+                        throw new ArgumentException("Khoảng ngày của lớp không có buổi nào rơi vào các thứ học.");
+
                     if (tenMoi != null) lop.TenLop = tenMoi;
                     lop.HocPhi = y.HocPhi;
                     lop.ThoiGianKetThuc = ketThuc;
