@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using DoAnWeb.Common;
 using DoAnWeb.Infrastructure;
@@ -94,5 +95,24 @@ public class KiemTraPhienDangNhapTests : DbTestBase
         new TaiKhoanService(Db, QuanLy(admin.MaTK), cache).DatLaiMatKhau(tk.MaTK, "matkhau-moi");
 
         Assert.False(KiemTraPhienDangNhap.HopLe(user, Db, cache));
+    }
+}
+
+/// <summary>Review W10 #2: CSDL lỗi thì từ chối phiên gọn, không ném exception (tránh 500 ở mọi request).</summary>
+public class KiemTraPhienDangNhapLoiCsdlTests
+{
+    [Fact]
+    public void CsdlLoi_TuChoiPhien_KhongNemException()
+    {
+        var opt = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<DoAnWeb.Data.QuanLyGiaSuContext>()
+            .UseSqlServer("Server=127.0.0.1,1;Database=KhongCo;User Id=x;Password=x;TrustServerCertificate=True;Connect Timeout=2").Options;
+        using var db = new DoAnWeb.Data.QuanLyGiaSuContext(opt);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(LoaiClaim.MaTK, "1"), new Claim(ClaimTypes.Role, Constants.VaiTro.QuanLy)
+        }, "test"));
+        var log = new Microsoft.Extensions.Logging.Abstractions.NullLogger<KiemTraPhienDangNhapLoiCsdlTests>();
+
+        Assert.False(KiemTraPhienDangNhap.HopLeHoacLoi(user, db, new MemoryCache(new MemoryCacheOptions()), log));
     }
 }

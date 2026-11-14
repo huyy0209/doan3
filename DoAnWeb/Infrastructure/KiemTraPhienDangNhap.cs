@@ -1,4 +1,5 @@
 using System;
+using System.Data.Common;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DoAnWeb.Infrastructure
 {
@@ -51,11 +53,26 @@ namespace DoAnWeb.Infrastructure
                    string.Equals(tt.VaiTro, user.FindFirst(ClaimTypes.Role)?.Value, StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// Như <see cref="HopLe"/> nhưng CSDL lỗi (mất kết nối…) thì ghi log và coi là không hợp lệ,
+        /// để request chuyển về trang đăng nhập gọn thay vì lỗi 500 (kể cả khi bấm Đăng xuất).
+        /// </summary>
+        public static bool HopLeHoacLoi(ClaimsPrincipal user, QuanLyGiaSuContext db, IMemoryCache cache, ILogger logger)
+        {
+            try { return HopLe(user, db, cache); }
+            catch (DbException ex)
+            {
+                logger?.LogError(ex, "Không kiểm tra được phiên đăng nhập vì lỗi CSDL");
+                return false;
+            }
+        }
+
         /// <summary>Gắn vào CookieAuthenticationEvents.OnValidatePrincipal</summary>
         public static async Task KiemTra(CookieValidatePrincipalContext context)
         {
             var dv = context.HttpContext.RequestServices;
-            if (HopLe(context.Principal, dv.GetRequiredService<QuanLyGiaSuContext>(), dv.GetRequiredService<IMemoryCache>()))
+            var logger = dv.GetRequiredService<ILoggerFactory>().CreateLogger("KiemTraPhienDangNhap");
+            if (HopLeHoacLoi(context.Principal, dv.GetRequiredService<QuanLyGiaSuContext>(), dv.GetRequiredService<IMemoryCache>(), logger))
                 return;
 
             context.RejectPrincipal();
