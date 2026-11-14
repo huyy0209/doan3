@@ -373,7 +373,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-03] Không dọn dẹp các tệp tin HTML tạm sinh ra khi xuất phiếu báo
 - **Vị trí**: `DoAnWD/BLL/Services/BaoCaoService.cs:113-118`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm hàm DonFileTam dọn các file HTML tạm cũ hơn 1 ngày và tự động gọi khi xuất phiếu báo.
 - **Mô tả vấn đề**:
   Mỗi lần người dùng bấm "Phiếu báo kết quả", phương thức `TaoPhieuBao` sinh một file HTML ngẫu nhiên trong thư mục `%TEMP%\QuanLyGiaSu\` với tên chứa timestamp (`PhieuBao_..._yyyyMMdd_HHmm.html`) và mở trình duyệt.
   Hệ thống không có bất kỳ cơ chế nào để xóa các file tạm này sau khi sử dụng.

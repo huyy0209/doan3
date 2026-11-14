@@ -112,6 +112,8 @@ namespace DoAnWD.BLL.Services
 
             string dir = thuMuc ?? Path.Combine(Path.GetTempPath(), "QuanLyGiaSu");
             Directory.CreateDirectory(dir);
+            // LOW-03: Dọn file HTML tạm của các lần xuất trước (cũ hơn 1 ngày, bỏ qua file đang bị khóa)
+            DonFileTam(dir);
             string ten = $"PhieuBao_{BoDau(hv.HoTen)}_{DateTime.Now:yyyyMMdd_HHmm}.html";
             string path = Path.Combine(dir, ten);
             File.WriteAllText(path, sb.ToString(), new UTF8Encoding(true));
@@ -197,6 +199,44 @@ namespace DoAnWD.BLL.Services
                 else if (ch == ' ') sb.Append('_');
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// LOW-03: Dọn file HTML tạm của các lần xuất trước (mặc định cũ hơn 1 ngày, bỏ qua file đang bị khóa)
+        /// </summary>
+        public static void DonFileTam(string thuMuc = null, int soNgayCu = 1)
+        {
+            try
+            {
+                string dir = thuMuc ?? Path.Combine(Path.GetTempPath(), "QuanLyGiaSu");
+                if (!Directory.Exists(dir)) return;
+
+                var nguong = DateTime.Now.AddDays(-soNgayCu);
+                var files = Directory.GetFiles(dir, "PhieuBao_*.html");
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var info = new FileInfo(file);
+                        if (info.LastWriteTime < nguong || info.CreationTime < nguong)
+                        {
+                            info.Delete();
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        // File đang mở hoặc bị khóa bởi ứng dụng khác, bỏ qua
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Không có quyền truy cập file, bỏ qua
+                    }
+                }
+            }
+            catch
+            {
+                // Tránh để lỗi dọn file tạm làm gián đoạn ứng dụng
+            }
         }
     }
 }
