@@ -305,6 +305,20 @@ namespace DoAnWeb.Services
                 {
                     LayKhoaGhepLop();
 
+                    // Đã có khóa: nạp lại lớp từ CSDL (yêu cầu khác có thể vừa sửa xong khi ta chờ khóa)
+                    // rồi tính lại các giá trị phụ thuộc vào trạng thái lớp, để không bỏ sót kiểm trùng lịch.
+                    _db.Entry(lop).Reload();
+                    if (lop.TrangThai == Constants.LopHocStatus.DaHuy) throw new InvalidOperationException("Lớp đã hủy, không sửa được.");
+                    doiGiaSu = y.MaGS != lop.MaGS;
+                    gsCu = lop.MaGS;
+                    doiLich = doiGiaSu || thuHoc != lop.ThuHoc || ketThuc != lop.ThoiGianKetThuc;
+                    if (doiGiaSu)
+                    {
+                        var gs = _db.GiaSus.Find(y.MaGS);
+                        if (gs == null) throw new InvalidOperationException("Không tìm thấy gia sư.");
+                        if (gs.TrangThai == Constants.GiaSuStatus.TamNghi) throw new InvalidOperationException(Constants.Messages.GiaSuTamNghi);
+                    }
+
                     if (doiLich && ketThuc >= DateTime.Now)
                     {
                         // Chỉ xét phần lịch từ hôm nay trở đi (quá khứ đã xảy ra rồi)
