@@ -60,6 +60,10 @@ Thử model mới 2026-11-15: Qwen Code (OAuth free ngừng 15/04/2026) và Gemi
 
 Chính sách model (người dùng chốt 2026-11-15): được dùng worker Claude; coordinator tự chọn Haiku (việc đơn giản) / Sonnet (code) / Opus (review, lỗi khó). **Fable chỉ khi miễn phí hoặc khuyến mãi không tính tiền.** Thứ tự dự phòng: copilot → claude-sonnet → zai (việc nhỏ) → muse.
 
+## Tách 2 nhánh (người dùng chốt 2026-11-15: `app` và `web`, giữ nhánh huyy0209/cập-nhật-lên-web)
+- `app`: xong, đã push (03ba338) – worktree `../ban-app`. = master + QuanLyGiaSu.bat (chỉ mục app) + scripts/ + assets/ icon, README cập nhật.
+- `web`: chờ W10 merge vào nhánh này rồi tạo từ đây, bỏ DoAnWD/ + script app, menu chỉ mục web.
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
