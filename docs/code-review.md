@@ -443,3 +443,14 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 1. **Phân rã God Form**: Tách `frmHocVien` và `frmChucNangGhepLop` thành các UserControl và Presenter độc lập theo mô hình MVP ([LOW-01]).
 2. **Chuẩn hóa quan hệ môn học**: Chuyển `LopHoc.MonHoc` sang sử dụng khóa ngoại `MaMon` liên kết với bảng `MonHoc` ([LOW-02]).
 3. **Cơ chế dọn dẹp file tạm và ghi log chuẩn**: Thay thế `Debug.WriteLine` bằng giải pháp ghi log ra file cho môi trường Production ([MED-05], [LOW-03]).
+
+---
+
+## 6. KHÔNG SỬA
+
+Các mục dưới đây được giữ nguyên trong đợt sửa lỗi này, có ghi lý do:
+
+| Mã lỗi | Lý do không sửa |
+|---|---|
+| [CRIT-03] Race condition khi ghép lớp đồng thời | Ứng dụng là WinForms chạy trên một máy, mỗi lúc chỉ một người quản lý thao tác nên không có hai phiên ghép lớp chạy song song. Tình huống "hai quản lý trên hai máy trạm" không xảy ra với cách triển khai hiện tại. Nếu sau này triển khai nhiều máy dùng chung CSDL thì xử lý bằng `sp_getapplock` hoặc `IsolationLevel.Serializable` như đề xuất. |
+| [CRIT-04] Race condition khi ghi nhận học phí đồng thời | Cùng lý do: một người dùng, một phiên, các lần đóng tiền diễn ra tuần tự trên cùng giao diện. Kiểm tra `soTien > conNo` hiện có đã chặn thu vượt trong trường hợp tuần tự. Khi chuyển sang nhiều máy trạm thì bổ sung cột `RowVersion` cho `LopHoc`. |
