@@ -1,0 +1,65 @@
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using DoAnWeb.Data;
+using DoAnWeb.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace DoAnWeb.Infrastructure
+{
+    /// <summary>
+    /// TK-08, TK-17: cookie đăng nhập sống 8 giờ nên mỗi request phải kiểm lại bảng TaiKhoan –
+    /// tài khoản bị xóa / khóa / đổi vai trò thì cookie cũ bị từ chối ngay.
+    /// Kết quả được cache ngắn theo MaTK để không truy vấn CSDL ở mọi request.
+    /// </summary>
+    public static class KiemTraPhienDangNhap
+    {
+        /// <summary>Thời gian cache trạng thái tài khoản – khóa tài khoản có hiệu lực chậm nhất sau chừng này</summary>
+        public static readonly TimeSpan ThoiGianCache = TimeSpan.FromSeconds(30);
+
+        /// <summary>Trạng thái tài khoản lưu trong cache (null trong cache = tài khoản không còn)</summary>
+        private sealed record TrangThaiTK(bool HoatDong, string VaiTro);
+
+        private static string Khoa(int maTK) => "PhienTK:" + maTK;
+
+        /// <summary>Xóa cache của một tài khoản (gọi khi khóa / mở khóa / đặt lại mật khẩu) để thay đổi có hiệu lực ngay</summary>
+        public static void XoaCache(IMemoryCache cache, int maTK) => cache?.Remove(Khoa(maTK));
+
+        /// <summary>
+        /// Principal trong cookie còn hợp lệ không? Không còn tài khoản, đã khóa, hoặc vai trò khác claim → false.
+        /// </summary>
+        public static bool HopLe(ClaimsPrincipal user, QuanLyGiaSuContext db, IMemoryCache cache)
+        {
+            if (!int.TryParse(user?.FindFirst(LoaiClaim.MaTK)?.Value, out int maTK) || maTK <= 0)
+                return false;
+
+            var tt = cache.GetOrCreate(Khoa(maTK), e =>
+            {
+                e.AbsoluteExpirationRelativeToNow = ThoiGianCache;
+                return db.TaiKhoans.Where(t => t.MaTK == maTK)
+                    .Select(t => new { t.HoatDong, t.VaiTro })
+                    .AsEnumerable()
+                    .Select(t => new TrangThaiTK(t.HoatDong, t.VaiTro))
+                    .FirstOrDefault();
+            });
+
+            return tt != null && tt.HoatDong &&
+                   string.Equals(tt.VaiTro, user.FindFirst(ClaimTypes.Role)?.Value, StringComparison.Ordinal);
+        }
+
+        /// <summary>Gắn vào CookieAuthenticationEvents.OnValidatePrincipal</summary>
+        public static async Task KiemTra(CookieValidatePrincipalContext context)
+        {
+            var dv = context.HttpContext.RequestServices;
+            if (HopLe(context.Principal, dv.GetRequiredService<QuanLyGiaSuContext>(), dv.GetRequiredService<IMemoryCache>()))
+                return;
+
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+    }
+}

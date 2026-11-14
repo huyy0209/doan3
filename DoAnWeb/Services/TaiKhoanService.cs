@@ -84,10 +84,15 @@ namespace DoAnWeb.Services
         private readonly QuanLyGiaSuContext _db;
         private readonly INguoiDungHienTai _nguoiDung;
 
-        public TaiKhoanService(QuanLyGiaSuContext db, INguoiDungHienTai nguoiDung)
+        private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache _cache;
+
+        /// <param name="cache">Cache trạng thái phiên đăng nhập (null khi test) – xóa khi khóa / đặt lại mật khẩu</param>
+        public TaiKhoanService(QuanLyGiaSuContext db, INguoiDungHienTai nguoiDung,
+            Microsoft.Extensions.Caching.Memory.IMemoryCache cache = null)
         {
             _db = db;
             _nguoiDung = nguoiDung;
+            _cache = cache;
         }
 
         /// <summary>Lần chạy đầu (chưa có tài khoản nào): tạo admin / admin123 (TK-10). Trả về true nếu vừa tạo.</summary>
@@ -238,6 +243,7 @@ namespace DoAnWeb.Services
             tk.SoLanSai = 0;
             tk.KhoaDen = null;
             _db.SaveChanges();
+            DoAnWeb.Infrastructure.KiemTraPhienDangNhap.XoaCache(_cache, maTK);
         }
 
         /// <summary>TK-17: khóa / mở khóa. Không khóa chính mình hoặc quản lý hoạt động cuối cùng. Trả về trạng thái mới.</summary>
@@ -253,6 +259,7 @@ namespace DoAnWeb.Services
                 throw new InvalidOperationException("Phải còn ít nhất một quản lý đang hoạt động.");
             tk.HoatDong = !tk.HoatDong;
             _db.SaveChanges();
+            DoAnWeb.Infrastructure.KiemTraPhienDangNhap.XoaCache(_cache, maTK);
             return tk.HoatDong;
         }
 
