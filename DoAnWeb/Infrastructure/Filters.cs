@@ -45,3 +45,24 @@ namespace DoAnWeb.Infrastructure
         }
     }
 }
+
+namespace DoAnWeb.Infrastructure
+{
+    /// <summary>Đặt ViewData["TenTrungTam"] cho _Layout (tên trung tâm trong Cài đặt – CD-01)</summary>
+    public class TenTrungTamFilter : Microsoft.AspNetCore.Mvc.Filters.IResultFilter
+    {
+        private readonly DoAnWeb.Services.CaiDatService _caiDat;
+        public TenTrungTamFilter(DoAnWeb.Services.CaiDatService caiDat) { _caiDat = caiDat; }
+
+        public void OnResultExecuting(Microsoft.AspNetCore.Mvc.Filters.ResultExecutingContext context)
+        {
+            if (context.Controller is Microsoft.AspNetCore.Mvc.Controller c && c.ViewData["TenTrungTam"] == null)
+            {
+                try { c.ViewData["TenTrungTam"] = _caiDat.TrungTam?.TenHienThi; }
+                catch { /* CSDL lỗi: layout dùng tên mặc định */ }
+            }
+        }
+
+        public void OnResultExecuted(Microsoft.AspNetCore.Mvc.Filters.ResultExecutedContext context) { }
+    }
+}

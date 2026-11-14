@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using DoAnWeb.Data;
 using DoAnWeb.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -32,6 +32,7 @@ builder.Services.AddControllersWithViews(o =>
     o.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
     o.Filters.Add<DoAnWeb.Infrastructure.BatDoiMatKhauFilter>();
     o.Filters.Add<DoAnWeb.Infrastructure.XuLyLoiNghiepVuFilter>();
+    o.Filters.Add<DoAnWeb.Infrastructure.TenTrungTamFilter>();
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
@@ -42,6 +43,8 @@ builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
 builder.Services.AddScoped<LopHocService>();
+// Service phụ do W0 chuyển: HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao
+builder.Services.AddDichVuPhu();
 builder.Services.AddHostedService<CapNhatTrangThaiNen>();
 
 var app = builder.Build();
