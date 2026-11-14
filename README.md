@@ -32,8 +32,7 @@
 | 2 | Bấm đúp **`start.bat`**: tìm MSBuild bằng `vswhere`, build cấu hình Release rồi mở ứng dụng | Mỗi lần dùng |
 
 - `CaiDatCSDL.bat` cần lệnh `sqlcmd` (cài cùng SQL Server / SSMS). Mặc định dùng SQL Server trên máy (`.`); instance khác thì chạy `CaiDatCSDL.bat .\SQLEXPRESS` và sửa `data source` trong `DoAnWD/App.config` cho khớp.
-- `start.bat` báo lỗi nếu không tìm thấy MSBuild hoặc build thất bại; cần cài Visual Studio 2022 với workload **.NET desktop development**. File chạy sau khi build là `DoAnWD/bin/Release/DoAnWD.exe`.
-- `ChayNhanh.bat` vẫn được giữ nguyên để tương thích: nó build nhanh phần thay đổi và có thể mở bản Release đã build trước đó khi máy không có Visual Studio. Có thể tạo shortcut của `start.bat` hoặc `ChayNhanh.bat` ra Desktop.
+- `start.bat` chỉ build lại phần thay đổi nên lần sau mở rất nhanh. Máy không có Visual Studio thì nó mở bản đã build trước đó (`DoAnWD/bin/Release/DoAnWD.exe`); nếu chưa có bản build nào hoặc build thất bại thì báo lỗi rõ ràng. Có thể tạo shortcut của `start.bat` ra Desktop.
 - Bấm đúp **`stop.bat`** để đóng tiến trình `DoAnWD.exe`; script thông báo nếu ứng dụng chưa chạy.
 
 - **`SaoLuuCSDL.bat`**: sao lưu CSDL ra file `.bak` có ngày giờ trong tên. Nên chạy mỗi tuần một lần và trước khi nâng cấp.
@@ -46,7 +45,6 @@ Nếu đã thêm dữ liệu mẫu, mỗi gia sư có sẵn tài khoản `gs<mã
 
 ```
 doan3/
-├── ChayNhanh.bat                # Build + mở ứng dụng
 ├── start.bat                    # Tìm MSBuild, build Release + mở ứng dụng
 ├── stop.bat                     # Đóng ứng dụng đang chạy
 ├── CaiDatCSDL.bat               # Tạo / nâng cấp CSDL, thêm dữ liệu mẫu
@@ -290,7 +288,7 @@ Các màn hình mới (`frmHocVien`, `frmGiaSu`, `frmHocPhi`, `frmTaiKhoan`, `fr
 | `perf: load less data…` | Tối ưu truy vấn, phân trang, giảm dữ liệu hiển thị |
 | `feat: tutor profile…` | Trang Gia sư mới + hồ sơ, ca nhận dạy dùng khi ghép lớp, dữ liệu mẫu v3 |
 | `perf(ui): instant page switch…` | Giữ màn hình đã mở để chuyển trang không khựng; dòng chọn màu xanh, sao chép trong bảng; thêm học viên / gia sư bằng cửa sổ riêng; gộp code nhập hồ sơ, xóa hàm không dùng |
-| `fix(ui): grid borders, overview data; tidy project…` | Ô bảng điểm danh có khung ổn định; tab Lớp học ở Tổng quan đủ tiêu đề cột, đủ 6 ca, cột "Còn" dễ đọc; sắp xếp UI vào `Pages/`, `Dialogs/`, `Controls/`; đánh số script SQL; thêm `ChayNhanh.bat`, `CaiDatCSDL.bat` |
+| `fix(ui): grid borders, overview data; tidy project…` | Ô bảng điểm danh có khung ổn định; tab Lớp học ở Tổng quan đủ tiêu đề cột, đủ 6 ca, cột "Còn" dễ đọc; sắp xếp UI vào `Pages/`, `Dialogs/`, `Controls/`; đánh số script SQL; thêm `ChayNhanh.bat` (nay đã gộp vào `start.bat`), `CaiDatCSDL.bat` |
 | `feat: merge attendance into students, make-up classes…` | Gộp điểm danh + điểm vào trang Học viên (theo học viên và theo ca); học bù cho buổi vắng (ngày, ca, gia sư khác), kiểm tra trùng ca; CSDL v4, dữ liệu mẫu học bù |
 | `feat: subject catalog, levels, class names; overview links…` | Danh mục môn học (môn chính / năng khiếu), đánh giá theo xếp loại hoặc cấp độ + thi lên cấp; tên lớp khi ghép lớp; trang Lớp học mới thay trang Ghép lớp cũ; bấm ô Tổng quan để mở trang đã lọc; cuộn tới đâu tải tới đó; gộp truy vấn Tổng quan, xóa hàm không dùng; UI chia namespace theo thư mục; CSDL v5 |
 | `style(ui): clearer dropdowns…` | Ô chọn / bộ lọc tự vẽ cho rõ (viền, mũi tên, tô màu khi đang lọc) |

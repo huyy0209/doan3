@@ -28,6 +28,11 @@ start "" "%EXE%"
 exit /b 0
 
 :khong_msbuild
+if exist "%EXE%" (
+    echo [!] Khong tim thay Visual Studio/MSBuild - mo ban da build truoc do.
+    start "" "%EXE%"
+    exit /b 0
+)
 echo [X] Khong tim thay MSBuild cua Visual Studio.
 echo     Cai Visual Studio 2022 tro len voi workload ".NET desktop development".
 echo     Neu da cai, hay kiem tra vswhere.exe trong thu muc cai dat Visual Studio.

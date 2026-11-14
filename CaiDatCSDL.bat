@@ -44,7 +44,7 @@ for %%f in (11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 
 
 :xong
 echo.
-echo [OK] CSDL da san sang. Chay ChayNhanh.bat de mo ung dung.
+echo [OK] CSDL da san sang. Chay start.bat de mo ung dung.
 echo      Tai khoan quan ly mac dinh: admin / admin123 (doi mat khau sau khi dang nhap).
 pause
 exit /b 0
