@@ -17,6 +17,11 @@ namespace DoAnWD.Models
     {
         public const char NganCachCapDo = ';';
 
+        public MonHocDanhMuc()
+        {
+            LopHocs = new HashSet<LopHoc>();
+        }
+
         [Key]
         public int MaMon { get; set; }
 
@@ -45,5 +50,10 @@ namespace DoAnWD.Models
                 : CapDo.Split(NganCachCapDo).Select(c => c.Trim()).Where(c => c.Length > 0).ToList();
 
         public override string ToString() => TenMon;
+
+        /// <summary>
+        /// LOW-02: Danh sách các lớp học thuộc môn này
+        /// </summary>
+        public virtual ICollection<LopHoc> LopHocs { get; set; }
     }
 }

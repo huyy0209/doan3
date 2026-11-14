@@ -24,6 +24,12 @@ namespace DoAnWD.Models
 
         public int? MaHV { get; set; }
 
+        /// <summary>
+        /// LOW-02: Khóa ngoại chuẩn hóa đến danh mục MonHoc.
+        /// Cột MonHoc (chuỗi) vẫn được giữ để tương thích ngược; nguồn chuẩn là MaMon.
+        /// </summary>
+        public int? MaMon { get; set; }
+
         [StringLength(50)]
         public string MonHoc { get; set; }
 
@@ -83,6 +89,12 @@ namespace DoAnWD.Models
         public virtual GiaSu GiaSu { get; set; }
 
         public virtual HocVien HocVien { get; set; }
+
+        /// <summary>
+        /// LOW-02: Navigation property tới danh mục MonHoc
+        /// </summary>
+        [ForeignKey("MaMon")]
+        public virtual MonHocDanhMuc MonHocDM { get; set; }
 
         // ===================================================================
         // ✨ COMPUTED PROPERTIES - MỚI CHO OPTION 2
@@ -235,9 +247,11 @@ namespace DoAnWD.Models
         /// </summary>
         public bool TrungLich(LopHoc other)
         {
-            if (!TrungCaHoc(other) || !TrungThoiGian(other)) return false;
+            // MED-01: Kiểm tra null, bỏ dead code và cảnh báo trùng nếu cùng ca học mà thiếu ngày
+            if (other == null || !TrungCaHoc(other)) return false;
             if (!ThoiGianBatDau.HasValue || !ThoiGianKetThuc.HasValue ||
                 !other.ThoiGianBatDau.HasValue || !other.ThoiGianKetThuc.HasValue) return true;
+            if (!TrungThoiGian(other)) return false;
 
             // Cùng ca + giao ngày: chỉ trùng khi có ít nhất MỘT ngày cả hai lớp cùng học (xét thứ trong tuần)
             DateTime tu = ThoiGianBatDau.Value.Date > other.ThoiGianBatDau.Value.Date ? ThoiGianBatDau.Value.Date : other.ThoiGianBatDau.Value.Date;

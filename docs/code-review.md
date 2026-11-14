@@ -232,7 +232,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-01] Dead Code và lỗ hổng kiểm tra null trong `LopHoc.TrungLich`
 - **Vị trí**: `DoAnWD/Models/LopHoc.cs:238-240`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Bỏ dead code, thêm kiểm tra null và cảnh báo trùng lịch nếu cùng ca học mà thiếu ngày.
 - **Mô tả vấn đề**:
   Đoạn code trong `TrungLich`:
   ```csharp
@@ -274,7 +274,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-03] Cách tính doanh thu phản ánh sai dòng tiền thực tế
 - **Vị trí**: `DoAnWD/BLL/Services/ThongKeService.cs:67-73`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tính doanh thu theo dòng tiền thực thu từ bảng ThanhToan thay vì học phí danh nghĩa.
 - **Mô tả vấn đề**:
   Hàm `GetStatistics` tính doanh thu như sau:
   ```csharp
@@ -298,7 +298,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-04] Tính sai công nợ và hiển thị số tiền còn nợ cho lớp đã bị hủy
 - **Vị trí**: `DoAnWD/BLL/Services/HocPhiService.cs:43, 61`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Lớp đã hủy gán còn nợ bằng 0 và tình trạng là Đã hủy, chặn ghi nhận học phí cho lớp đã hủy.
 - **Mô tả vấn đề**:
   Trong `HocPhiService.GetCongNo()`:
   - Câu query lọc: `.Where(x => !(x.TrangThai == huy && x.DaDong == 0))`
@@ -355,7 +355,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-02] Bảng `LopHoc` lưu tên môn học dạng chuỗi thay vì khóa ngoại `MaMon`
 - **Vị trí**: `DoAnWD/Models/LopHoc.cs:28`, `Database/01_QuanLyGiaSu.sql:51`, `Database/05_NangCap_v5.sql:23-32`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm script 07_NangCap_v7.sql tạo cột MaMon và FK, bổ sung navigation MonHocDM và tự động đồng bộ trong SaveChanges.
 - **Mô tả vấn đề**:
   Dù bản nâng cấp v5 đã tạo bảng danh mục `MonHoc` với khóa chính `MaMon INT`, bảng `LopHoc` vẫn tiếp tục lưu `MonHoc NVARCHAR(50)` dạng chuỗi thuần túy không có khóa ngoại.
   Khi đổi tên môn học trong `MonHocService.Luu`, hệ thống phải thực hiện quét toàn bộ bảng `LopHoc` và `GiaSu` để cập nhật chuỗi thủ công:
@@ -373,7 +373,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-03] Không dọn dẹp các tệp tin HTML tạm sinh ra khi xuất phiếu báo
 - **Vị trí**: `DoAnWD/BLL/Services/BaoCaoService.cs:113-118`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm hàm DonFileTam dọn các file HTML tạm cũ hơn 1 ngày và tự động gọi khi xuất phiếu báo.
 - **Mô tả vấn đề**:
   Mỗi lần người dùng bấm "Phiếu báo kết quả", phương thức `TaoPhieuBao` sinh một file HTML ngẫu nhiên trong thư mục `%TEMP%\QuanLyGiaSu\` với tên chứa timestamp (`PhieuBao_..._yyyyMMdd_HHmm.html`) và mở trình duyệt.
   Hệ thống không có bất kỳ cơ chế nào để xóa các file tạm này sau khi sử dụng.
