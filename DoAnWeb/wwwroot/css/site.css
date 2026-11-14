@@ -509,6 +509,11 @@ a:hover {
   overflow: hidden;
 }
 
+/* Thẻ biểu mẫu hẹp (đổi mật khẩu, hồ sơ ngắn) */
+.vo-panel-rong {
+  max-width: 560px;
+}
+
 .vo-section {
   background: var(--vo-surface);
   border: 1px solid var(--vo-rule);

@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Không có quyền";
+    ViewData["PageSub"] = "Trang này chỉ dành cho tài khoản quản lý.";
+}
+<div class="vo-card">
+    <div class="vo-error">
+        <div class="vo-error-code">403</div>
+        <div class="vo-error-title">Bạn không có quyền vào trang này</div>
+        <p class="vo-error-text mb-4">
+            Tài khoản đang đăng nhập không được phép xem hoặc thao tác ở mục này.
+            Nếu cần dùng, hãy liên hệ quản lý trung tâm để được cấp quyền.
+        </p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="/" class="btn btn-primary">
+                <partial name="_Icon" model='"home"' />Về trang chủ
+            </a>
+            <a href="/HocVien" class="btn btn-outline-secondary">
+                <partial name="_Icon" model='"users"' />Học viên &amp; điểm
+            </a>
+        </div>
+    </div>
+</div>

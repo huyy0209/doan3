@@ -1,0 +1,75 @@
+@model DoAnWeb.ViewModels.TaiKhoan.DangNhapVM
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "_LayoutTrong";
+
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+    if (string.IsNullOrWhiteSpace(tenTrungTam)) { tenTrungTam = "Quản lý gia sư"; }
+    var diaChi = ViewData["DiaChi"] as string;
+    var soDienThoai = ViewData["SDT"] as string;
+    var lienHe = string.Join("\n", new[] { diaChi, soDienThoai }
+        .Where(x => !string.IsNullOrWhiteSpace(x)));
+}
+<div class="vo-auth">
+    @* Nửa trái: tấm bảng xanh mang tên trung tâm (giống frmDangNhap.VeBiaTrai) *@
+    <div class="vo-auth-board">
+        <span class="vo-auth-mark"><partial name="_Icon" model='"book"' /></span>
+        <div class="vo-auth-name">@tenTrungTam</div>
+        <div class="vo-auth-tag">Phần mềm quản lý gia sư</div>
+
+        <div class="vo-auth-rule"></div>
+        <ul class="vo-auth-list">
+            <li>Ghép lớp theo ca và thứ học</li>
+            <li>Điểm danh, điểm test, xếp học bù</li>
+            <li>Học phí và công nợ từng lớp</li>
+        </ul>
+
+        @if (!string.IsNullOrWhiteSpace(lienHe))
+        {
+            <div class="vo-auth-contact">@lienHe</div>
+        }
+    </div>
+
+    @* Nửa phải: ô đăng nhập *@
+    <div class="vo-auth-form">
+        <div class="vo-auth-title">Đăng nhập</div>
+        <div class="vo-auth-sub">Quản lý và gia sư dùng tài khoản được cấp.</div>
+
+        @if (Model.LanDau)
+        {
+            <div class="vo-auth-hint">
+                Lần đầu sử dụng: đăng nhập bằng <strong>admin</strong> / <strong>admin123</strong>.
+                Ứng dụng sẽ yêu cầu đặt mật khẩu mới ngay sau đó.
+            </div>
+        }
+
+        <form method="post" asp-controller="TaiKhoan" asp-action="DangNhap" autocomplete="on">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="vo-field">
+                <label asp-for="TenDangNhap" class="form-label">Tên đăng nhập</label>
+                <input asp-for="TenDangNhap" class="form-control" placeholder="Tên đăng nhập"
+                       autocomplete="username" autofocus />
+                <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
+            </div>
+
+            <div class="vo-field">
+                <label asp-for="MatKhau" class="form-label">Mật khẩu</label>
+                <input asp-for="MatKhau" type="password" class="form-control" placeholder="Mật khẩu"
+                       autocomplete="current-password" />
+                <span asp-validation-for="MatKhau" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2">Đăng nhập</button>
+        </form>
+
+        <div class="vo-auth-note">Quên mật khẩu? Liên hệ quản lý trung tâm để đặt lại.</div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
