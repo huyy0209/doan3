@@ -1,0 +1,91 @@
+@model DoAnWeb.ViewModels.GiaSu.HoSoGiaSuVM
+@using DoAnWeb.Common
+@using DoAnWeb.ViewModels.GiaSu
+@{
+    bool sua = Model.MaGS.HasValue;
+    ViewData["Title"] = sua ? "Sửa hồ sơ gia sư" : "Thêm gia sư";
+    ViewData["PageSub"] = "Họ tên, số điện thoại và chuyên môn là bắt buộc. Ca không chọn tương đương nhận mọi ca.";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
+<section class="vo-card w1-form-card">
+    <form asp-action="@(sua ? "Edit" : "Create")" asp-route-id="@Model.MaGS" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="HoTen" class="form-label"></label>
+                <input asp-for="HoTen" class="form-control" autocomplete="name" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="SDT" class="form-label"></label>
+                <input asp-for="SDT" class="form-control" autocomplete="tel" />
+                <span asp-validation-for="SDT" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ChuyenMon" class="form-label"></label>
+                <select asp-for="ChuyenMon" class="form-select">
+                    <option value="">-- Chọn môn --</option>
+                    @foreach (var mon in Model.DanhSachMon)
+                    {
+                        <option value="@mon">@mon</option>
+                    }
+                </select>
+                <span asp-validation-for="ChuyenMon" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="HocVan" class="form-label"></label>
+                <input asp-for="HocVan" class="form-control" />
+                <span asp-validation-for="HocVan" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="KinhNghiem" class="form-label"></label>
+                <input asp-for="KinhNghiem" class="form-control" min="0" max="60" />
+                <span asp-validation-for="KinhNghiem" class="text-danger"></span>
+            </div>
+            <fieldset class="col-12">
+                <legend class="fs-6 fw-semibold">Ca nhận dạy <span class="text-secondary fw-normal">(bỏ trống = nhận mọi ca)</span></legend>
+                <div class="w1-ca-grid">
+                    @foreach (var ca in HoSoGiaSuVM.CacCa)
+                    {
+                        <label class="form-check">
+                            @if (Model.CaNhanDay.Contains(Constants.CaHoc.TenNgan(ca)))
+                            {
+                                <input class="form-check-input" type="checkbox" name="CaNhanDay" value="@Constants.CaHoc.TenNgan(ca)" checked />
+                            }
+                            else
+                            {
+                                <input class="form-check-input" type="checkbox" name="CaNhanDay" value="@Constants.CaHoc.TenNgan(ca)" />
+                            }
+                            <span class="form-check-label">@Constants.CaHoc.TenNgan(ca)</span>
+                        </label>
+                    }
+                </div>
+                <span asp-validation-for="CaNhanDay" class="text-danger"></span>
+            </fieldset>
+            <div class="col-12 form-check ms-2">
+                <input asp-for="TamNghi" class="form-check-input" />
+                <label asp-for="TamNghi" class="form-check-label"></label>
+            </div>
+            <div class="col-12">
+                <label asp-for="GhiChu" class="form-label"></label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="GhiChu" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">@(sua ? "Lưu thay đổi" : "Thêm gia sư")</button>
+            <a class="btn btn-outline-secondary" asp-action="@(sua ? "Details" : "Index")" asp-route-id="@Model.MaGS">Hủy</a>
+        </div>
+    </form>
+</section>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

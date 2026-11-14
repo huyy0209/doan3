@@ -1,0 +1,93 @@
+@model DoAnWeb.Data.Entities.GiaSu
+@using DoAnWeb.Common
+@using DoAnWeb.Data.Entities
+@{
+    ViewData["Title"] = "Hồ sơ gia sư";
+    ViewData["PageSub"] = Model.HoTen;
+    var lops = (List<LopHoc>)ViewBag.LopHocs;
+    var trangThai = Model.TrangThai ?? Constants.GiaSuStatus.Ranh;
+    var tag = trangThai == Constants.GiaSuStatus.TamNghi ? "warning"
+        : trangThai == Constants.GiaSuStatus.DangDay ? "success"
+        : trangThai == Constants.GiaSuStatus.Ban ? "info" : "neutral";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a class="btn btn-outline-secondary" asp-action="Index">Danh sách</a>
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.MaGS">Sửa hồ sơ</a>
+    <button class="btn btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#xoaGiaSuModal"
+            data-w1-delete-id="@Model.MaGS" data-w1-delete-name="@Model.HoTen">Xóa</button>
+</div>
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
+}
+<div class="row g-3">
+    <div class="col-lg-5">
+        <section class="vo-card">
+            <div class="vo-section">Thông tin hồ sơ</div>
+            <dl class="w1-details">
+                <dt>Số điện thoại</dt><dd>@Model.SDT</dd>
+                <dt>Chuyên môn</dt><dd>@Model.ChuyenMon</dd>
+                <dt>Email</dt><dd>@(Model.Email ?? "—")</dd>
+                <dt>Học vấn / bằng cấp</dt><dd>@(Model.HocVan ?? "—")</dd>
+                <dt>Kinh nghiệm</dt><dd>@(Model.KinhNghiem.HasValue ? $"{Model.KinhNghiem} năm" : "—")</dd>
+                <dt>Ca nhận dạy</dt><dd>@(string.IsNullOrWhiteSpace(Model.CaNhanDay) ? "Mọi ca" : Model.CaNhanDay.Replace(",", ", "))</dd>
+                <dt>Trạng thái</dt><dd><span class="vo-tag vo-tag-@tag">@trangThai</span></dd>
+                <dt>Ghi chú</dt><dd class="w1-notes">@(!string.IsNullOrWhiteSpace(Model.GhiChu) ? Model.GhiChu : "—")</dd>
+            </dl>
+        </section>
+    </div>
+    <div class="col-lg-7">
+        <section class="vo-card">
+            <div class="vo-section">Các lớp của gia sư</div>
+            @if (lops.Count == 0)
+            {
+                <div class="vo-empty">Gia sư chưa có lớp học.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table vo-table align-middle">
+                        <thead><tr><th>Lớp / môn</th><th>Học viên</th><th>Ca học</th><th>Trạng thái</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var lop in lops)
+                            {
+                                <tr>
+                                    <td>@(lop.TenHienThi)</td>
+                                    <td>@(lop.HocVien?.HoTen ?? "—")</td>
+                                    <td>@(lop.CaHoc ?? "—")</td>
+                                    <td>@(lop.TrangThaiTheoThoiGian ?? "—")</td>
+                                    <td class="text-end"><a asp-controller="LopHoc" asp-action="Details" asp-route-id="@lop.MaLop">Chi tiết</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+<div class="modal fade" id="xoaGiaSuModal" tabindex="-1" aria-labelledby="xoaGiaSuLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Delete" method="post">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="xoaGiaSuLabel">Xác nhận xóa gia sư</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">Bạn có chắc muốn xóa <strong data-w1-delete-label></strong>? Thao tác này không thể hoàn tác.
+                    <input type="hidden" name="id" value="" data-w1-delete-input />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa gia sư</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/w1.js" asp-append-version="true"></script>
+}

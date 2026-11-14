@@ -1,0 +1,142 @@
+@model DoAnWeb.ViewModels.QuanLyTaiKhoan.QuanLyTaiKhoanIndexVM
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    ViewData["PageSub"] = "Cấp tài khoản cho gia sư, đặt lại mật khẩu, khóa hoặc mở khóa.";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["Loi"]</div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <section class="vo-card h-100">
+            <div class="vo-section">Danh sách tài khoản</div>
+            @if (Model.TaiKhoans.Count == 0)
+            {
+                <div class="vo-empty">Chưa có tài khoản.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table vo-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tên đăng nhập</th>
+                                <th>Vai trò</th>
+                                <th>Gia sư</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tk in Model.TaiKhoans)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@tk.TenDangNhap</td>
+                                    <td>@tk.VaiTro</td>
+                                    <td>@(string.IsNullOrWhiteSpace(tk.GiaSu) ? "—" : tk.GiaSu)</td>
+                                    <td>
+                                        <span class="vo-tag vo-tag-@(tk.HoatDong ? "success" : "danger")">@tk.TrangThai</span>
+                                        @if (tk.DangTamKhoa)
+                                        {
+                                            <span class="vo-tag vo-tag-warning ms-1">Đang tạm khóa</span>
+                                        }
+                                    </td>
+                                    <td>@tk.NgayTao.ToString(Constants.Format.DateFormat)</td>
+                                    <td class="text-end text-nowrap">
+                                        <a class="btn btn-sm btn-outline-secondary" asp-action="DatLaiMatKhau" asp-route-id="@tk.MaTK">Đặt lại mật khẩu</a>
+                                        <button class="btn btn-sm @(tk.HoatDong ? "btn-outline-danger" : "btn-outline-success")" type="button"
+                                                data-bs-toggle="modal" data-bs-target="#doiTrangThaiModal"
+                                                data-w1-account-id="@tk.MaTK" data-w1-account-name="@tk.TenDangNhap"
+                                                data-w1-account-action="@(tk.HoatDong ? "khóa" : "mở khóa")">
+                                            @(tk.HoatDong ? "Khóa" : "Mở khóa")
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+    <div class="col-lg-4">
+        <section class="vo-card">
+            <div class="vo-section">Tạo tài khoản mới</div>
+            <p class="text-secondary">Gia sư chỉ xem lịch và học viên của mình. Quản lý có quyền truy cập toàn hệ thống.</p>
+            <form asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="mb-3">
+                    <label asp-for="TaoMoi.VaiTro" class="form-label"></label>
+                    <select asp-for="TaoMoi.VaiTro" class="form-select" data-w1-role>
+                        <option value="@Constants.VaiTro.GiaSu">Gia sư</option>
+                        <option value="@Constants.VaiTro.QuanLy">Quản lý</option>
+                    </select>
+                    <span asp-validation-for="TaoMoi.VaiTro" class="text-danger"></span>
+                </div>
+                <div class="mb-3" data-w1-teacher-field>
+                    <label asp-for="TaoMoi.MaGS" class="form-label"></label>
+                    <select asp-for="TaoMoi.MaGS" class="form-select" data-w1-teacher>
+                        <option value="">-- Chọn gia sư --</option>
+                        @foreach (var gs in Model.GiaSuChuaCoTaiKhoan)
+                        {
+                            <option value="@gs.MaGS">@gs.HoTen (@gs.ChuyenMon)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="TaoMoi.MaGS" class="text-danger"></span>
+                    @if (Model.GiaSuChuaCoTaiKhoan.Count == 0)
+                    {
+                        <small class="form-text">Tất cả gia sư đã có tài khoản.</small>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label asp-for="TaoMoi.TenDangNhap" class="form-label"></label>
+                    <input asp-for="TaoMoi.TenDangNhap" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="TaoMoi.TenDangNhap" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="TaoMoi.MatKhau" class="form-label"></label>
+                    <input asp-for="TaoMoi.MatKhau" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="TaoMoi.MatKhau" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+            </form>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade" id="doiTrangThaiModal" tabindex="-1" aria-labelledby="doiTrangThaiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="DoiTrangThai" method="post">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="doiTrangThaiLabel">Xác nhận thay đổi trạng thái</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <span>Bạn có chắc muốn <strong data-w1-account-action-label></strong> tài khoản <strong data-w1-account-name-label></strong>?</span>
+                    <input type="hidden" name="id" value="" data-w1-account-input />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/w1.js" asp-append-version="true"></script>
+}

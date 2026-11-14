@@ -1,0 +1,118 @@
+@model DoAnWeb.ViewModels.GiaSu.GiaSuIndexVM
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Gia sư";
+    ViewData["PageSub"] = "Hồ sơ gia sư, ca nhận dạy và các lớp đang dạy.";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+}
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["Loi"]</div>
+}
+
+<section class="vo-card">
+    <div class="vo-section">Danh sách gia sư</div>
+    <form method="get" class="vo-toolbar w1-filter-row">
+        <input class="form-control" type="search" name="tuKhoa" value="@Model.TuKhoa"
+               placeholder="Tìm tên, SĐT, môn, trạng thái... (không cần dấu)" />
+        <select class="form-select" name="mon" aria-label="Lọc môn">
+            <option value="">Mọi môn</option>
+            @foreach (var item in Model.DanhSachMon)
+            {
+                <option value="@item" selected="@(item == Model.Mon)">@item</option>
+            }
+        </select>
+        <select class="form-select" name="ca" aria-label="Lọc ca nhận dạy">
+            <option value="">Nhận mọi ca</option>
+            @foreach (var item in Constants.CaHoc.TatCaCaHoc)
+            {
+                <option value="@item" selected="@(item == Model.Ca)">@("Nhận ca " + Constants.CaHoc.TenNgan(item))</option>
+            }
+        </select>
+        <select class="form-select" name="trangThai" aria-label="Lọc trạng thái">
+            <option value="">Mọi trạng thái</option>
+            <option value="Đang có lớp" selected="@(Model.TrangThai == "Đang có lớp")">Đang có lớp</option>
+            @foreach (var item in Constants.GiaSuStatus.TatCa)
+            {
+                <option value="@item" selected="@(item == Model.TrangThai)">@item</option>
+            }
+        </select>
+        <button class="btn btn-primary" type="submit">Lọc</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Xóa lọc</a>
+        <a class="btn btn-primary" asp-action="Create">Thêm gia sư</a>
+    </form>
+
+    <div class="w1-result-count">@Model.TongSo gia sư</div>
+    @if (Model.GiaSus.Count == 0)
+    {
+        <div class="vo-empty">Không tìm thấy gia sư phù hợp.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table vo-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>Số ĐT</th>
+                        <th>Chuyên môn</th>
+                        <th>Ca nhận dạy</th>
+                        <th class="text-center">Số lớp</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.GiaSus)
+                    {
+                        <tr>
+                            <td><a asp-action="Details" asp-route-id="@row.GiaSu.MaGS">@row.GiaSu.HoTen</a></td>
+                            <td>@row.GiaSu.SDT</td>
+                            <td>@row.GiaSu.ChuyenMon</td>
+                            <td>@row.CaNhanDay</td>
+                            <td class="text-center">@row.SoLop</td>
+                            <td><span class="vo-tag vo-tag-@row.TagClass">@row.TrangThai</span></td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@row.GiaSu.MaGS">Sửa</a>
+                                <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal"
+                                        data-bs-target="#xoaGiaSuModal" data-w1-delete-id="@row.GiaSu.MaGS"
+                                        data-w1-delete-name="@row.GiaSu.HoTen">Xóa</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<div class="modal fade" id="xoaGiaSuModal" tabindex="-1" aria-labelledby="xoaGiaSuLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Delete" method="post">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="xoaGiaSuLabel">Xác nhận xóa gia sư</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc muốn xóa gia sư <strong data-w1-delete-label></strong>? Thao tác này không thể hoàn tác.</p>
+                    <p class="mb-0">Nếu gia sư chỉ tạm nghỉ, hãy sửa trạng thái thành “Tạm nghỉ”.</p>
+                    <input type="hidden" name="id" value="" data-w1-delete-input />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa gia sư</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/w1.js" asp-append-version="true"></script>
+}
