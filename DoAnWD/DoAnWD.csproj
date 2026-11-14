@@ -65,6 +65,7 @@
     <Compile Include="BLL\Services\HocTapService.cs" />
     <Compile Include="BLL\Services\HocVienService.cs" />
     <Compile Include="BLL\Services\LopHocService.cs" />
+    <Compile Include="BLL\Services\LopHocGhepLopLogic.cs" />
     <Compile Include="BLL\Services\CaiDatService.cs" />
     <Compile Include="BLL\Services\TongQuanService.cs" />
     <Compile Include="BLL\Services\MonHocService.cs" />

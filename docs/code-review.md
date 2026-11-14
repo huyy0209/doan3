@@ -313,7 +313,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-05] Nuốt lỗi ngoại lệ (Swallowed Exceptions) ở các Service nền và Timer
 - **Vị trí**: `DoAnWD/BLL/Services/NotificationService.cs:72, 89, 104`, `DoAnWD/BLL/Services/CaiDatService.cs:39`, `DoAnWD/UI/TrangChu.cs:266, 340, 346, 353, 453`, `DoAnWD/UI/Pages/frmHocVien.BuoiHoc.cs:300`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Ghi lỗi bằng Trace tại các catch nền để không mất dấu trong bản Release.
 - **Mô tả vấn đề**:
   Nhiều khối `catch` bắt ngoại lệ nhưng bỏ trống hoặc chỉ ghi ra `Debug.WriteLine`. Khi biên dịch ứng dụng ở chế độ Release, các lệnh `Debug.WriteLine` hoàn toàn bị trình biên dịch loại bỏ (strip out), khiến các lỗi xảy ra trong quá trình chạy thực tế biến mất không dấu vết.
 - **Tình huống gây lỗi cụ thể**:
@@ -326,7 +326,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-06] DbContext Lifetime không nhất quán và nguy cơ rò rỉ bộ nhớ
 - **Vị trí**: `DoAnWD/UI/Pages/frmCalendarView.cs:31-32, 197-201`, `DoAnWD/UI/Dialogs/frmChucNangGhepLop.cs:27`, `DoAnWD/UI/TrangChu.cs:382`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tạo service/DbContext theo từng thao tác tải lịch và ghép lớp rồi giải phóng ngay.
 - **Mô tả vấn đề**:
   Một số Form như `frmCalendarView` khởi tạo `LopHocService` và `GiaSuService` làm biến thành viên private (`new LopHocService()`). Bản thân `LopHocService` lại giữ một thể hiện `GiaSuContextDB` cố định.
   Trong khi đó, `TrangChu.cs` lưu trữ các Form con trong từ điển `_trang` và không bao giờ giải phóng các Form này trong suốt thời gian ứng dụng chạy (`Show()` và `Hide()`).
@@ -345,7 +345,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-01] Kiến trúc Form quá lớn (God Form) và rò rỉ logic nghiệp vụ vào UI
 - **Vị trí**: `DoAnWD/UI/Pages/frmHocVien.cs` (gồm 3 partial files: `frmHocVien.cs`, `BuoiHoc.cs`, `DiemDanh.cs`, tổng 1.167 dòng) và `DoAnWD/UI/Dialogs/frmChucNangGhepLop.cs` (637 dòng)
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tách tính khoảng giờ, kiểm tra trùng lịch và gợi ý tên lớp khỏi form ghép lớp.
 - **Mô tả vấn đề**:
   Các form này vi phạm nguyên tắc Single Responsibility. Ví dụ trong `frmChucNangGhepLop.cs`: form vừa chịu trách nhiệm vẽ giao diện, vừa tính toán thời gian bắt đầu/kết thúc ca (`LayKhoang`), vừa kiểm tra điều kiện trùng lịch in-memory (`LopTrung`), vừa gợi ý tên lớp (`GoiYTenLop`).
 - **Đề xuất sửa chữa**:
