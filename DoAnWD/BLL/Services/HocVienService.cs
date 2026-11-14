@@ -72,7 +72,8 @@ namespace DoAnWD.BLL.Services
             var hocVien = _hocVienRepo.GetById(maHV);
             if (hocVien == null)
             {
-                throw new Exception("Không tìm thấy học viên.");
+                // LOW-05: dùng ngoại lệ cụ thể thay cho System.Exception.
+                throw new KeyNotFoundException("Không tìm thấy học viên.");
             }
 
             if (_hocVienRepo.HasActiveLopHoc(maHV))

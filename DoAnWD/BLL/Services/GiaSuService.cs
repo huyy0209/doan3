@@ -105,7 +105,8 @@ namespace DoAnWD.BLL.Services
             var giaSu = _giaSuRepo.GetById(maGS);
             if (giaSu == null)
             {
-                throw new Exception("Không tìm thấy gia sư.");
+                // LOW-05: dùng ngoại lệ cụ thể thay cho System.Exception.
+                throw new KeyNotFoundException("Không tìm thấy gia sư.");
             }
 
             // Kiểm tra có lớp học không

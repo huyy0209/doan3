@@ -399,7 +399,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-05] Sử dụng `throw new Exception` thay vì Custom/Specific Exception
 - **Vị trí**: `DoAnWD/BLL/Services/GiaSuService.cs:108`, `DoAnWD/BLL/Services/HocVienService.cs:75`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thay `throw new Exception` bằng `KeyNotFoundException` khi không tìm thấy gia sư/học viên.
 - **Mô tả vấn đề**:
   Trong phương thức `Delete` của `GiaSuService` và `HocVienService`:
   `throw new Exception("Không tìm thấy gia sư.");`
