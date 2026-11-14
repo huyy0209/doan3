@@ -1,0 +1,187 @@
+@model DoAnWeb.ViewModels.HocPhi.HocPhiIndexViewModel
+@using System.Globalization
+@using DoAnWeb.Services
+@{
+    ViewData["Title"] = "Học phí";
+    ViewData["PageSub"] = "Công nợ theo lớp và lịch sử các lần đóng học phí.";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+}
+
+<div class="w6-dashboard w6-hocphi">
+    <section class="w6-stat-grid w6-stat-grid-3">
+        <div class="vo-stat w6-stat-card"><span>Tổng học phí các lớp</span><strong>@Model.TongHocPhi.ToString("N0", vi) đ</strong></div>
+        <div class="vo-stat w6-stat-card"><span>Đã thu</span><strong>@Model.DaThu.ToString("N0", vi) đ</strong></div>
+        <div class="vo-stat w6-stat-card"><span>Còn phải thu</span><strong>@Model.ConNo.ToString("N0", vi) đ</strong></div>
+    </section>
+
+    <div class="w6-hocphi-grid">
+        <section class="vo-card w6-panel">
+            <div class="w6-panel-heading">
+                <div><h2>Công nợ theo lớp</h2><span>@Model.DanhSach.Count lớp phù hợp</span></div>
+                <a class="btn btn-outline-ink" asp-action="XuatCsv" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">
+                    <partial name="_Icon" model='"download"' /> Xuất CSV
+                </a>
+            </div>
+            <form method="get" class="vo-toolbar w6-filter-form">
+                <input type="search" name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm lớp, học viên, SĐT, môn, gia sư..." />
+                <select name="tinhTrang" class="form-select" aria-label="Lọc tình trạng">
+                    <option value="Cần thu (còn nợ + chưa đóng)" selected="@(Model.TinhTrang == "Cần thu (còn nợ + chưa đóng)")">Cần thu</option>
+                    <option value="Tất cả" selected="@(Model.TinhTrang == "Tất cả")">Tất cả</option>
+                    <option value="@HocPhiService.ConNo" selected="@(Model.TinhTrang == HocPhiService.ConNo)">@HocPhiService.ConNo</option>
+                    <option value="@HocPhiService.ChuaDong" selected="@(Model.TinhTrang == HocPhiService.ChuaDong)">@HocPhiService.ChuaDong</option>
+                    <option value="@HocPhiService.DaDu" selected="@(Model.TinhTrang == HocPhiService.DaDu)">@HocPhiService.DaDu</option>
+                    <option value="@HocPhiService.DaHuy" selected="@(Model.TinhTrang == HocPhiService.DaHuy)">@HocPhiService.DaHuy</option>
+                </select>
+                <button class="btn btn-primary" type="submit"><partial name="_Icon" model='"search"' /> Lọc</button>
+                <a class="btn btn-ghost" asp-action="Index">Xóa lọc</a>
+            </form>
+
+            @if (Model.DanhSach.Count == 0)
+            {
+                <div class="vo-empty">Không có khoản công nợ phù hợp.</div>
+            }
+            else
+            {
+                <div class="table-responsive w6-table-scroll">
+                    <table class="table vo-table align-middle">
+                        <thead>
+                            <tr><th>Lớp</th><th>Liên hệ</th><th>Gia sư</th><th class="text-end">Học phí</th><th class="text-end">Đã đóng</th><th class="text-end">Còn nợ</th><th>Tình trạng</th></tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var row in Model.DanhSach)
+                        {
+                            var selected = Model.MaLop == row.MaLop;
+                            var tag = row.TinhTrang == HocPhiService.DaDu ? "success" :
+                                row.TinhTrang == HocPhiService.ConNo ? "warning" :
+                                row.TinhTrang == HocPhiService.ChuaDong ? "danger" : "neutral";
+                            <tr class="@(selected ? "is-selected" : "")">
+                                <td>
+                                    <a class="w6-class-link" asp-action="Index" asp-route-maLop="@row.MaLop" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">@row.TenLop</a>
+                                    <small class="d-block text-muted">@row.HocVien · @row.MonHoc</small>
+                                </td>
+                                <td>@row.SDTLienHe</td>
+                                <td>@row.GiaSu</td>
+                                <td class="text-end text-nowrap">@row.HocPhi.ToString("N0", vi) đ</td>
+                                <td class="text-end text-nowrap">@row.DaDong.ToString("N0", vi) đ</td>
+                                <td class="text-end text-nowrap fw-semibold">@row.ConNo.ToString("N0", vi) đ</td>
+                                <td><span class="vo-tag vo-tag-@tag">@row.TinhTrang</span></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
+        <section class="vo-card w6-panel w6-payment-panel">
+            <div class="w6-panel-heading"><h2>Đóng học phí</h2></div>
+            @if (Model.LopChon == null)
+            {
+                <div class="vo-empty">Chọn một lớp ở danh sách để xem lịch sử đóng tiền.</div>
+            }
+            else
+            {
+                <div class="w6-selected-class">
+                    <strong>@Model.LopChon.HocVien, @Model.LopChon.MonHoc</strong>
+                    <span>@Model.LopChon.TenLop</span>
+                    <span>Còn nợ @Model.LopChon.ConNo.ToString("N0", vi) đ@(string.IsNullOrWhiteSpace(Model.LopChon.SDTLienHe) ? "" : $" · Liên hệ {Model.LopChon.SDTLienHe}")</span>
+                </div>
+                <form asp-action="ThemThanhToan" method="post" class="w6-payment-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ThanhToan.MaLop" />
+                    <input type="hidden" asp-for="ThanhToan.TuKhoa" />
+                    <input type="hidden" asp-for="ThanhToan.TinhTrang" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div>
+                        <label asp-for="ThanhToan.SoTien" class="form-label">Số tiền (đ)</label>
+                        <input asp-for="ThanhToan.SoTien" class="form-control" inputmode="numeric" placeholder="Ví dụ: 1.500.000" />
+                        <span asp-validation-for="ThanhToan.SoTien" class="text-danger small"></span>
+                    </div>
+                    <div>
+                        <label asp-for="ThanhToan.NgayDong" class="form-label">Ngày đóng</label>
+                        <input asp-for="ThanhToan.NgayDong" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div>
+                        <label asp-for="ThanhToan.HinhThuc" class="form-label">Hình thức</label>
+                        <input asp-for="ThanhToan.HinhThuc" class="form-control" list="w6-payment-methods" />
+                        <datalist id="w6-payment-methods">
+                            @foreach (var method in Constants.GoiY.HinhThucThanhToan)
+                            {
+                                <option value="@method"></option>
+                            }
+                        </datalist>
+                    </div>
+                    <div>
+                        <label asp-for="ThanhToan.GhiChu" class="form-label">Ghi chú</label>
+                        <input asp-for="ThanhToan.GhiChu" class="form-control" maxlength="200" placeholder="Ví dụ: Đóng đợt 2" />
+                    </div>
+                    <button type="submit" class="btn btn-primary" disabled="@(Model.LopChon.ConNo <= 0 || Model.LopChon.TrangThaiLop == Constants.LopHocStatus.DaHuy)">
+                        <partial name="_Icon" model='"money"' /> Ghi nhận đóng tiền
+                    </button>
+                </form>
+                <div class="w6-history-heading">Các lần đã đóng</div>
+                @if (Model.LichSu.Count == 0)
+                {
+                    <div class="vo-empty">Chưa có lần đóng tiền nào.</div>
+                }
+                else
+                {
+                    <div class="table-responsive w6-history-scroll">
+                        <table class="table vo-table align-middle">
+                            <thead><tr><th>Ngày</th><th>Số tiền</th><th>Hình thức</th><th>Ghi chú</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var payment in Model.LichSu)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">@payment.NgayDong.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-nowrap">@payment.SoTien.ToString("N0", vi) đ</td>
+                                    <td>@payment.HinhThuc</td>
+                                    <td>@payment.GhiChu</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" data-bs-target="#w6-xoa-thanh-toan"
+                                                data-ma-tt="@payment.MaTT"
+                                                data-khoan="@payment.SoTien.ToString("N0", vi) đ ngày @payment.NgayDong.ToString("dd/MM/yyyy")">
+                                            Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </section>
+    </div>
+</div>
+
+@if (Model.LopChon != null && Model.LichSu.Count > 0)
+{
+    <div class="modal fade" id="w6-xoa-thanh-toan" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="XoaThanhToan" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maTT" id="w6-xoa-ma-tt" />
+                    <input type="hidden" name="maLop" value="@Model.LopChon.MaLop" />
+                    <input type="hidden" name="tuKhoa" value="@Model.TuKhoa" />
+                    <input type="hidden" name="tinhTrang" value="@Model.TinhTrang" />
+                    <div class="modal-header"><h2 class="modal-title fs-5">Xóa lần đóng học phí?</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                    <div class="modal-body">Xóa khoản <strong id="w6-xoa-thanh-toan-text"></strong>? Thao tác này không thể hoàn tác.</div>
+                    <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-danger">Xóa lần đóng</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById("w6-xoa-thanh-toan").addEventListener("show.bs.modal", function (event) {
+            var button = event.relatedTarget;
+            document.getElementById("w6-xoa-ma-tt").value = button.getAttribute("data-ma-tt");
+            document.getElementById("w6-xoa-thanh-toan-text").textContent = button.getAttribute("data-khoan");
+        });
+    </script>
+}
