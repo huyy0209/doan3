@@ -105,7 +105,8 @@ namespace DoAnWD.BLL.Services
             var giaSu = _giaSuRepo.GetById(maGS);
             if (giaSu == null)
             {
-                throw new Exception("Không tìm thấy gia sư.");
+                // LOW-05: dùng ngoại lệ cụ thể thay cho System.Exception.
+                throw new KeyNotFoundException("Không tìm thấy gia sư.");
             }
 
             // Kiểm tra có lớp học không
@@ -125,8 +126,17 @@ namespace DoAnWD.BLL.Services
                     $"Hãy chuyển trạng thái sang \"{Constants.GiaSuStatus.TamNghi}\" thay vì xóa.");
             }
 
-            // Gia sư chưa có lớp nào nhưng có tài khoản đăng nhập => xóa luôn tài khoản
+            // CRIT-02: chặn xóa nếu gia sư đã từng dạy buổi học bù (FK_BuoiHoc_GiaSuDay)
+            // để tránh crash do vi phạm khóa ngoại từ SQL Server.
             var ctx = _giaSuRepo.Context;
+            if (ctx.BuoiHocs.Any(b => b.MaGSDay == maGS))
+            {
+                throw new InvalidOperationException(
+                    $"Không thể xóa!\n\nGia sư '{giaSu.HoTen}' đã từng dạy các buổi học bù trong hệ thống.\n\n" +
+                    $"Hãy chuyển trạng thái sang \"{Constants.GiaSuStatus.TamNghi}\" để lưu giữ lịch sử giảng dạy.");
+            }
+
+            // Gia sư chưa có lớp nào nhưng có tài khoản đăng nhập => xóa luôn tài khoản
             foreach (var tk in ctx.TaiKhoans.Where(t => t.MaGS == maGS).ToList())
                 ctx.TaiKhoans.Remove(tk);
 

@@ -46,7 +46,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [CRIT-01] Thiếu Database Transaction trong các thao tác nhiều bước gây bất nhất dữ liệu
 - **Vị trí**: `DoAnWD/BLL/Services/LopHocService.cs:170-176`, `264-268`, `466-473`, `494-499`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Bọc các lần ghi + đồng bộ trạng thái gia sư trong một `DbContextTransaction` chung cho `GhepLop`, `SuaLop`, `HuyLop`, `Delete`.
 - **Mô tả vấn đề**:
   Trong các phương thức `GhepLop`, `SuaLop`, `HuyLop` và `Delete` của `LopHocService`, hệ thống thực hiện nhiều thao tác ghi dữ liệu và gọi `SaveChanges()` riêng rẽ nhiều lần mà không bọc trong một Database Transaction:
   ```csharp
@@ -87,7 +87,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [CRIT-02] Crash ứng dụng do vi phạm Foreign Key khi xóa gia sư từng dạy học bù
 - **Vị trí**: `DoAnWD/BLL/Services/GiaSuService.cs:111-135` và `DoAnWD/DAL/Repositories/GiaSuRepository.cs:84-88`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `GiaSuService.Delete` kiểm tra thêm `BuoiHoc.MaGSDay` trước khi xóa, chặn xóa và gợi ý chuyển sang "Tạm nghỉ".
 - **Mô tả vấn đề**:
   Trong script `04_NangCap_v4.sql` (dòng 19), cột `MaGSDay` trong bảng `BuoiHoc` được tạo với khóa ngoại:
   ```sql
@@ -157,7 +157,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-01] Hàm kiểm tra trùng lịch `TimXungDot` bỏ qua hoàn toàn các buổi học bù
 - **Vị trí**: `DoAnWD/BLL/Services/LopHocService.cs:336-377`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `TimXungDot` truy vấn thêm `BuoiHoc` (buổi học bù) theo gia sư/học viên, ca và khoảng ngày để phát hiện xung đột.
 - **Mô tả vấn đề**:
   Phương thức `TimXungDot` chỉ truy vấn bảng `LopHoc` thông qua `_lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV)`. Nó hoàn toàn không truy vấn bảng `BuoiHoc` để kiểm tra các buổi học bù đã được xếp lịch trước đó (`MaBuoiGoc IS NOT NULL`).
 - **Tình huống gây lỗi cụ thể**:
@@ -172,7 +172,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-02] Lỗ hổng kiểm tra quyền ở tầng BLL khi `PhienDangNhap` chưa đăng nhập hoặc phụ thuộc tham số từ UI
 - **Vị trí**: `DoAnWD/BLL/Services/TaiKhoanService.cs:95-99` và `DoAnWD/BLL/Services/HocTapService.cs:219, 240, 536, 592`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `PhienDangNhap.YeuCauQuanLy` chặn cả khi chưa đăng nhập; `HocTapService` tự đọc `PhienDangNhap.GioiHanGiaSu` thay vì tin tham số `chiChoGiaSu` từ UI.
 - **Mô tả vấn đề**:
   1. `PhienDangNhap.YeuCauQuanLy()` được cài đặt như sau:
      ```csharp
@@ -195,7 +195,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-03] Tiết lộ tài khoản tồn tại (User Enumeration) qua thông báo lỗi đăng nhập
 - **Vị trí**: `DoAnWD/BLL/Services/TaiKhoanService.cs:176-180`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Mọi trường hợp đăng nhập sai (sai tài khoản, sai mật khẩu, đang tạm khóa) đều trả cùng một câu "Sai tên đăng nhập hoặc mật khẩu.".
 - **Mô tả vấn đề**:
   Trong `DangNhap`:
   - Nếu tên đăng nhập không tồn tại: ném `UnauthorizedAccessException("Sai tên đăng nhập hoặc mật khẩu.")`.
@@ -209,7 +209,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-04] Kéo toàn bộ bảng về bộ nhớ (`_dbSet.ToList()`) gây nghẽn hiệu năng khi tìm kiếm
 - **Vị trí**: `DoAnWD/DAL/Repositories/GiaSuRepository.cs:142`, `DoAnWD/DAL/Repositories/HocVienRepository.cs:22`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `Search` lọc thô bằng SQL (collation không phân biệt dấu, tham số hóa) trước khi nạp về RAM và chuẩn hóa tiếng Việt.
 - **Mô tả vấn đề**:
   Hàm `Search(string keyword)` của cả `GiaSuRepository` và `HocVienRepository` đều thực thi:
   ```csharp
@@ -251,7 +251,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-02] Hiển thị ngày mặc định `01/01` trong `GetLopTrongNgay` khi mất liên kết buổi gốc
 - **Vị trí**: `DoAnWD/BLL/Services/HocTapService.cs:163, 170`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Kiểm tra kết quả `TryGetValue`; thiếu buổi gốc thì ghi "Học bù buổi không rõ" thay vì ngày mặc định 01/01.
 - **Mô tả vấn đề**:
   Khi lấy danh sách học viên đến học bù:
   ```csharp
@@ -384,7 +384,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-04] Thiếu chỉ mục UNIQUE cho cột `TaiKhoan.MaGS` trong CSDL
 - **Vị trí**: `Database/02_NangCap_v2.sql:63-74`, `DoAnWD/BLL/Services/TaiKhoanService.cs:264`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm `Database/08_NangCap_v8.sql` tạo filtered unique index `UX_TaiKhoan_MaGS` (chạy lại được, báo lỗi nếu dữ liệu đang trùng `MaGS`).
 - **Mô tả vấn đề**:
   Nghiệp vụ quy định mỗi gia sư chỉ được cấp tối đa một tài khoản đăng nhập.
   Tầng BLL có kiểm tra `if (maGS.HasValue && db.TaiKhoans.Any(t => t.MaGS == maGS.Value)) throw ...;`
@@ -399,7 +399,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-05] Sử dụng `throw new Exception` thay vì Custom/Specific Exception
 - **Vị trí**: `DoAnWD/BLL/Services/GiaSuService.cs:108`, `DoAnWD/BLL/Services/HocVienService.cs:75`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thay `throw new Exception` bằng `KeyNotFoundException` khi không tìm thấy gia sư/học viên.
 - **Mô tả vấn đề**:
   Trong phương thức `Delete` của `GiaSuService` và `HocVienService`:
   `throw new Exception("Không tìm thấy gia sư.");`

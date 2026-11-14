@@ -167,7 +167,10 @@ namespace DoAnWD.BLL.Services
                         LopHoc l;
                         if (!lopBu.TryGetValue(b.MaLop, out l) || l.TrangThai == huy) continue;   // lớp đã hủy không còn học bù
                         string ten; tenGS.TryGetValue(b.MaGSDay ?? 0, out ten);
-                        DateTime goc; ngayGoc.TryGetValue(b.MaBuoiGoc.Value, out goc);
+                        // MED-02: buổi gốc có thể đã bị xóa => không hiển thị nhầm ngày 01/01.
+                        DateTime goc;
+                        string ngayGocText = ngayGoc.TryGetValue(b.MaBuoiGoc.Value, out goc)
+                            ? goc.ToString("dd/MM") : "không rõ";
                         ketQua.Add(new DiemDanhRow
                         {
                             MaLop = b.MaLop,
@@ -186,7 +189,7 @@ namespace DoAnWD.BLL.Services
                             NhanXet = b.NhanXet,
                             DaLuu = true,
                             LaHocBu = true,
-                            GhiChu = $"Học bù buổi {goc:dd/MM}"
+                            GhiChu = $"Học bù buổi {ngayGocText}"
                         });
                     }
                 }
@@ -239,6 +242,8 @@ namespace DoAnWD.BLL.Services
         /// </summary>
         public List<string> LuuCacBuoi(IEnumerable<BuoiHocRow> rows, int? chiChoGiaSu = null)
         {
+            // HIGH-02: không tin tham số do tầng UI truyền xuống, tự đọc giới hạn từ phiên đăng nhập.
+            int? gioiHan = PhienDangNhap.GioiHanGiaSu;
             var loi = new List<string>();
             using (var db = new GiaSuContextDB())
             {
@@ -262,7 +267,7 @@ namespace DoAnWD.BLL.Services
                     }
                     bool laBu = b != null && b.MaBuoiGoc.HasValue;
 
-                    if (chiChoGiaSu.HasValue && lop.MaGS != chiChoGiaSu.Value && !(laBu && b.MaGSDay == chiChoGiaSu.Value))
+                    if (gioiHan.HasValue && lop.MaGS != gioiHan.Value && !(laBu && b.MaGSDay == gioiHan.Value))
                     {
                         loi.Add($"{ten}: không phải lớp của bạn.");
                         continue;
@@ -536,6 +541,8 @@ namespace DoAnWD.BLL.Services
         public KetQuaHocBu XepHocBu(int maBuoiVang, DateTime ngay, string ca, int maGSDay,
             bool boQuaCanhBao = false, int? chiChoGiaSu = null)
         {
+            // HIGH-02: tự xác thực bằng phiên đăng nhập thay vì tin tham số chiChoGiaSu từ UI.
+            int? gioiHan = PhienDangNhap.GioiHanGiaSu;
             using (var db = new GiaSuContextDB())
             {
                 var goc = db.BuoiHocs.FirstOrDefault(b => b.MaBuoi == maBuoiVang);
@@ -547,7 +554,7 @@ namespace DoAnWD.BLL.Services
 
                 var lop = db.LopHocs.FirstOrDefault(l => l.MaLop == goc.MaLop);
                 if (lop == null) return new KetQuaHocBu { Loi = "Lớp của buổi này không còn tồn tại." };
-                if (chiChoGiaSu.HasValue && lop.MaGS != chiChoGiaSu.Value)
+                if (gioiHan.HasValue && lop.MaGS != gioiHan.Value)
                     return new KetQuaHocBu { Loi = "Chỉ xếp học bù cho học viên lớp của bạn." };
                 if (!Constants.CaHoc.TatCaCaHoc.Contains(ca)) return new KetQuaHocBu { Loi = "Chọn ca học bù." };
                 if (lop.ThoiGianBatDau.HasValue && ngay.Date < lop.ThoiGianBatDau.Value.Date)
@@ -591,15 +598,17 @@ namespace DoAnWD.BLL.Services
         /// <summary>Hủy lịch học bù (xóa buổi bù); buổi vắng gốc giữ nguyên</summary>
         public void HuyHocBu(int maBuoiBu, int? chiChoGiaSu = null)
         {
+            // HIGH-02: tự xác thực bằng phiên đăng nhập thay vì tin tham số chiChoGiaSu từ UI.
+            int? gioiHan = PhienDangNhap.GioiHanGiaSu;
             using (var db = new GiaSuContextDB())
             {
                 var b = db.BuoiHocs.FirstOrDefault(x => x.MaBuoi == maBuoiBu);
                 if (b == null) return;
                 if (!b.MaBuoiGoc.HasValue) throw new InvalidOperationException("Đây là buổi học thường, không phải buổi học bù.");
-                if (chiChoGiaSu.HasValue)
+                if (gioiHan.HasValue)
                 {
                     var lop = db.LopHocs.FirstOrDefault(l => l.MaLop == b.MaLop);
-                    if (lop?.MaGS != chiChoGiaSu.Value && b.MaGSDay != chiChoGiaSu.Value)
+                    if (lop?.MaGS != gioiHan.Value && b.MaGSDay != gioiHan.Value)
                         throw new InvalidOperationException("Chỉ hủy được buổi bù của lớp bạn hoặc buổi bạn dạy.");
                 }
                 db.BuoiHocs.Remove(b);

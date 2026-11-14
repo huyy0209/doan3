@@ -167,12 +167,27 @@ namespace DoAnWD.BLL.Services
                 throw new ArgumentException("Khoảng ngày đã chọn không có buổi nào rơi vào các thứ học.");
             lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
 
-            _lopHocRepo.Add(lopHoc);
-            _lopHocRepo.SaveChanges();
+            // CRIT-01: ghi lớp + đồng bộ trạng thái gia sư trong cùng một transaction
+            // (2 repo dùng chung _context) để không bị bất nhất dữ liệu khi bước sau lỗi.
+            using (var tx = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _lopHocRepo.Add(lopHoc);
+                    _lopHocRepo.SaveChanges();
 
-            // 6. Đồng bộ trạng thái gia sư
-            _giaSuRepo.UpdateStatusBasedOnLopHoc(y.MaGS);
-            _giaSuRepo.SaveChanges();
+                    // 6. Đồng bộ trạng thái gia sư
+                    _giaSuRepo.UpdateStatusBasedOnLopHoc(y.MaGS);
+                    _giaSuRepo.SaveChanges();
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
 
             return lopHoc;
         }
@@ -255,17 +270,31 @@ namespace DoAnWD.BLL.Services
             if (new LopHoc { ThoiGianBatDau = lop.ThoiGianBatDau, ThoiGianKetThuc = ketThuc, ThuHoc = thuHoc }.DemSoBuoi() == 0)
                 throw new ArgumentException("Khoảng ngày của lớp không có buổi nào rơi vào các thứ học.");
 
-            if (tenMoi != null) lop.TenLop = tenMoi;
-            lop.HocPhi = y.HocPhi;
-            lop.ThoiGianKetThuc = ketThuc;
-            lop.ThuHoc = thuHoc;
-            lop.MaGS = y.MaGS;
-            lop.TrangThai = lop.TrangThaiTheoThoiGian;   // gia hạn lớp đã kết thúc => học tiếp
-            _lopHocRepo.SaveChanges();
+            // CRIT-01: sửa lớp + đồng bộ trạng thái (gia sư cũ/mới) trong cùng một transaction.
+            using (var tx = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    if (tenMoi != null) lop.TenLop = tenMoi;
+                    lop.HocPhi = y.HocPhi;
+                    lop.ThoiGianKetThuc = ketThuc;
+                    lop.ThuHoc = thuHoc;
+                    lop.MaGS = y.MaGS;
+                    lop.TrangThai = lop.TrangThaiTheoThoiGian;   // gia hạn lớp đã kết thúc => học tiếp
+                    _lopHocRepo.SaveChanges();
 
-            foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(ma);
-            _giaSuRepo.SaveChanges();
+                    foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(ma);
+                    _giaSuRepo.SaveChanges();
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
             return lop;
         }
 
@@ -360,6 +389,30 @@ namespace DoAnWD.BLL.Services
                 return string.Format("Học viên đã có lớp {0} (gia sư {1}) ở ca {2}, từ {3:dd/MM/yyyy} đến {4:dd/MM/yyyy}.",
                     trungHocVien.MonHoc, trungHocVien.GiaSu?.HoTen ?? "?", trungHocVien.CaHoc,
                     trungHocVien.ThoiGianBatDau, trungHocVien.ThoiGianKetThuc);
+
+            // HIGH-01: kiểm tra thêm các buổi học bù đã xếp lịch (bảng BuoiHoc) mà TimXungDot trước đây bỏ sót.
+            // Buổi bù là một ngày cụ thể nên chỉ trùng khi cùng ca, cùng ngày nằm trong khoảng của lớp mới
+            // và ngày đó là ngày học của lớp mới.
+            var tuNgay = lopMoi.ThoiGianBatDau.Value.Date;
+            var denNgay = lopMoi.ThoiGianKetThuc.Value.Date;
+            var buoiBu = _context.BuoiHocs
+                .Where(b => b.MaBuoiGoc != null && b.CaHoc == caHoc &&
+                            b.NgayHoc >= tuNgay && b.NgayHoc <= denNgay &&
+                            b.MaLop != (boQuaMaLop ?? 0))
+                .Select(b => new { b.MaLop, b.NgayHoc, b.MaGSDay, MaHV = b.LopHoc.MaHV })
+                .ToList()
+                .Where(b => Constants.ThuHoc.CoHoc(thuHoc, b.NgayHoc))
+                .ToList();
+
+            var buGS = buoiBu.FirstOrDefault(b => b.MaGSDay == maGS);
+            if (buGS != null)
+                return string.Format("Gia sư đã có buổi học bù ở ca {0} ngày {1:dd/MM/yyyy} (lớp {2}).",
+                    caHoc, buGS.NgayHoc, buGS.MaLop);
+
+            var buHV = buoiBu.FirstOrDefault(b => b.MaHV == maHV);
+            if (buHV != null)
+                return string.Format("Học viên đã có buổi học bù ở ca {0} ngày {1:dd/MM/yyyy} (lớp {2}).",
+                    caHoc, buHV.NgayHoc, buHV.MaLop);
 
             if (!string.IsNullOrWhiteSpace(monHoc))
             {
@@ -459,17 +512,31 @@ namespace DoAnWD.BLL.Services
             if (lopHoc.TrangThaiTheoThoiGian == Constants.LopHocStatus.DaKetThuc)
                 throw new InvalidOperationException("Lớp đã kết thúc, không thể hủy.");
 
-            lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
-            // Buổi học bù đã xếp nhưng chưa tới ngày thì bỏ luôn (lớp đã hủy không học bù nữa)
-            var homNay = DateTime.Today;
-            foreach (var bu in _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc != null && b.NgayHoc > homNay).ToList())
-                _context.BuoiHocs.Remove(bu);
-            _lopHocRepo.SaveChanges();
-
-            if (lopHoc.MaGS.HasValue)
+            // CRIT-01: hủy lớp + xóa buổi bù tương lai + đồng bộ trạng thái gia sư trong 1 transaction.
+            using (var tx = _context.Database.BeginTransaction())
             {
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(lopHoc.MaGS.Value);
-                _giaSuRepo.SaveChanges();
+                try
+                {
+                    lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
+                    // Buổi học bù đã xếp nhưng chưa tới ngày thì bỏ luôn (lớp đã hủy không học bù nữa)
+                    var homNay = DateTime.Today;
+                    foreach (var bu in _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc != null && b.NgayHoc > homNay).ToList())
+                        _context.BuoiHocs.Remove(bu);
+                    _lopHocRepo.SaveChanges();
+
+                    if (lopHoc.MaGS.HasValue)
+                    {
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(lopHoc.MaGS.Value);
+                        _giaSuRepo.SaveChanges();
+                    }
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -490,13 +557,27 @@ namespace DoAnWD.BLL.Services
                 throw new InvalidOperationException(
                     "Lớp đã có điểm danh hoặc đã đóng học phí nên không xóa hẳn được. Hãy dùng \"Hủy lớp\" để giữ lịch sử.");
 
-            _lopHocRepo.Remove(lopHoc);
-            _lopHocRepo.SaveChanges();
-
-            if (maGS.HasValue)
+            // CRIT-01: xóa lớp + đồng bộ trạng thái gia sư trong cùng một transaction.
+            using (var tx = _context.Database.BeginTransaction())
             {
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
-                _giaSuRepo.SaveChanges();
+                try
+                {
+                    _lopHocRepo.Remove(lopHoc);
+                    _lopHocRepo.SaveChanges();
+
+                    if (maGS.HasValue)
+                    {
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
+                        _giaSuRepo.SaveChanges();
+                    }
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
             }
         }
 
