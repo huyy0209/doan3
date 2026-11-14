@@ -46,6 +46,14 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 - 2026-11-15: thêm **Z.ai** (https://api.z.ai/api/anthropic) qua Claude Code CLI: script `C:\Users\Admin\bin\claude-zai.cmd` (key lấy từ biến môi trường `Z_AI_API_KEY`, cấu hình riêng `%USERPROFILE%\.claude-zai`). Giao việc: `orca terminal create --worktree <wt> --command "C:\Users\Admin\bin\claude-zai.cmd"` rồi `orca orchestration worker-start --task <id> --terminal <handle> --worktree <wt>`. Thứ tự dự phòng mới: copilot → zai → muse. Đã thử OK 2026-11-15: key hợp lệ nhưng tài khoản Z.ai chưa nạp gói (lỗi 1113) nên chỉ dùng model miễn phí `glm-4.5-flash` (script ép model qua `Z_AI_MODEL`; ngữ cảnh thật ~128k, Claude CLI tưởng 1M nên tránh giao task quá lớn). `glm-4.7-flash` lúc thử bị quá tải (1305).
 - 2026-11-15 W4: antigravity → muse. Lý do: 503 capacity (đã chờ 2 phút, gửi tiếp tục 1 lần) rồi "Individual quota reached, resets in 164h". Theo bảng dự phòng là coordinator tự review; dùng muse vì người dùng vừa cấp. Muse lỗi 402 "Billing verification failed" → coordinator tự review 10 mục (docs/web-review.md).
 
+## Đợt 2 (sau khi push)
+| Task | Trạng thái | Agent | Worktree | Nội dung |
+|---|---|---|---|---|
+| W8 | đang chạy | copilot (ctx_c372eff249a2) | web-w8 | gộp .bat thành QuanLyGiaSu.bat + scripts/, dọn file thừa DoAnWeb, .gitignore |
+| W9 | đang chạy | zai glm-4.5-flash (ctx_03de6644ea98, terminal riêng, auto mode – người dùng cho phép bypass) | web-w9 | logo SVG, favicon, assets/QuanLyGiaSu.ico |
+
+Thử model mới 2026-11-15: Qwen Code (OAuth free ngừng 15/04/2026) và Gemini CLI (Code Assist cá nhân ngừng, chuyển Antigravity) KHÔNG dùng được miễn phí khi đăng nhập tài khoản; cần key (OpenRouter / Google AI Studio).
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
