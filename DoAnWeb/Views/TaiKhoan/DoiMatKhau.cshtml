@@ -1,0 +1,86 @@
+@model DoAnWeb.ViewModels.TaiKhoan.DoiMatKhauVM
+@{
+    var batBuoc = Model.BatBuoc;
+    ViewData["Title"] = batBuoc ? "Đặt mật khẩu mới" : "Đổi mật khẩu";
+    Layout = batBuoc ? "_LayoutTrong" : "_Layout";
+    if (!batBuoc)
+    {
+        ViewData["PageSub"] = "Mật khẩu mới cần ít nhất 6 ký tự và khác mật khẩu đang dùng.";
+    }
+
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+    if (string.IsNullOrWhiteSpace(tenTrungTam)) { tenTrungTam = "Quản lý gia sư"; }
+    var tenDangNhap = User?.Identity?.Name;
+}
+<div class="@(batBuoc ? "vo-panel-narrow" : "vo-card vo-panel-rong")">
+    @if (batBuoc)
+    {
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="vo-brand-mark"><partial name="_Icon" model='"book"' /></span>
+            <span>
+                <span class="vo-strong d-block">@tenTrungTam</span>
+                <span class="vo-muted" style="font-size:.8rem">Phần mềm quản lý gia sư</span>
+            </span>
+        </div>
+    }
+
+    <h2 class="vo-section-title">@(batBuoc ? "Đặt mật khẩu mới" : "Đổi mật khẩu")</h2>
+
+    @if (batBuoc)
+    {
+        <div class="alert alert-warning">
+            Tài khoản @(string.IsNullOrWhiteSpace(tenDangNhap) ? "" : tenDangNhap + " ")
+            đang dùng mật khẩu mặc định mà ai cũng biết.
+            Đặt mật khẩu riêng để tiếp tục sử dụng ứng dụng.
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(tenDangNhap))
+    {
+        <p class="vo-muted" style="font-size:.86rem">Tài khoản: <span class="vo-strong">@tenDangNhap</span></p>
+    }
+
+    <form method="post" asp-controller="TaiKhoan" asp-action="DoiMatKhau" autocomplete="off">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="BatBuoc" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+        @if (!batBuoc)
+        {
+            <div class="vo-field">
+                <label asp-for="MatKhauCu" class="form-label">Mật khẩu hiện tại</label>
+                <input asp-for="MatKhauCu" type="password" class="form-control"
+                       placeholder="Mật khẩu hiện tại" autocomplete="current-password" />
+                <span asp-validation-for="MatKhauCu" class="text-danger small"></span>
+            </div>
+        }
+
+        <div class="vo-field">
+            <label asp-for="MatKhauMoi" class="form-label">Mật khẩu mới</label>
+            <input asp-for="MatKhauMoi" type="password" class="form-control"
+                   placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" />
+            <span asp-validation-for="MatKhauMoi" class="text-danger small"></span>
+        </div>
+
+        <div class="vo-field">
+            <label asp-for="XacNhan" class="form-label">Nhập lại mật khẩu mới</label>
+            <input asp-for="XacNhan" type="password" class="form-control"
+                   placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" />
+            <span asp-validation-for="XacNhan" class="text-danger small"></span>
+        </div>
+
+        <div class="vo-toolbar mt-3 mb-0">
+            <button type="submit" class="btn btn-primary">
+                <partial name="_Icon" model='"check"' />Lưu mật khẩu
+            </button>
+            @if (!batBuoc)
+            {
+                <a href="/" class="btn btn-outline-secondary">Hủy</a>
+            }
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

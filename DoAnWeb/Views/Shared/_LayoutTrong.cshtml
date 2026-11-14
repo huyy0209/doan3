@@ -1,0 +1,48 @@
+@{
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+    if (string.IsNullOrWhiteSpace(tenTrungTam)) { tenTrungTam = "Quản lý gia sư"; }
+    var tieuDeTrang = ViewData["Title"] as string;
+    if (string.IsNullOrWhiteSpace(tieuDeTrang)) { tieuDeTrang = tenTrungTam; }
+
+    var thongBao = TempData["ThongBao"] as string;
+    var loi = TempData["Loi"] as string;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@tieuDeTrang - @tenTrungTam</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="vo-body">
+@* Layout không sidebar: đăng nhập, đổi mật khẩu bắt buộc, lỗi toàn cục *@
+<div class="vo-auth-page">
+    @RenderBody()
+</div>
+
+<div class="vo-toasts" id="vo-toasts" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(thongBao))
+    {
+        <div class="vo-toast vo-toast-success" data-vo-toast>
+            <span class="vo-toast-dot"><partial name="_Icon" model='"check"' /></span>
+            <span>@thongBao</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(loi))
+    {
+        <div class="vo-toast vo-toast-danger" data-vo-toast>
+            <span class="vo-toast-dot"><partial name="_Icon" model='"x"' /></span>
+            <span>@loi</span>
+        </div>
+    }
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

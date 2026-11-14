@@ -1,0 +1,232 @@
+@{
+    ViewData["Title"] = "Mẫu giao diện";
+    ViewData["PageSub"] = "Trang thử mọi class dùng chung – W1/W2/W5/W6 chép cách dùng từ đây.";
+}
+
+<div class="vo-toolbar">
+    <div class="vo-search">
+        <partial name="_Icon" model='"search"' />
+        <input type="text" class="form-control" placeholder="Tìm theo tên, số điện thoại…" />
+    </div>
+    <select class="form-select">
+        <option>Tất cả trạng thái</option>
+        <option>Đang dạy</option>
+    </select>
+    <select class="form-select">
+        <option>Tất cả môn</option>
+        <option>Toán</option>
+    </select>
+    <button type="button" class="btn btn-primary">
+        <partial name="_Icon" model='"plus"' />Thêm mới
+    </button>
+</div>
+
+<div class="row g-3 mb-1">
+    <div class="col-6 col-lg-3">
+        <div class="vo-stat vo-stat-ink">
+            <div class="vo-stat-label">Lớp đang dạy</div>
+            <div class="vo-stat-value">24</div>
+            <div class="vo-stat-note">8 lớp bắt đầu hôm nay</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="vo-stat vo-stat-warning">
+            <div class="vo-stat-label">Công nợ</div>
+            <div class="vo-stat-value">3.250.000</div>
+            <div class="vo-stat-note">5 lớp còn nợ</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="vo-stat">
+            <div class="vo-stat-label">Học viên</div>
+            <div class="vo-stat-value">57</div>
+            <div class="vo-stat-note">3 học viên mới</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="vo-stat vo-stat-danger">
+            <div class="vo-stat-label">Vắng không phép</div>
+            <div class="vo-stat-value">2</div>
+            <div class="vo-stat-note">Trong tuần này</div>
+        </div>
+    </div>
+</div>
+
+<div class="vo-section">
+    <div class="vo-section-head">
+        <h2 class="vo-section-title">Bảng dữ liệu</h2>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <partial name="_Icon" model='"download"' />Xuất CSV
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <partial name="_Icon" model='"print"' />In
+            </button>
+        </div>
+    </div>
+
+    <div class="vo-table-wrap">
+        <table class="vo-table">
+            <thead>
+                <tr>
+                    <th>Học viên</th>
+                    <th>Lớp</th>
+                    <th>Gia sư</th>
+                    <th>Trạng thái</th>
+                    <th class="vo-cell-number">Học phí</th>
+                    <th class="vo-cell-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="is-selected">
+                    <td class="vo-cell-strong">Nguyễn Minh Anh</td>
+                    <td>Toán 9 – Tối 2/4/6</td>
+                    <td>Trần Quốc Bảo</td>
+                    <td><span class="vo-tag vo-tag-info">Đang dạy</span></td>
+                    <td class="vo-cell-number">1.200.000</td>
+                    <td class="vo-cell-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <partial name="_Icon" model='"edit"' />Sửa
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger">
+                            <partial name="_Icon" model='"trash"' />Xóa
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="vo-cell-strong">Lê Hoàng Nam</td>
+                    <td>Tiếng Anh 7 – Sáng 3/5</td>
+                    <td>Phạm Thu Hà</td>
+                    <td><span class="vo-tag vo-tag-success">Đã đủ</span></td>
+                    <td class="vo-cell-number">900.000</td>
+                    <td class="vo-cell-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <partial name="_Icon" model='"edit"' />Sửa
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger">
+                            <partial name="_Icon" model='"trash"' />Xóa
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="vo-cell-strong">Đỗ Gia Hân</td>
+                    <td>Vẽ năng khiếu – Chiều 7</td>
+                    <td>Nguyễn Lan</td>
+                    <td><span class="vo-tag vo-tag-danger">Đã hủy</span></td>
+                    <td class="vo-cell-number">0</td>
+                    <td class="vo-cell-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <partial name="_Icon" model='"edit"' />Sửa
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger">
+                            <partial name="_Icon" model='"trash"' />Xóa
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="vo-cell-strong">Vũ Bảo Long</td>
+                    <td>Toán 6 – Tối 3/5</td>
+                    <td>Trần Quốc Bảo</td>
+                    <td><span class="vo-tag vo-tag-warning">Còn nợ</span></td>
+                    <td class="vo-cell-number">750.000</td>
+                    <td class="vo-cell-actions">
+                        <span class="vo-cell-muted">Khóa</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="vo-card">
+            <h2 class="vo-section-title">Nhãn trạng thái</h2>
+            <p class="mb-2">
+                <span class="vo-tag vo-tag-success">Rảnh</span>
+                <span class="vo-tag vo-tag-warning">Bận</span>
+                <span class="vo-tag vo-tag-info">Đang dạy</span>
+                <span class="vo-tag vo-tag-danger">Vắng không phép</span>
+                <span class="vo-tag vo-tag-neutral">Tạm nghỉ</span>
+                <span class="vo-tag vo-tag-ink">Hoạt động</span>
+                <span class="vo-tag vo-tag-chalk">Sắp bắt đầu</span>
+            </p>
+            <p class="mb-0 vo-muted" style="font-size:.84rem">
+                Dùng <code>.vo-tag</code> + biến thể, không tự đặt màu nền.
+            </p>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="vo-card">
+            <h2 class="vo-section-title">Nút</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary">
+                    <partial name="_Icon" model='"plus"' />Thêm lớp
+                </button>
+                <button type="button" class="btn btn-outline-secondary">
+                    <partial name="_Icon" model='"edit"' />Sửa
+                </button>
+                <button type="button" class="btn btn-ink-soft">Lọc</button>
+                <button type="button" class="btn btn-danger">
+                    <partial name="_Icon" model='"trash"' />Xóa
+                </button>
+                <button type="button" class="btn btn-ghost">
+                    <partial name="_Icon" model='"refresh"' />Làm mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="vo-section">
+    <h2 class="vo-section-title">Biểu mẫu</h2>
+    <form>
+        <div class="vo-form-grid">
+            <div class="vo-field vo-field-required">
+                <label class="form-label">Họ tên</label>
+                <input type="text" class="form-control" placeholder="Nguyễn Văn A" />
+                <div class="form-text">Bắt buộc, 2–100 ký tự.</div>
+            </div>
+            <div class="vo-field vo-field-required">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" class="form-control" placeholder="0901234567" />
+            </div>
+            <div class="vo-field">
+                <label class="form-label">Môn học</label>
+                <select class="form-select">
+                    <option>Chọn môn</option>
+                    <option>Toán</option>
+                    <option>Tiếng Anh</option>
+                </select>
+            </div>
+            <div class="vo-field">
+                <label class="form-label">Ca học</label>
+                <select class="form-select">
+                    <option>Tối</option>
+                    <option>Sáng</option>
+                </select>
+            </div>
+            <div class="vo-field vo-span-2">
+                <label class="form-label">Ghi chú</label>
+                <textarea class="form-control" rows="3" placeholder="Thông tin thêm…"></textarea>
+            </div>
+        </div>
+        <div class="vo-toolbar mb-0 mt-2">
+            <button type="button" class="btn btn-primary">
+                <partial name="_Icon" model='"check"' />Lưu
+            </button>
+            <button type="button" class="btn btn-outline-secondary">
+                <partial name="_Icon" model='"x"' />Hủy
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="vo-card">
+    <h2 class="vo-section-title">Trạng thái rỗng</h2>
+    <div class="vo-empty">
+        <partial name="_Icon" model='"book"' />
+        <div class="vo-empty-title">Chưa có lớp nào</div>
+        <div class="vo-empty-note">Bấm “Thêm lớp” hoặc đổi bộ lọc để xem dữ liệu khác.</div>
+    </div>
+</div>

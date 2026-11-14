@@ -1,0 +1,139 @@
+@model string
+@*
+    Icon SVG nội tuyến – tương đương bộ Glyph vẽ tay của app (DoAnWD/UI/Theme/Icons.cs).
+    Dùng: <partial name="_Icon" model='"home"' />
+    Icon ăn theo currentColor + stroke 1.7 (xem .vo-icon trong site.css) nên đổi màu
+    bằng class cha (ví dụ .vo-nav-link.is-active .vo-icon { color: var(--vo-chalk); }).
+    Danh sách: home, book, users, calendar, money, user, key, settings, refresh,
+               logout, search, plus, edit, trash, check, x, chevron-down, bell,
+               print, download.
+*@
+@{
+    var ten = (Model ?? "").Trim().ToLowerInvariant();
+}
+<svg class="vo-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    @switch (ten)
+    {
+        case "home":
+            @* Nhà: mái + thân + cửa *@
+            <path d="M2.5 7.2 8 2.5l5.5 4.7" />
+            <path d="M4 6.6v6.4h8V6.6" />
+            <path d="M6.6 13V9.6h2.8V13" />
+            break;
+
+        case "book":
+            @* Quyển sổ: gáy giữa, hai trang *@
+            <path d="M8 3.4C6.7 2.7 5 2.5 3 2.6v10.3c2-.1 3.7.1 5 .8 1.3-.7 3-.9 5-.8V2.6c-2-.1-3.7.1-5 .8Z" />
+            <path d="M8 3.4v10.3" />
+            break;
+
+        case "users":
+            @* Hai người: đầu tròn + vai *@
+            <circle cx="5.7" cy="5.2" r="2.2" />
+            <path d="M1.6 13.2c0-2.5 1.8-4 4.1-4s4.1 1.5 4.1 4" />
+            <path d="M10.6 3.4a2.2 2.2 0 0 1 0 4.2" />
+            <path d="M11.7 9.6c1.6.4 2.7 1.7 2.7 3.6" />
+            break;
+
+        case "calendar":
+            <rect x="2.3" y="3.4" width="11.4" height="10.2" rx="1.4" />
+            <path d="M2.3 6.7h11.4" />
+            <path d="M5.4 1.9v2.8M10.6 1.9v2.8" />
+            <path d="M5.3 9.2h1.4M9.3 9.2h1.4M5.3 11.4h1.4" />
+            break;
+
+        case "money":
+            @* Tờ tiền: khung + vòng tròn giữa *@
+            <rect x="1.6" y="4.2" width="12.8" height="7.6" rx="1.4" />
+            <circle cx="8" cy="8" r="2" />
+            <path d="M4.2 6.4v3.2M11.8 6.4v3.2" />
+            break;
+
+        case "user":
+            <circle cx="8" cy="4.8" r="2.7" />
+            <path d="M2.6 13.6c0-3.3 2.4-5.2 5.4-5.2s5.4 1.9 5.4 5.2" />
+            break;
+
+        case "key":
+            <circle cx="5.3" cy="5.3" r="2.8" />
+            <path d="M7.3 7.3 13.4 13.4" />
+            <path d="M10.9 10.9l1.4-1.4M12.3 12.3l1.4-1.4" />
+            break;
+
+        case "settings":
+            @* Bánh răng đơn giản: vòng tròn + 8 nan *@
+            <circle cx="8" cy="8" r="2.4" />
+            <path d="M8 1.6v2M8 12.4v2M1.6 8h2M12.4 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M12.5 3.5l-1.4 1.4M4.9 11.1l-1.4 1.4" />
+            break;
+
+        case "refresh":
+            <path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.7" />
+            <path d="M13.3 2.5v3.4h-3.4" />
+            break;
+
+        case "logout":
+            <path d="M6.2 2.6H3.4A1.4 1.4 0 0 0 2 4v8a1.4 1.4 0 0 0 1.4 1.4h2.8" />
+            <path d="M9.6 11.2 13 8 9.6 4.8" />
+            <path d="M13 8H6.2" />
+            break;
+
+        case "search":
+            <circle cx="7" cy="7" r="4.2" />
+            <path d="M10.2 10.2 13.6 13.6" />
+            break;
+
+        case "plus":
+            <path d="M8 3v10M3 8h10" />
+            break;
+
+        case "edit":
+            @* Bút chì *@
+            <path d="M3 13l.5-2.6 7-7 2.1 2.1-7 7L3 13Z" />
+            <path d="M9.3 4.6l2.1 2.1" />
+            break;
+
+        case "trash":
+            <path d="M2.6 4.3h10.8" />
+            <path d="M6.2 2.4h3.6l.5 1.9H5.7l.5-1.9Z" />
+            <path d="M4.2 4.3l.7 9.3h6.2l.7-9.3" />
+            <path d="M6.7 6.9v4.4M9.3 6.9v4.4" />
+            break;
+
+        case "check":
+            <path d="m3 8.4 3.4 3.3L13 4.6" />
+            break;
+
+        case "x":
+            <path d="M4 4l8 8M12 4l-8 8" />
+            break;
+
+        case "chevron-down":
+            <path d="M4 6.2 8 10.2l4-4" />
+            break;
+
+        case "bell":
+            @* Chuông thông báo *@
+            <path d="M4.2 11.2h7.6l-1.1-1.7V7a2.7 2.7 0 0 0-5.4 0v2.5l-1.1 1.7Z" />
+            <path d="M8 2.2V1.2" />
+            <path d="M6.7 12.6a1.35 1.35 0 0 0 2.6 0" />
+            break;
+
+        case "print":
+            <path d="M4.6 6.2V2.6h6.8v3.6" />
+            <rect x="2.2" y="6.2" width="11.6" height="5.2" rx="1.2" />
+            <path d="M4.6 9.6h6.8v3.8H4.6z" />
+            <path d="M11.6 8.1h.9" />
+            break;
+
+        case "download":
+            <path d="M8 2.4v7.2" />
+            <path d="M5.2 7 8 9.8 10.8 7" />
+            <path d="M2.6 11.2v1.4c0 .6.5 1 1 1h8.8c.5 0 1-.4 1-1v-1.4" />
+            break;
+
+        default:
+            @* Tên icon lạ: chấm tròn để dễ phát hiện lỗi chính tả *@
+            <circle cx="8" cy="8" r="4" />
+            break;
+    }
+</svg>
