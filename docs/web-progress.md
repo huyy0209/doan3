@@ -21,9 +21,9 @@
 | GĐ1 | đang chạy | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | |
 | W0 | đang chạy | copilot (dispatch ctx_02e2349e5312) | web-w0 | huyy0209/web-w0 | chuyển 8 service phụ (HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao). Lúc đầu worktree tạo từ 6f6a35f (thiếu DoAnWeb) → coordinator ff lên 8cd7a1d |
 | W7 | đang chạy | opencode / DeepSeek V4.1 Flash Free (ctx_55791c8eaee1) | web-w7 | huyy0209/web-w7 | giao diện khung giống app: site.css, _Layout, đăng nhập, icon |
-| W1 | chưa giao | (copilot) | – | – | GS, HV, Tài khoản |
-| W2 | chưa giao | (opencode) | – | – | Lớp, ghép lớp, Môn học |
-| W3 | chưa giao | (dsh) | – | – | xUnit, DB QuanLyGiaSu_Test |
+| W1 | đang chạy | copilot (ctx_74844e637f60) | web-w1 | huyy0209/web-w1 | GS, HV, Tài khoản. Prompt đầu bị rớt (Copilot "policy still loading") → gửi lại |
+| W2 | đang chạy | opencode (ctx_9d9eae0856d5) | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
+| W3 | đang chạy | dsh / deepseek-v4-pro (ctx_d81e86f6b82c) | web-w3 | huyy0209/web-w3 | xUnit, DB QuanLyGiaSu_Test |
 | W5 | chưa giao | (copilot) | – | – | Điểm danh, kết quả, học bù |
 | W6 | chưa giao | (opencode) | – | – | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
 | W4 | chưa giao | (antigravity) | – | – | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
@@ -36,6 +36,14 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 | Thời điểm | Task | Agent cũ | Agent mới | Lý do |
 |---|---|---|---|---|
 | – | – | – | – | – |
+
+## Lưu ý vận hành
+- Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
+- Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
+- `worker-start --worktree new-child` có lúc lấy base cũ (W0 lấy 6f6a35f) → luôn truyền `--base-branch huyy0209/cập-nhật-lên-web`.
+- GĐ1 coordinator đã xong lõi (commit 1091c3b): Program.cs, auth, entity, Common, TaiKhoan/GiaSu/HocVien/LopHoc service, tác vụ nền.
+  Còn chờ: W0 (service phụ) + W7 (layout) merge → gọi `AddDichVuPhu()` trong Program.cs, filter đặt `ViewData["TenTrungTam"]`,
+  commit cuối GĐ1 "feat(web): dựng khung ASP.NET Core". Sau đó giao W5 (copilot) và W6 (opencode).
 
 ## Bước tiếp theo
 1. Đợi người dùng trả lời "duyệt" + câu hỏi.
