@@ -348,9 +348,7 @@ namespace DoAnWD.UI.Dialogs
         private void GoiYTenLop()
         {
             if (_tenLopTuGo || txtTenLop == null) return;
-            string goiY = LopHocService.GoiYTenLop(MonChon?.TenMon, HocVienChon?.HoTen, CaChon);
-            string ten = goiY;
-            for (int i = 2; _tenLopDaCo.Contains(ten) && i < 100; i++) ten = $"{goiY} ({i})";
+            string ten = LopHocGhepLopLogic.GoiYTenLop(MonChon?.TenMon, HocVienChon?.HoTen, CaChon, _tenLopDaCo);
             _dangGoiYTen = true;
             txtTenLop.Text = ten;
             _dangGoiYTen = false;
@@ -358,29 +356,11 @@ namespace DoAnWD.UI.Dialogs
         private GiaSu GiaSuChon => lstGS.SelectedItem as GiaSu;
         private string CaChon => chonCa.GiaTri;
 
-        private void LayKhoang(string ca, out DateTime bd, out DateTime kt)
-        {
-            int gioBD, gioKT;
-            if (Constants.CaHoc.TryGetGio(ca, out gioBD, out gioKT))
-            {
-                bd = dtpBatDau.Value.Date.AddHours(gioBD);
-                kt = dtpKetThuc.Value.Date.AddHours(gioKT);
-            }
-            else
-            {
-                bd = dtpBatDau.Value.Date;
-                kt = dtpKetThuc.Value.Date.AddDays(1).AddTicks(-1);
-            }
-        }
-
         /// <summary>Lớp đang hoạt động trùng ca + trùng ngày + có chung thứ học với lựa chọn hiện tại</summary>
         private LopHoc LopTrung(Func<LopHoc, bool> cuaAi, string ca)
         {
-            if (ca == null) return null;
-            DateTime bd, kt;
-            LayKhoang(ca, out bd, out kt);
-            var moi = new LopHoc { CaHoc = ca, ThoiGianBatDau = bd, ThoiGianKetThuc = kt, ThuHoc = chonThu.GiaTri };
-            return _lopHoatDong.FirstOrDefault(l => cuaAi(l) && l.TrungLich(moi));
+            return LopHocGhepLopLogic.TimLopTrung(_lopHoatDong, cuaAi, ca, chonThu.GiaTri,
+                dtpBatDau.Value, dtpKetThuc.Value);
         }
 
         private void LocHocVien()
@@ -503,7 +483,7 @@ namespace DoAnWD.UI.Dialogs
             else if (ca != null)
             {
                 DateTime bd, kt;
-                LayKhoang(ca, out bd, out kt);
+                LopHocGhepLopLogic.LayKhoang(ca, dtpBatDau.Value, dtpKetThuc.Value, out bd, out kt);
                 lblCanhBao.Text = $"{soBuoi} buổi ({chonThu.MoTa}), {bd:HH:mm}–{kt:HH:mm}.";
                 lblCanhBao.ForeColor = Theme.Success;
             }
@@ -604,7 +584,7 @@ namespace DoAnWD.UI.Dialogs
             try
             {
                 DateTime bd, kt;
-                LayKhoang(ca, out bd, out kt);
+                LopHocGhepLopLogic.LayKhoang(ca, dtpBatDau.Value, dtpKetThuc.Value, out bd, out kt);
                 LopHoc lop;
                 using (var lopHocService = new LopHocService())
                 {

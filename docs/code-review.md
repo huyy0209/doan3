@@ -345,7 +345,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-01] Kiến trúc Form quá lớn (God Form) và rò rỉ logic nghiệp vụ vào UI
 - **Vị trí**: `DoAnWD/UI/Pages/frmHocVien.cs` (gồm 3 partial files: `frmHocVien.cs`, `BuoiHoc.cs`, `DiemDanh.cs`, tổng 1.167 dòng) và `DoAnWD/UI/Dialogs/frmChucNangGhepLop.cs` (637 dòng)
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tách tính khoảng giờ, kiểm tra trùng lịch và gợi ý tên lớp khỏi form ghép lớp.
 - **Mô tả vấn đề**:
   Các form này vi phạm nguyên tắc Single Responsibility. Ví dụ trong `frmChucNangGhepLop.cs`: form vừa chịu trách nhiệm vẽ giao diện, vừa tính toán thời gian bắt đầu/kết thúc ca (`LayKhoang`), vừa kiểm tra điều kiện trùng lịch in-memory (`LopTrung`), vừa gợi ý tên lớp (`GoiYTenLop`).
 - **Đề xuất sửa chữa**:
