@@ -46,7 +46,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [CRIT-01] Thiếu Database Transaction trong các thao tác nhiều bước gây bất nhất dữ liệu
 - **Vị trí**: `DoAnWD/BLL/Services/LopHocService.cs:170-176`, `264-268`, `466-473`, `494-499`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Bọc các lần ghi + đồng bộ trạng thái gia sư trong một `DbContextTransaction` chung cho `GhepLop`, `SuaLop`, `HuyLop`, `Delete`.
 - **Mô tả vấn đề**:
   Trong các phương thức `GhepLop`, `SuaLop`, `HuyLop` và `Delete` của `LopHocService`, hệ thống thực hiện nhiều thao tác ghi dữ liệu và gọi `SaveChanges()` riêng rẽ nhiều lần mà không bọc trong một Database Transaction:
   ```csharp

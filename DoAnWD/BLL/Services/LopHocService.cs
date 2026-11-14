@@ -167,12 +167,27 @@ namespace DoAnWD.BLL.Services
                 throw new ArgumentException("Khoảng ngày đã chọn không có buổi nào rơi vào các thứ học.");
             lopHoc.TrangThai = lopHoc.TrangThaiTheoThoiGian ?? Constants.LopHocStatus.ChuaBatDau;
 
-            _lopHocRepo.Add(lopHoc);
-            _lopHocRepo.SaveChanges();
+            // CRIT-01: ghi lớp + đồng bộ trạng thái gia sư trong cùng một transaction
+            // (2 repo dùng chung _context) để không bị bất nhất dữ liệu khi bước sau lỗi.
+            using (var tx = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _lopHocRepo.Add(lopHoc);
+                    _lopHocRepo.SaveChanges();
 
-            // 6. Đồng bộ trạng thái gia sư
-            _giaSuRepo.UpdateStatusBasedOnLopHoc(y.MaGS);
-            _giaSuRepo.SaveChanges();
+                    // 6. Đồng bộ trạng thái gia sư
+                    _giaSuRepo.UpdateStatusBasedOnLopHoc(y.MaGS);
+                    _giaSuRepo.SaveChanges();
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
 
             return lopHoc;
         }
@@ -255,17 +270,31 @@ namespace DoAnWD.BLL.Services
             if (new LopHoc { ThoiGianBatDau = lop.ThoiGianBatDau, ThoiGianKetThuc = ketThuc, ThuHoc = thuHoc }.DemSoBuoi() == 0)
                 throw new ArgumentException("Khoảng ngày của lớp không có buổi nào rơi vào các thứ học.");
 
-            if (tenMoi != null) lop.TenLop = tenMoi;
-            lop.HocPhi = y.HocPhi;
-            lop.ThoiGianKetThuc = ketThuc;
-            lop.ThuHoc = thuHoc;
-            lop.MaGS = y.MaGS;
-            lop.TrangThai = lop.TrangThaiTheoThoiGian;   // gia hạn lớp đã kết thúc => học tiếp
-            _lopHocRepo.SaveChanges();
+            // CRIT-01: sửa lớp + đồng bộ trạng thái (gia sư cũ/mới) trong cùng một transaction.
+            using (var tx = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    if (tenMoi != null) lop.TenLop = tenMoi;
+                    lop.HocPhi = y.HocPhi;
+                    lop.ThoiGianKetThuc = ketThuc;
+                    lop.ThuHoc = thuHoc;
+                    lop.MaGS = y.MaGS;
+                    lop.TrangThai = lop.TrangThaiTheoThoiGian;   // gia hạn lớp đã kết thúc => học tiếp
+                    _lopHocRepo.SaveChanges();
 
-            foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(ma);
-            _giaSuRepo.SaveChanges();
+                    foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(ma);
+                    _giaSuRepo.SaveChanges();
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
             return lop;
         }
 
@@ -459,17 +488,31 @@ namespace DoAnWD.BLL.Services
             if (lopHoc.TrangThaiTheoThoiGian == Constants.LopHocStatus.DaKetThuc)
                 throw new InvalidOperationException("Lớp đã kết thúc, không thể hủy.");
 
-            lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
-            // Buổi học bù đã xếp nhưng chưa tới ngày thì bỏ luôn (lớp đã hủy không học bù nữa)
-            var homNay = DateTime.Today;
-            foreach (var bu in _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc != null && b.NgayHoc > homNay).ToList())
-                _context.BuoiHocs.Remove(bu);
-            _lopHocRepo.SaveChanges();
-
-            if (lopHoc.MaGS.HasValue)
+            // CRIT-01: hủy lớp + xóa buổi bù tương lai + đồng bộ trạng thái gia sư trong 1 transaction.
+            using (var tx = _context.Database.BeginTransaction())
             {
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(lopHoc.MaGS.Value);
-                _giaSuRepo.SaveChanges();
+                try
+                {
+                    lopHoc.TrangThai = Constants.LopHocStatus.DaHuy;
+                    // Buổi học bù đã xếp nhưng chưa tới ngày thì bỏ luôn (lớp đã hủy không học bù nữa)
+                    var homNay = DateTime.Today;
+                    foreach (var bu in _context.BuoiHocs.Where(b => b.MaLop == maLop && b.MaBuoiGoc != null && b.NgayHoc > homNay).ToList())
+                        _context.BuoiHocs.Remove(bu);
+                    _lopHocRepo.SaveChanges();
+
+                    if (lopHoc.MaGS.HasValue)
+                    {
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(lopHoc.MaGS.Value);
+                        _giaSuRepo.SaveChanges();
+                    }
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -490,13 +533,27 @@ namespace DoAnWD.BLL.Services
                 throw new InvalidOperationException(
                     "Lớp đã có điểm danh hoặc đã đóng học phí nên không xóa hẳn được. Hãy dùng \"Hủy lớp\" để giữ lịch sử.");
 
-            _lopHocRepo.Remove(lopHoc);
-            _lopHocRepo.SaveChanges();
-
-            if (maGS.HasValue)
+            // CRIT-01: xóa lớp + đồng bộ trạng thái gia sư trong cùng một transaction.
+            using (var tx = _context.Database.BeginTransaction())
             {
-                _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
-                _giaSuRepo.SaveChanges();
+                try
+                {
+                    _lopHocRepo.Remove(lopHoc);
+                    _lopHocRepo.SaveChanges();
+
+                    if (maGS.HasValue)
+                    {
+                        _giaSuRepo.UpdateStatusBasedOnLopHoc(maGS.Value);
+                        _giaSuRepo.SaveChanges();
+                    }
+
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
             }
         }
 
