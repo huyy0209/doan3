@@ -270,7 +270,7 @@ a:hover {
 .vo-nav-link.is-active::before {
   content: "";
   position: absolute;
-  left: 12px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   width: 4px;
@@ -281,10 +281,6 @@ a:hover {
 
 .vo-nav-link.is-active .vo-icon {
   color: var(--vo-chalk);
-}
-
-.vo-nav-link.is-active .vo-nav-text {
-  padding-left: 18px;
 }
 
 .vo-nav-badge {
