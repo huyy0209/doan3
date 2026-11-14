@@ -1,0 +1,109 @@
+@model DoAnWeb.ViewModels.HocVien.HocVienIndexVM
+@{
+    ViewData["Title"] = "Học viên";
+}
+<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+<div class="vo-page-title">Học viên</div>
+<p class="vo-page-sub">Danh sách hồ sơ học viên và thông tin liên hệ.</p>
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success" role="status">@TempData["ThongBao"]</div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["Loi"]</div>
+}
+
+<section class="vo-card">
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+        <div class="vo-section mb-0">Danh sách học viên</div>
+        @if (Model.LaQuanLy)
+        {
+            <a class="btn btn-primary" asp-action="Create">Thêm học viên</a>
+        }
+    </div>
+    <form method="get" class="vo-toolbar w1-filter-row w1-hocvien-filter">
+        <input class="form-control" type="search" name="tuKhoa" value="@Model.TuKhoa"
+               placeholder="Tìm tên, SĐT, phụ huynh, trường... (không cần dấu)" />
+        <select class="form-select" name="trinhDo" aria-label="Lọc trình độ">
+            <option value="">Mọi trình độ</option>
+            @foreach (var item in Model.DanhSachTrinhDo)
+            {
+                <option value="@item" selected="@(item == Model.TrinhDo)">@item</option>
+            }
+        </select>
+        <button class="btn btn-primary" type="submit">Lọc</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Xóa lọc</a>
+    </form>
+    <div class="w1-result-count">@Model.TongSo học viên</div>
+    @if (Model.HocViens.Count == 0)
+    {
+        <div class="vo-empty">Không tìm thấy học viên phù hợp.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table vo-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>SĐT liên hệ</th>
+                        <th>Phụ huynh</th>
+                        <th>Trường / lớp</th>
+                        <th>Trình độ</th>
+                        <th>Đang học</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.HocViens)
+                    {
+                        <tr>
+                            <td><a asp-action="Details" asp-route-id="@row.HocVien.MaHV">@row.HocVien.HoTen</a></td>
+                            <td>@(row.HocVien.SDTLienHe ?? "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PhuHuynh) ? "—" : row.PhuHuynh)</td>
+                            <td>@(row.HocVien.TruongLop ?? "—")</td>
+                            <td>@(row.HocVien.TrinhDo ?? "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.DangHocMon) ? "—" : row.DangHocMon)</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@row.HocVien.MaHV">Hồ sơ</a>
+                                @if (Model.LaQuanLy)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@row.HocVien.MaHV">Sửa</a>
+                                    <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#xoaHocVienModal" data-w1-delete-id="@row.HocVien.MaHV"
+                                            data-w1-delete-name="@row.HocVien.HoTen">Xóa</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@if (Model.LaQuanLy)
+{
+    <div class="modal fade" id="xoaHocVienModal" tabindex="-1" aria-labelledby="xoaHocVienLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="Delete" method="post">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="xoaHocVienLabel">Xác nhận xóa học viên</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        Bạn có chắc muốn xóa học viên <strong data-w1-delete-label></strong>? Thao tác này không thể hoàn tác.
+                        <input type="hidden" name="id" value="" data-w1-delete-input />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger">Xóa học viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="~/js/w1.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,68 @@
+@model DoAnWeb.ViewModels.HocVien.HoSoHocVienVM
+@using DoAnWeb.ViewModels.HocVien
+@{
+    bool sua = Model.MaHV.HasValue;
+    ViewData["Title"] = sua ? "Sửa hồ sơ học viên" : "Thêm học viên";
+}
+<link rel="stylesheet" href="~/css/w1.css" asp-append-version="true" />
+<div class="vo-page-title">@(sua ? "Sửa hồ sơ học viên" : "Thêm học viên")</div>
+<p class="vo-page-sub">Chỉ cần họ tên và ít nhất một số điện thoại liên hệ của học viên hoặc phụ huynh.</p>
+<section class="vo-card w1-form-card">
+    <form asp-action="@(sua ? "Edit" : "Create")" asp-route-id="@Model.MaHV" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="HoTen" class="form-label"></label>
+                <input asp-for="HoTen" class="form-control" autocomplete="name" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TrinhDo" class="form-label"></label>
+                <input asp-for="TrinhDo" class="form-control" list="trinhDoGoiY" />
+                <datalist id="trinhDoGoiY">
+                    @foreach (var item in HoSoHocVienVM.GoiYTrinhDo)
+                    {
+                        <option value="@item"></option>
+                    }
+                </datalist>
+                <span asp-validation-for="TrinhDo" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="SDT" class="form-label"></label>
+                <input asp-for="SDT" class="form-control" autocomplete="tel" />
+                <span asp-validation-for="SDT" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TenPhuHuynh" class="form-label"></label>
+                <input asp-for="TenPhuHuynh" class="form-control" />
+                <span asp-validation-for="TenPhuHuynh" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="SDTPhuHuynh" class="form-label"></label>
+                <input asp-for="SDTPhuHuynh" class="form-control" autocomplete="tel" />
+                <span asp-validation-for="SDTPhuHuynh" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TruongLop" class="form-label"></label>
+                <input asp-for="TruongLop" class="form-control" />
+                <span asp-validation-for="TruongLop" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="DiaChi" class="form-label"></label>
+                <input asp-for="DiaChi" class="form-control" autocomplete="street-address" />
+                <span asp-validation-for="DiaChi" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="GhiChu" class="form-label"></label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="GhiChu" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">@(sua ? "Lưu hồ sơ" : "Thêm học viên")</button>
+            <a class="btn btn-outline-secondary" asp-action="@(sua ? "Details" : "Index")" asp-route-id="@Model.MaHV">Hủy</a>
+        </div>
+    </form>
+</section>
+<partial name="_ValidationScriptsPartial" />
