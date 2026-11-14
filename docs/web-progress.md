@@ -26,7 +26,7 @@
 | W3 | đã merge (240/240 pass, DB QuanLyGiaSu_Test) | copilot (ctx_21286689504e) – trước: dsh (ctx_d81e86f6b82c) hết số dư | web-w3 | huyy0209/web-w3 | xUnit, DB QuanLyGiaSu_Test |
 | W5 | đã merge (fix trùng namespace ad77cd0) | copilot (ctx_6c7fa2f46c0b) | web-w5 | huyy0209/web-w5 | Điểm danh, kết quả, học bù |
 | W6 | đã merge (soát: QL 200, GS bị chặn TongQuan/HocPhi) | copilot (ctx_42f8a24ce2b6) – trước: opencode hết quota, chưa viết gì | web-w6 | huyy0209/web-w6 | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
-| W4 | đang chạy | antigravity (ctx_8270a25ed72f) – gặp 503 capacity, chờ 2 phút đã gửi tiếp tục 1 lần | web-w4 | huyy0209/web-w4 | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
+| W4 | đang chạy | muse (ctx_6b3ec18af162) – trước: antigravity 503 rồi hết quota (reset sau 164h) | web-w4 | huyy0209/web-w4 | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
 
 Đã báo W1, W2, W3 merge nhánh coordinator (fix ToTable – trước đó mọi truy vấn lỗi "Invalid object name").
 
@@ -43,6 +43,7 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 | 2026-11-15 | W6 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3) → copilot | như W2; W6 chưa viết gì |
 
 - Người dùng cấp thêm agent dự phòng: **muse**.
+- 2026-11-15 W4: antigravity → muse. Lý do: 503 capacity (đã chờ 2 phút, gửi tiếp tục 1 lần) rồi "Individual quota reached, resets in 164h". Theo bảng dự phòng là coordinator tự review; dùng muse vì người dùng vừa cấp. Muse lỗi thì coordinator tự review 10 mục.
 
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
