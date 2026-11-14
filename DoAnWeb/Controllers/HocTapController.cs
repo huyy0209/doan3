@@ -16,12 +16,14 @@ namespace DoAnWeb.Controllers
     {
         private readonly HocTapService _hocTap;
         private readonly HocVienService _hocVien;
+        private readonly BaoCaoService _baoCao;
         private readonly INguoiDungHienTai _nguoiDung;
 
-        public HocTapController(HocTapService hocTap, HocVienService hocVien, INguoiDungHienTai nguoiDung)
+        public HocTapController(HocTapService hocTap, HocVienService hocVien, BaoCaoService baoCao, INguoiDungHienTai nguoiDung)
         {
             _hocTap = hocTap;
             _hocVien = hocVien;
+            _baoCao = baoCao;
             _nguoiDung = nguoiDung;
         }
 
@@ -159,6 +161,16 @@ namespace DoAnWeb.Controllers
                 TempData["Loi"] = ex.Message;
             }
             return RedirectToAction(nameof(KetQua), new { maHV });
+        }
+
+        [HttpGet("HocTap/PhieuBao/{maHV:int}")]
+        public IActionResult PhieuBao(int maHV)
+        {
+            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            HocVien hocVien = _hocVien.GetById(maHV);
+            if (hocVien == null) return NotFound();
+            var ketQua = _hocTap.GetKetQuaHocVien(maHV, _nguoiDung.GioiHanGiaSu);
+            return Content(_baoCao.TaoPhieuBao(hocVien, ketQua), "text/html; charset=utf-8");
         }
 
         private HocVienKetQuaViewModel TaoKetQua(HocVien hocVien, IEnumerable<string> loi, IEnumerable<BuoiHocSuaDongInput> posted)
