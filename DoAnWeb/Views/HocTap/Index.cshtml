@@ -1,0 +1,43 @@
+@model DoAnWeb.ViewModels.HocTap.HocTapDanhSachViewModel
+@{
+    ViewData["Title"] = "Học viên & điểm";
+    ViewData["PageSub"] = "Chọn học viên để xem kết quả từng lớp, điểm test và lịch sử buổi học.";
+}
+<section class="vo-section vo-card">
+    <form method="get" class="vo-toolbar mb-3">
+        <div class="input-group">
+            <input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm học viên..." />
+            <button type="submit" class="btn btn-primary">Tìm</button>
+            @if (!string.IsNullOrWhiteSpace(Model.TuKhoa))
+            {
+                <a class="btn btn-outline-secondary" asp-action="Index">Xóa lọc</a>
+            }
+        </div>
+    </form>
+    @if (Model.HocViens.Count == 0)
+    {
+        <div class="vo-empty">Không có học viên nào có lớp phù hợp.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table vo-table align-middle">
+                <thead><tr><th>Học viên</th><th>Trường / lớp</th><th>Liên hệ</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var hv in Model.HocViens)
+                {
+                    <tr>
+                        <td class="fw-semibold">@hv.HoTen</td>
+                        <td>@hv.TruongLop</td>
+                        <td>@hv.SDTLienHe</td>
+                        <td><span class="vo-tag vo-tag-info">Có lớp</span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="KetQua" asp-route-maHV="@hv.MaHV">Xem kết quả</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
