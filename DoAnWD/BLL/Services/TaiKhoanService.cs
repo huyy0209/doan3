@@ -160,25 +160,21 @@ namespace DoAnWD.BLL.Services
                 var tk = db.TaiKhoans.Include(t => t.GiaSu).FirstOrDefault(t => t.TenDangNhap == ten);
                 if (tk == null) throw new UnauthorizedAccessException(loiChung);
 
-                // Đang bị tạm khóa do nhập sai nhiều lần
+                // HIGH-03: mọi trường hợp sai (kể cả đang bị tạm khóa do nhập sai nhiều lần) đều trả
+                // cùng một câu, không tiết lộ tài khoản có tồn tại hay không.
                 if (tk.KhoaDen.HasValue && tk.KhoaDen.Value > DateTime.Now)
-                    throw new UnauthorizedAccessException(
-                        $"Nhập sai quá {SoLanSaiToiDa} lần. Thử lại sau {tk.KhoaDen:HH:mm}.");
+                    throw new UnauthorizedAccessException(loiChung);
 
                 if (!MatKhau.KiemTra(matKhau, tk.MatKhauHash))
                 {
                     tk.SoLanSai++;
-                    string loi = loiChung;
                     if (tk.SoLanSai >= SoLanSaiToiDa)
                     {
                         tk.KhoaDen = DateTime.Now.AddMinutes(SoPhutKhoa);
                         tk.SoLanSai = 0;
-                        loi = $"Nhập sai {SoLanSaiToiDa} lần liên tiếp. Tài khoản tạm khóa {SoPhutKhoa} phút.";
                     }
-                    else if (tk.SoLanSai >= SoLanSaiToiDa - 2)
-                        loi += $" Còn {SoLanSaiToiDa - tk.SoLanSai} lần thử.";
                     db.SaveChanges();
-                    throw new UnauthorizedAccessException(loi);
+                    throw new UnauthorizedAccessException(loiChung);
                 }
                 if (!tk.HoatDong)
                     throw new UnauthorizedAccessException("Tài khoản đã bị khóa. Liên hệ quản lý.");

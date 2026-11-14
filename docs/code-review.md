@@ -195,7 +195,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-03] Tiết lộ tài khoản tồn tại (User Enumeration) qua thông báo lỗi đăng nhập
 - **Vị trí**: `DoAnWD/BLL/Services/TaiKhoanService.cs:176-180`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Mọi trường hợp đăng nhập sai (sai tài khoản, sai mật khẩu, đang tạm khóa) đều trả cùng một câu "Sai tên đăng nhập hoặc mật khẩu.".
 - **Mô tả vấn đề**:
   Trong `DangNhap`:
   - Nếu tên đăng nhập không tồn tại: ném `UnauthorizedAccessException("Sai tên đăng nhập hoặc mật khẩu.")`.
