@@ -390,6 +390,30 @@ namespace DoAnWD.BLL.Services
                     trungHocVien.MonHoc, trungHocVien.GiaSu?.HoTen ?? "?", trungHocVien.CaHoc,
                     trungHocVien.ThoiGianBatDau, trungHocVien.ThoiGianKetThuc);
 
+            // HIGH-01: kiểm tra thêm các buổi học bù đã xếp lịch (bảng BuoiHoc) mà TimXungDot trước đây bỏ sót.
+            // Buổi bù là một ngày cụ thể nên chỉ trùng khi cùng ca, cùng ngày nằm trong khoảng của lớp mới
+            // và ngày đó là ngày học của lớp mới.
+            var tuNgay = lopMoi.ThoiGianBatDau.Value.Date;
+            var denNgay = lopMoi.ThoiGianKetThuc.Value.Date;
+            var buoiBu = _context.BuoiHocs
+                .Where(b => b.MaBuoiGoc != null && b.CaHoc == caHoc &&
+                            b.NgayHoc >= tuNgay && b.NgayHoc <= denNgay &&
+                            b.MaLop != (boQuaMaLop ?? 0))
+                .Select(b => new { b.MaLop, b.NgayHoc, b.MaGSDay, MaHV = b.LopHoc.MaHV })
+                .ToList()
+                .Where(b => Constants.ThuHoc.CoHoc(thuHoc, b.NgayHoc))
+                .ToList();
+
+            var buGS = buoiBu.FirstOrDefault(b => b.MaGSDay == maGS);
+            if (buGS != null)
+                return string.Format("Gia sư đã có buổi học bù ở ca {0} ngày {1:dd/MM/yyyy} (lớp {2}).",
+                    caHoc, buGS.NgayHoc, buGS.MaLop);
+
+            var buHV = buoiBu.FirstOrDefault(b => b.MaHV == maHV);
+            if (buHV != null)
+                return string.Format("Học viên đã có buổi học bù ở ca {0} ngày {1:dd/MM/yyyy} (lớp {2}).",
+                    caHoc, buHV.NgayHoc, buHV.MaLop);
+
             if (!string.IsNullOrWhiteSpace(monHoc))
             {
                 string mon = monHoc.Trim();

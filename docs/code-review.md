@@ -157,7 +157,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [HIGH-01] Hàm kiểm tra trùng lịch `TimXungDot` bỏ qua hoàn toàn các buổi học bù
 - **Vị trí**: `DoAnWD/BLL/Services/LopHocService.cs:336-377`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] `TimXungDot` truy vấn thêm `BuoiHoc` (buổi học bù) theo gia sư/học viên, ca và khoảng ngày để phát hiện xung đột.
 - **Mô tả vấn đề**:
   Phương thức `TimXungDot` chỉ truy vấn bảng `LopHoc` thông qua `_lopHocRepo.GetLopHoatDongCuaGiaSuHoacHocVien(maGS, maHV)`. Nó hoàn toàn không truy vấn bảng `BuoiHoc` để kiểm tra các buổi học bù đã được xếp lịch trước đó (`MaBuoiGoc IS NOT NULL`).
 - **Tình huống gây lỗi cụ thể**:
