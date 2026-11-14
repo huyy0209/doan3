@@ -23,6 +23,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.ExpireTimeSpan = TimeSpan.FromHours(8);
         o.SlidingExpiration = true;
+        // Review #1: kiểm lại tài khoản (khóa / đổi vai trò) ở mỗi request, có cache ngắn
+        o.Events.OnValidatePrincipal = DoAnWeb.Infrastructure.KiemTraPhienDangNhap.KiemTra;
     });
 builder.Services.AddAuthorization();
 
