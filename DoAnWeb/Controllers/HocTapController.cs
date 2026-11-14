@@ -39,7 +39,7 @@ namespace DoAnWeb.Controllers
         [HttpGet("HocTap/KetQua/{maHV:int}")]
         public IActionResult KetQua(int maHV)
         {
-            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            if (!_hocVien.DuocXem(maHV)) return StatusCode(403);
             var hocVien = _hocVien.GetById(maHV);
             if (hocVien == null) return NotFound();
             return View(TaoKetQua(hocVien, null, null));
@@ -49,7 +49,7 @@ namespace DoAnWeb.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult KetQua(int maHV, List<BuoiHocSuaDongInput> buoi)
         {
-            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            if (!_hocVien.DuocXem(maHV)) return StatusCode(403);
             var hocVien = _hocVien.GetById(maHV);
             if (hocVien == null) return NotFound();
 
@@ -150,7 +150,7 @@ namespace DoAnWeb.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult HuyHocBu(int maBuoiBu, int maHV)
         {
-            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            if (!_hocVien.DuocXem(maHV)) return StatusCode(403);
             try
             {
                 _hocTap.HuyHocBu(maBuoiBu, _nguoiDung.GioiHanGiaSu);
@@ -166,7 +166,7 @@ namespace DoAnWeb.Controllers
         [HttpGet("HocTap/PhieuBao/{maHV:int}")]
         public IActionResult PhieuBao(int maHV)
         {
-            if (!_hocVien.DuocXem(maHV)) return Forbid();
+            if (!_hocVien.DuocXem(maHV)) return StatusCode(403);
             HocVien hocVien = _hocVien.GetById(maHV);
             if (hocVien == null) return NotFound();
             var ketQua = _hocTap.GetKetQuaHocVien(maHV, _nguoiDung.GioiHanGiaSu);

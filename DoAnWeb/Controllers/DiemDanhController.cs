@@ -85,6 +85,16 @@ namespace DoAnWeb.Controllers
                 return RedirectToAction(nameof(Index), new { ngay = model.Ngay.ToString("yyyy-MM-dd"), ca = model.Ca, maGS = _nguoiDung.LaQuanLy ? model.MaGS : null });
             }
 
+            var caHopLe = string.IsNullOrEmpty(model.Ca) || Constants.CaHoc.TatCaCaHoc.Contains(model.Ca);
+            var maGiaSu = _nguoiDung.LaQuanLy ? model.MaGS : _nguoiDung.GioiHanGiaSu;
+            var daLuu = _hocTap.GetLopTrongNgay(model.Ngay, caHopLe ? model.Ca : null, maGiaSu);
+            foreach (var row in model.Rows ?? new List<DiemDanhDongViewModel>())
+            {
+                var luu = row.MaBuoi.HasValue
+                    ? daLuu.FirstOrDefault(r => r.MaBuoi == row.MaBuoi)
+                    : daLuu.FirstOrDefault(r => r.MaLop == row.MaLop && !r.LaHocBu);
+                if (luu != null) row.DaLuu = luu.DaLuu;
+            }
             return View("Index", TaoModel(model.Ngay, model.Ca, model.MaGS, model.Rows, model.Loi));
         }
 
