@@ -43,7 +43,7 @@ namespace DoAnWeb.ViewModels.HocTap
     public class HocTapDanhSachViewModel
     {
         public string TuKhoa { get; set; }
-        public List<HocVien> HocViens { get; set; } = new List<HocVien>();
+        public List<DoAnWeb.Data.Entities.HocVien> HocViens { get; set; } = new List<DoAnWeb.Data.Entities.HocVien>();
     }
 
     public class HocVienKetQuaViewModel
