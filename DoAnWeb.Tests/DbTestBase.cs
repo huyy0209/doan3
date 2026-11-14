@@ -91,4 +91,40 @@ public abstract class DbTestBase : IDisposable
         Db.SaveChanges();
         return tk;
     }
+
+    protected static string TenTest() => "TEST_" + Guid.NewGuid().ToString("N").Substring(0, 10);
+    protected static string TenHoSoTest() =>
+        "Test " + string.Concat(Guid.NewGuid().ToByteArray().Select(b => (char)('a' + b % 26)));
+    protected static string SdtTest() =>
+        "0" + (BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 1000000000).ToString("D9");
+
+    protected LopHoc TaoLop(
+        GiaSu gs,
+        HocVien hv,
+        string monHoc = "TEST_Mon",
+        string trangThai = null,
+        DateTime? batDau = null,
+        DateTime? ketThuc = null,
+        string caHoc = Constants.CaHoc.Sang,
+        string thuHoc = null,
+        int? maMon = null)
+    {
+        var lop = new LopHoc
+        {
+            MaGS = gs?.MaGS,
+            MaHV = hv?.MaHV,
+            MonHoc = monHoc,
+            MaMon = maMon,
+            TenLop = TenTest(),
+            HocPhi = 100000,
+            TrangThai = trangThai ?? Constants.LopHocStatus.DangDienRa,
+            ThoiGianBatDau = batDau ?? DateTime.Now.AddDays(-1),
+            ThoiGianKetThuc = ketThuc ?? DateTime.Now.AddDays(30),
+            CaHoc = caHoc,
+            ThuHoc = thuHoc
+        };
+        Db.LopHocs.Add(lop);
+        Db.SaveChanges();
+        return lop;
+    }
 }
