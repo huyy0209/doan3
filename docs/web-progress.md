@@ -4,7 +4,7 @@
 > Kế hoạch chi tiết: `docs/web-plan.md`. Tiến độ từng worker: `docs/progress/<mã task>.md`.
 
 ## Giai đoạn hiện tại
-**GĐ2 – Giao song song: ĐANG CHẠY.** GĐ1 xong (commit `fa9768e` "feat(web): dựng khung ASP.NET Core"). Quyết định ở web-plan.md mục 6.2.
+**GĐ3 – Hoàn thiện: ĐANG CHẠY.** W0,W1,W2,W3,W5,W6,W7 đã merge; build pass, test 240/240; start-web.bat, stop-web.bat, README xong (56104ea). Chờ W4 review rồi push. GĐ1 xong (commit `fa9768e` "feat(web): dựng khung ASP.NET Core"). Quyết định ở web-plan.md mục 6.2.
 
 ## Thông tin môi trường
 - Repo worktree: `C:\Users\Admin\orca\workspaces\doan3\cập-nhật-lên-web`, nhánh `huyy0209/cập-nhật-lên-web`.
@@ -22,11 +22,11 @@
 | W0 | đã merge (e.g. merge commit sau 31515ec) | copilot (dispatch ctx_02e2349e5312) | web-w0 | huyy0209/web-w0 | chuyển 8 service phụ (HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao). Lúc đầu worktree tạo từ 6f6a35f (thiếu DoAnWeb) → coordinator ff lên 8cd7a1d |
 | W7 | đã merge (329c780) | opencode / DeepSeek V4.1 Flash Free (ctx_55791c8eaee1) | web-w7 | huyy0209/web-w7 | giao diện khung giống app: site.css, _Layout, đăng nhập, icon |
 | W1 | đã merge (soát: admin 200, gs1 bị chặn trang QL) | copilot (ctx_74844e637f60) | web-w1 | huyy0209/web-w1 | GS, HV, Tài khoản. Prompt đầu bị rớt (Copilot "policy still loading") → gửi lại |
-| W2 | đang chạy | copilot (ctx_e3f5757d236e) – trước: opencode hết quota, coordinator commit hộ 04331e9 | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
+| W2 | đã merge (fix trùng namespace cf4d878) | copilot (ctx_e3f5757d236e) – trước: opencode hết quota, coordinator commit hộ 04331e9 | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
 | W3 | đã merge (240/240 pass, DB QuanLyGiaSu_Test) | copilot (ctx_21286689504e) – trước: dsh (ctx_d81e86f6b82c) hết số dư | web-w3 | huyy0209/web-w3 | xUnit, DB QuanLyGiaSu_Test |
 | W5 | đã merge (fix trùng namespace ad77cd0) | copilot (ctx_6c7fa2f46c0b) | web-w5 | huyy0209/web-w5 | Điểm danh, kết quả, học bù |
 | W6 | đã merge (soát: QL 200, GS bị chặn TongQuan/HocPhi) | copilot (ctx_42f8a24ce2b6) – trước: opencode hết quota, chưa viết gì | web-w6 | huyy0209/web-w6 | Học phí, Tổng quan, Lịch, Cài đặt, Thông báo |
-| W4 | chưa giao | (antigravity) | – | – | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
+| W4 | đang chạy | antigravity (ctx_8270a25ed72f) – gặp 503 capacity, chờ 2 phút đã gửi tiếp tục 1 lần | web-w4 | huyy0209/web-w4 | chỉ chạy sau khi W1,W2,W3,W5,W6 merge |
 
 Đã báo W1, W2, W3 merge nhánh coordinator (fix ToTable – trước đó mọi truy vấn lỗi "Invalid object name").
 
@@ -41,6 +41,8 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 
 | 2026-11-15 | W2 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3-Flash Free) → copilot | "Free usage exceeded" (chờ 6h35m). Người dùng yêu cầu đổi model opencode: thử GLM-5.3 cũng hết → quota tính theo cả tài khoản OpenCode free. Code dở build pass → coordinator commit hộ 04331e9 + sửa trùng namespace |
 | 2026-11-15 | W6 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3) → copilot | như W2; W6 chưa viết gì |
+
+- Người dùng cấp thêm agent dự phòng: **muse**.
 
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
