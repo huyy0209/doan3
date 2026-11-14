@@ -43,6 +43,7 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 | 2026-11-15 | W6 | opencode (DeepSeek V4.1 Flash Free) | opencode (GLM-5.3) → copilot | như W2; W6 chưa viết gì |
 
 - Người dùng cấp thêm agent dự phòng: **muse**.
+- 2026-11-15: thêm **Z.ai** (https://api.z.ai/api/anthropic) qua Claude Code CLI: script `C:\Users\Admin\bin\claude-zai.cmd` (key lấy từ biến môi trường `Z_AI_API_KEY`, cấu hình riêng `%USERPROFILE%\.claude-zai`). Giao việc: `orca terminal create --worktree <wt> --command "C:\Users\Admin\bin\claude-zai.cmd"` rồi `orca orchestration worker-start --task <id> --terminal <handle> --worktree <wt>`. Thứ tự dự phòng mới: copilot → zai → muse.
 - 2026-11-15 W4: antigravity → muse. Lý do: 503 capacity (đã chờ 2 phút, gửi tiếp tục 1 lần) rồi "Individual quota reached, resets in 164h". Theo bảng dự phòng là coordinator tự review; dùng muse vì người dùng vừa cấp. Muse lỗi 402 "Billing verification failed" → coordinator tự review 10 mục (docs/web-review.md).
 
 ## Lưu ý vận hành
