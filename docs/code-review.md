@@ -355,7 +355,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [LOW-02] Bảng `LopHoc` lưu tên môn học dạng chuỗi thay vì khóa ngoại `MaMon`
 - **Vị trí**: `DoAnWD/Models/LopHoc.cs:28`, `Database/01_QuanLyGiaSu.sql:51`, `Database/05_NangCap_v5.sql:23-32`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Thêm script 07_NangCap_v7.sql tạo cột MaMon và FK, bổ sung navigation MonHocDM và tự động đồng bộ trong SaveChanges.
 - **Mô tả vấn đề**:
   Dù bản nâng cấp v5 đã tạo bảng danh mục `MonHoc` với khóa chính `MaMon INT`, bảng `LopHoc` vẫn tiếp tục lưu `MonHoc NVARCHAR(50)` dạng chuỗi thuần túy không có khóa ngoại.
   Khi đổi tên môn học trong `MonHocService.Luu`, hệ thống phải thực hiện quét toàn bộ bảng `LopHoc` và `GiaSu` để cập nhật chuỗi thủ công:

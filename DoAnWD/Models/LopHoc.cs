@@ -24,6 +24,12 @@ namespace DoAnWD.Models
 
         public int? MaHV { get; set; }
 
+        /// <summary>
+        /// LOW-02: Khóa ngoại chuẩn hóa đến danh mục MonHoc.
+        /// Cột MonHoc (chuỗi) vẫn được giữ để tương thích ngược; nguồn chuẩn là MaMon.
+        /// </summary>
+        public int? MaMon { get; set; }
+
         [StringLength(50)]
         public string MonHoc { get; set; }
 
@@ -83,6 +89,12 @@ namespace DoAnWD.Models
         public virtual GiaSu GiaSu { get; set; }
 
         public virtual HocVien HocVien { get; set; }
+
+        /// <summary>
+        /// LOW-02: Navigation property tới danh mục MonHoc
+        /// </summary>
+        [ForeignKey("MaMon")]
+        public virtual MonHocDanhMuc MonHocDM { get; set; }
 
         // ===================================================================
         // ✨ COMPUTED PROPERTIES - MỚI CHO OPTION 2
