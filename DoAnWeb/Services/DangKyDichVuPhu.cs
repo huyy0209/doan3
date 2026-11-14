@@ -1,0 +1,24 @@
+using Microsoft.Extensions.DependencyInjection;
+
+namespace DoAnWeb.Services
+{
+    /// <summary>Đăng ký các dịch vụ nghiệp vụ phụ của ứng dụng web.</summary>
+    public static class DangKyDichVuPhu
+    {
+        public static IServiceCollection AddDichVuPhu(this IServiceCollection s)
+        {
+            s.AddMemoryCache();
+            s.AddHttpContextAccessor();
+            s.AddScoped<INguoiDungHienTai, NguoiDungHttp>();
+            s.AddScoped<HocTapService>();
+            s.AddScoped<HocPhiService>();
+            s.AddScoped<MonHocService>();
+            s.AddScoped<TongQuanService>();
+            s.AddScoped<ThongBaoService>();
+            s.AddScoped<CaiDatService>();
+            s.AddScoped<ThongKeService>();
+            s.AddScoped<BaoCaoService>();
+            return s;
+        }
+    }
+}
