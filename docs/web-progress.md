@@ -50,9 +50,11 @@ ghi MaMon, tạo admin khi bảng rỗng, demo `admin/Admin@2026`, `gs1/123456`)
 | Task | Trạng thái | Agent | Worktree | Nội dung |
 |---|---|---|---|---|
 | W8 | đã merge (QuanLyGiaSu.bat web/stop thử OK, 240/240) | copilot (ctx_c372eff249a2) | web-w8 | gộp .bat thành QuanLyGiaSu.bat + scripts/, dọn file thừa DoAnWeb, .gitignore |
-| W9 | đang làm lại | copilot (ctx_e7f9150f4856, task W9b) – trước: zai glm-4.5-flash báo xong 577724a nhưng PNG trắng, thiếu QuanLyGiaSu.ico → không merge | web-w9 | logo SVG, favicon, assets/QuanLyGiaSu.ico |
+| W9 | đã merge (copilot W9b sửa lại; logo + favicon + QuanLyGiaSu.ico, shortcut Desktop thử OK) | copilot (ctx_e7f9150f4856) – trước: zai làm hỏng | web-w9 | logo SVG, favicon, assets/QuanLyGiaSu.ico |
 
 Thử model mới 2026-11-15: Qwen Code (OAuth free ngừng 15/04/2026) và Gemini CLI (Code Assist cá nhân ngừng, chuyển Antigravity) KHÔNG dùng được miễn phí khi đăng nhập tài khoản; cần key (OpenRouter / Google AI Studio).
+
+| W10 | đang chạy | claude-sonnet-5-5 (ctx_7ce40fb5dcff) | web-w10 | sửa review #1 (khóa tài khoản), #3 (trùng lịch song song), #4 (lộ lỗi CSDL) |
 
 Đánh giá zai (glm-4.5-flash): chạy được nhưng chất lượng thấp, tự báo xong khi chưa đạt → chỉ giao việc rất nhỏ và luôn soát lại.
 
