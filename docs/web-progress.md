@@ -21,7 +21,7 @@
 | GĐ1 | xong (fa9768e) | coordinator | cập-nhật-lên-web | huyy0209/cập-nhật-lên-web | |
 | W0 | đã merge (e.g. merge commit sau 31515ec) | copilot (dispatch ctx_02e2349e5312) | web-w0 | huyy0209/web-w0 | chuyển 8 service phụ (HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao). Lúc đầu worktree tạo từ 6f6a35f (thiếu DoAnWeb) → coordinator ff lên 8cd7a1d |
 | W7 | đã merge (329c780) | opencode / DeepSeek V4.1 Flash Free (ctx_55791c8eaee1) | web-w7 | huyy0209/web-w7 | giao diện khung giống app: site.css, _Layout, đăng nhập, icon |
-| W1 | đang chạy | copilot (ctx_74844e637f60) | web-w1 | huyy0209/web-w1 | GS, HV, Tài khoản. Prompt đầu bị rớt (Copilot "policy still loading") → gửi lại |
+| W1 | đã merge (soát: admin 200, gs1 bị chặn trang QL) | copilot (ctx_74844e637f60) | web-w1 | huyy0209/web-w1 | GS, HV, Tài khoản. Prompt đầu bị rớt (Copilot "policy still loading") → gửi lại |
 | W2 | đang chạy | opencode (ctx_9d9eae0856d5) | web-w2 | huyy0209/web-w2 | Lớp, ghép lớp, Môn học (Môn học sau khi có MonHocService của W0) |
 | W3 | đang chạy | copilot (ctx_21286689504e) – trước: dsh (ctx_d81e86f6b82c) hết số dư | web-w3 | huyy0209/web-w3 | xUnit, DB QuanLyGiaSu_Test |
 | W5 | đang chạy | copilot (ctx_6c7fa2f46c0b) | web-w5 | huyy0209/web-w5 | Điểm danh, kết quả, học bù |
