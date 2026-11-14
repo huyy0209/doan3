@@ -10,7 +10,8 @@ rem  Neu doi ten server, nho sua connection string trong DoAnWD\App.config.
 rem ==========================================================================
 setlocal EnableExtensions
 title Quan ly gia su - Cai dat CSDL
-cd /d "%~dp0"
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 
 set "SERVER=%~1"
 if "%SERVER%"=="" set "SERVER=."

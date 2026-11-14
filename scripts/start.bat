@@ -2,7 +2,8 @@
 setlocal EnableExtensions
 chcp 65001 >nul
 title Quan ly gia su - Khoi dong
-cd /d "%~dp0"
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 
 set "PROJ=DoAnWD\DoAnWD.csproj"
 set "EXE=DoAnWD\bin\Release\DoAnWD.exe"
@@ -14,7 +15,7 @@ for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -prerelease -products * -
 if not defined MSBUILD goto khong_msbuild
 
 echo [1/2] Dang build ung dung cau hinh Release...
-"%MSBUILD%" "%PROJ%" -restore -p:RestorePackagesConfig=true "-p:SolutionDir=%~dp0\" -p:Configuration=Release -nologo -v:quiet -m
+"%MSBUILD%" "%PROJ%" -restore -p:RestorePackagesConfig=true "-p:SolutionDir=%CD%\" -p:Configuration=Release -nologo -v:quiet -m
 if errorlevel 1 goto build_loi
 
 if not exist "%EXE%" (

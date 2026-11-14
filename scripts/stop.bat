@@ -2,6 +2,8 @@
 setlocal EnableExtensions
 chcp 65001 >nul
 title Quan ly gia su - Dung ung dung
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 
 tasklist /FI "IMAGENAME eq DoAnWD.exe" /NH | find /I "DoAnWD.exe" >nul
 if errorlevel 1 (
