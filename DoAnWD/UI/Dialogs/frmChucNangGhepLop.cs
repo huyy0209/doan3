@@ -24,8 +24,6 @@ namespace DoAnWD.UI.Dialogs
     /// </summary>
     public partial class frmChucNangGhepLop : Form, ITuGiaoDien
     {
-        private readonly LopHocService _lopHocService = new LopHocService();
-
         private List<HocVien> _hocViens = new List<HocVien>();
         private List<GiaSu> _giaSus = new List<GiaSu>();
         private List<LopHoc> _lopHoatDong = new List<LopHoc>();
@@ -70,7 +68,6 @@ namespace DoAnWD.UI.Dialogs
 
             BuildUi();
             Load += (s, e) => NapDuLieu();
-            FormClosed += (s, e) => _lopHocService.Dispose();
         }
 
         // ===================================================================
@@ -304,7 +301,9 @@ namespace DoAnWD.UI.Dialogs
             {
                 using (var hv = new HocVienService()) _hocViens = hv.GetAll().OrderBy(h => h.HoTen).ToList();
                 using (var gs = new GiaSuService()) _giaSus = gs.GetForGhepLop().ToList();
-                _lopHoatDong = _lopHocService.GetLopConHoatDong();
+                // MED-06: giải phóng DbContext ngay sau khi lấy danh sách dùng cho giao diện.
+                using (var lopHocService = new LopHocService())
+                    _lopHoatDong = lopHocService.GetLopConHoatDong();
                 _mons = new MonHocService().GetAll(kemNgungDay: false);
                 using (var db = new GiaSuContextDB())
                     _tenLopDaCo = new HashSet<string>(db.LopHocs.Where(l => l.TenLop != null).Select(l => l.TenLop).ToList(),
@@ -606,12 +605,16 @@ namespace DoAnWD.UI.Dialogs
             {
                 DateTime bd, kt;
                 LayKhoang(ca, out bd, out kt);
-                var lop = _lopHocService.GhepLop(new GhepLopYeuCau
+                LopHoc lop;
+                using (var lopHocService = new LopHocService())
                 {
-                    MaHV = hv.MaHV, MaGS = gs.MaGS, MonHoc = MonChon.TenMon, HocPhi = hp,
-                    BatDau = bd, KetThuc = kt, CaHoc = ca, ThuHoc = chonThu.GiaTri,
-                    TenLop = txtTenLop.Text, CapDoDauVao = khungCapDo.Visible ? cboCapDo.SelectedItem as string : null
-                });
+                    lop = lopHocService.GhepLop(new GhepLopYeuCau
+                    {
+                        MaHV = hv.MaHV, MaGS = gs.MaGS, MonHoc = MonChon.TenMon, HocPhi = hp,
+                        BatDau = bd, KetThuc = kt, CaHoc = ca, ThuHoc = chonThu.GiaTri,
+                        TenLop = txtTenLop.Text, CapDoDauVao = khungCapDo.Visible ? cboCapDo.SelectedItem as string : null
+                    });
+                }
                 MaLopVuaGhep = lop.MaLop;
 
                 ThongBao.ThanhCong($"Đã ghép lớp \"{lop.TenLop}\"");

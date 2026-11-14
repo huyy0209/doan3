@@ -19,8 +19,6 @@ namespace DoAnWD.UI.Pages
     {
         public void LamMoi() { LoadCalendar(); }
 
-        private LopHocService _lopHocService;
-        private GiaSuService _giaSuService;
         private DateTime _currentMonth;
         private int? _selectedGiaSuId = null;
         private Dictionary<DateTime, List<LopHoc>> _lichHocTheoNgay;
@@ -28,14 +26,11 @@ namespace DoAnWD.UI.Pages
         public frmCalendarView()
         {
             InitializeComponent();
-            _lopHocService = new LopHocService();
-            _giaSuService = new GiaSuService();
             _currentMonth = DateTime.Now.Date;
             _lichHocTheoNgay = new Dictionary<DateTime, List<LopHoc>>();
 
             Load += FrmCalendarView_Load;
             monthGrid.DayClicked += OnDayClick;
-            FormClosed += FrmCalendarView_FormClosed;
         }
 
         private void FrmCalendarView_Load(object sender, EventArgs e)
@@ -52,7 +47,10 @@ namespace DoAnWD.UI.Pages
         {
             try
             {
-                var giaSus = _giaSuService.GetAll().ToList();
+                List<GiaSu> giaSus;
+                // MED-06: chỉ giữ service/DbContext trong thời gian đọc bộ lọc.
+                using (var service = new GiaSuService())
+                    giaSus = service.GetAll().ToList();
 
                 cboGiaSu.Items.Clear();
                 cboGiaSu.Items.Add("Tất cả gia sư");
@@ -101,7 +99,10 @@ namespace DoAnWD.UI.Pages
 
                 // Lớp có ít nhất một buổi trong tháng (bỏ lớp đã hủy)
                 // Lọc theo tháng + gia sư ngay trong SQL
-                var lopHocs = _lopHocService.GetLopTrongKhoang(dauThang, cuoiThang.AddDays(1).AddTicks(-1), _selectedGiaSuId);
+                List<LopHoc> lopHocs;
+                // MED-06: mỗi lần nạp lịch dùng DbContext ngắn hạn, không giữ entity cache qua tháng.
+                using (var service = new LopHocService())
+                    lopHocs = service.GetLopTrongKhoang(dauThang, cuoiThang.AddDays(1).AddTicks(-1), _selectedGiaSuId);
 
                 // Một lớp học mỗi ngày trong khoảng [bắt đầu, kết thúc]
                 // => hiện ở MỌI ngày đó (trước đây chỉ hiện ở ngày bắt đầu)
@@ -192,12 +193,6 @@ namespace DoAnWD.UI.Pages
             }
 
             LoadCalendar();
-        }
-
-        private void FrmCalendarView_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            _lopHocService?.Dispose();
-            _giaSuService?.Dispose();
         }
 
         // ===================================================================

@@ -326,7 +326,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-06] DbContext Lifetime không nhất quán và nguy cơ rò rỉ bộ nhớ
 - **Vị trí**: `DoAnWD/UI/Pages/frmCalendarView.cs:31-32, 197-201`, `DoAnWD/UI/Dialogs/frmChucNangGhepLop.cs:27`, `DoAnWD/UI/TrangChu.cs:382`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Tạo service/DbContext theo từng thao tác tải lịch và ghép lớp rồi giải phóng ngay.
 - **Mô tả vấn đề**:
   Một số Form như `frmCalendarView` khởi tạo `LopHocService` và `GiaSuService` làm biến thành viên private (`new LopHocService()`). Bản thân `LopHocService` lại giữ một thể hiện `GiaSuContextDB` cố định.
   Trong khi đó, `TrangChu.cs` lưu trữ các Form con trong từ điển `_trang` và không bao giờ giải phóng các Form này trong suốt thời gian ứng dụng chạy (`Show()` và `Hide()`).
