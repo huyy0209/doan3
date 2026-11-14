@@ -251,7 +251,7 @@ Tuy nhiên, hệ thống còn tồn tại một số **lỗ hổng nghiêm trọ
 
 #### [MED-02] Hiển thị ngày mặc định `01/01` trong `GetLopTrongNgay` khi mất liên kết buổi gốc
 - **Vị trí**: `DoAnWD/BLL/Services/HocTapService.cs:163, 170`
-- **Trạng thái**: Đã kiểm chứng trong mã nguồn
+- **Trạng thái**: [ĐÃ SỬA] Kiểm tra kết quả `TryGetValue`; thiếu buổi gốc thì ghi "Học bù buổi không rõ" thay vì ngày mặc định 01/01.
 - **Mô tả vấn đề**:
   Khi lấy danh sách học viên đến học bù:
   ```csharp

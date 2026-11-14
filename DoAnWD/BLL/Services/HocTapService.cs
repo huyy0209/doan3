@@ -167,7 +167,10 @@ namespace DoAnWD.BLL.Services
                         LopHoc l;
                         if (!lopBu.TryGetValue(b.MaLop, out l) || l.TrangThai == huy) continue;   // lớp đã hủy không còn học bù
                         string ten; tenGS.TryGetValue(b.MaGSDay ?? 0, out ten);
-                        DateTime goc; ngayGoc.TryGetValue(b.MaBuoiGoc.Value, out goc);
+                        // MED-02: buổi gốc có thể đã bị xóa => không hiển thị nhầm ngày 01/01.
+                        DateTime goc;
+                        string ngayGocText = ngayGoc.TryGetValue(b.MaBuoiGoc.Value, out goc)
+                            ? goc.ToString("dd/MM") : "không rõ";
                         ketQua.Add(new DiemDanhRow
                         {
                             MaLop = b.MaLop,
@@ -186,7 +189,7 @@ namespace DoAnWD.BLL.Services
                             NhanXet = b.NhanXet,
                             DaLuu = true,
                             LaHocBu = true,
-                            GhiChu = $"Học bù buổi {goc:dd/MM}"
+                            GhiChu = $"Học bù buổi {ngayGocText}"
                         });
                     }
                 }
