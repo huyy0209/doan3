@@ -29,6 +29,8 @@ Lần đầu: chọn **3** (cài CSDL) rồi **1**. Cần **.NET SDK 8 trở lê
 
 Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`. Các script được gọi bởi menu nằm trong thư mục `scripts/`.
 
+Khi triển khai qua HTTPS ngoài localhost, đặt `BaoMat:BatBuocHttps` thành `true` trong `DoAnWeb/appsettings.json` (hoặc cấu hình tương ứng trong môi trường triển khai) để cookie chỉ được gửi qua HTTPS. Mặc định là `false` để `start-web.bat` tiếp tục chạy HTTP tại `http://localhost:5080`.
+
 **Tài khoản demo** (CSDL hiện tại của nhóm):
 
 | Vai trò | Tên đăng nhập | Mật khẩu | Thấy gì |
