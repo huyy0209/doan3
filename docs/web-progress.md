@@ -74,9 +74,11 @@ Chính sách model (người dùng chốt 2026-11-15): được dùng worker Cla
 | C4 | đã merge + push (0169f5d; 264/264; thử trang 0/999/sắp xếp OK) | copilot (ctx_9e203181fe57) | web-c4 | phân trang + sắp xếp 4 danh sách |
 
 Kiểm token 15/11 (kiem-tra-token.ps1): copilot, opencode, zai, claude dùng được; dsh thiếu key; qwen/gemini cần key; antigravity, muse hết. Chia: việc thường → opencode/copilot (miễn phí), việc nhỏ → zai, test khó → sonnet.
-| W12 | đang chạy | claude-sonnet-5-5 (ctx_928de4ebc088) | web-w12 | test tích hợp HTTP, review #2, #10; lỗi ghi LOI-xx |
+| W12 | đã merge + push (131 test HTTP; khi gộp với C2 lộ lỗi trang lỗi đổi 400→404, coordinator sửa 98e4adf; 399/399, CI xanh) | claude-sonnet-5-5 | web-w12 | test tích hợp HTTP |
 
 Đề xuất tiếp theo: `docs/de-xuat.md` (chờ người dùng chọn). Mỗi giai đoạn xong → merge vào `web` → build + test → push.
+
+CI GitHub Actions xanh sau khi sửa lỗi cột `NgayHocTrongTuan` (38b39a6) và trang lỗi (98e4adf). Giai đoạn D (điện thoại, Excel) chờ người dùng đồng ý.
 
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
