@@ -102,10 +102,6 @@ exit /b %ERRORLEVEL%
 call :shortcut
 exit /b %ERRORLEVEL%
 
-:dong_bo
-powershell -ExecutionPolicy Bypass -File "%~dp0scripts\kiem-dong-bo-csdl.ps1"
-exit /b %ERRORLEVEL%
-
 :shortcut
 powershell -NoProfile -Command "$desktop = [Environment]::GetFolderPath('Desktop'); $shell = New-Object -ComObject WScript.Shell; $shortcut = $shell.CreateShortcut((Join-Path $desktop 'Quản lý gia sư.lnk')); $shortcut.TargetPath = '%~f0'; $shortcut.WorkingDirectory = '%~dp0'; $icon = Join-Path '%~dp0' 'assets\QuanLyGiaSu.ico'; if (Test-Path $icon) { $shortcut.IconLocation = $icon }; $shortcut.Save()"
 if errorlevel 1 (
