@@ -1,0 +1,28 @@
+@model DoAnWeb.Controllers.TrangLoiModel
+@{
+    ViewData["Title"] = "Không tìm thấy trang";
+    ViewData["PageSub"] = "Đường dẫn không tồn tại hoặc đã bị đổi.";
+    var daDangNhap = User?.Identity?.IsAuthenticated == true;
+    Layout = daDangNhap ? "_Layout" : "_LayoutTrong";
+}
+<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow")" style="text-align:center">
+    <div class="vo-error-code">404</div>
+    <div class="vo-error-title">@Model.TieuDe</div>
+    <p class="vo-error-text mb-4">@Model.MoTa</p>
+
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a href="/" class="btn btn-primary">
+            <partial name="_Icon" model='"home"' />Về trang chủ
+        </a>
+        @if (daDangNhap)
+        {
+            <a href="/HocVien" class="btn btn-outline-secondary">
+                <partial name="_Icon" model='"users"' />Học viên &amp; điểm
+            </a>
+        }
+        else
+        {
+            <a href="/TaiKhoan/DangNhap" class="btn btn-outline-secondary">Đăng nhập</a>
+        }
+    </div>
+</div>

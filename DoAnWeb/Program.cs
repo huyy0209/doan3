@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ---------- Nhật ký hệ thống ra file theo ngày (Serilog, đề xuất #5) ----------
+DoAnWeb.Infrastructure.CauHinhLog.ThemCauHinhLog(builder);
+
 // ---------- CSDL: dùng nguyên CSDL QuanLyGiaSu của bản WinForms (không migration) ----------
 builder.Services.AddDbContext<QuanLyGiaSuContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu")));
@@ -51,6 +54,15 @@ builder.Services.AddHostedService<CapNhatTrangThaiNen>();
 
 var app = builder.Build();
 
+// ---------- Trang lỗi tiếng Việt: 404/403/500 dùng chung giao diện app ----------
+app.UseStatusCodePagesWithReExecute("/Loi/{0}");
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Loi/500");
+    app.UseHsts();
+}
+
 // ---------- Lần chạy đầu: bảng TaiKhoan rỗng thì tạo admin/admin123 (TK-10) ----------
 using (var scope = app.Services.CreateScope())
 {
@@ -64,12 +76,6 @@ using (var scope = app.Services.CreateScope())
     {
         app.Logger.LogError(ex, "Không kết nối được CSDL QuanLyGiaSu. Kiểm tra SQL Server và chuỗi kết nối trong appsettings.json.");
     }
-}
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
 }
 
 // Định dạng tiếng Việt (ngày dd/MM/yyyy, số 1.500.000)
