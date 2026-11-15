@@ -1,4 +1,5 @@
 @model DoAnWeb.ViewModels.HocVienVM.HocVienIndexVM
+@using DoAnWeb.Infrastructure
 @{
     ViewData["Title"] = "Học viên";
     ViewData["PageSub"] = "Danh sách hồ sơ học viên và thông tin liên hệ.";
@@ -53,12 +54,12 @@
             <table class="table vo-table align-middle">
                 <thead>
                     <tr>
-                        <th>Họ tên</th>
-                        <th>SĐT liên hệ</th>
-                        <th>Phụ huynh</th>
-                        <th>Trường / lớp</th>
-                        <th>Trình độ</th>
-                        <th>Đang học</th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen"))">Họ tên @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt"))">SĐT liên hệ @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "phuHuynh"))">Phụ huynh @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "phuHuynh")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "truongLop"))">Trường / lớp @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "truongLop")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "trinhDo"))">Trình độ @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "trinhDo")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "dangHoc"))">Đang học @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "dangHoc")</a></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -88,6 +89,7 @@
             </table>
         </div>
     }
+    <partial name="_PhanTrang" model="(IThongTinTrang)ViewBag.PhanTrang" />
 </section>
 
 @if (Model.LaQuanLy)

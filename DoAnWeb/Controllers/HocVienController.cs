@@ -1,5 +1,6 @@
 using DoAnWeb.Common;
 using DoAnWeb.Data;
+using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.ViewModels.HocVienVM;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,8 @@ public class HocVienController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index(string tuKhoa, string trinhDo, string tinhTrang)
+    public IActionResult Index(string tuKhoa, string trinhDo, string tinhTrang,
+        int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
     {
         var ds = _hocVien.GetDuocXem(tuKhoa);
         var levels = ds.Select(h => h.TrinhDo).Where(t => !string.IsNullOrWhiteSpace(t))
@@ -63,19 +65,39 @@ public class HocVienController : Controller
             }).ToList();
         }
 
+        IEnumerable<HocVienListItemVM> hocViens = ds.Select(h => new HocVienListItemVM
+        {
+            HocVien = h,
+            DangHocMon = dangHoc.TryGetValue(h.MaHV, out var mon) ? mon : ""
+        }).ToList();
+        bool giamDan = chieu == "desc";
+        hocViens = sapXep switch
+        {
+            "hoTen" => (giamDan ? hocViens.OrderByDescending(h => h.HocVien.HoTen) : hocViens.OrderBy(h => h.HocVien.HoTen)).ThenBy(h => h.HocVien.MaHV),
+            "sdt" => (giamDan ? hocViens.OrderByDescending(h => h.HocVien.SDTLienHe) : hocViens.OrderBy(h => h.HocVien.SDTLienHe)).ThenBy(h => h.HocVien.MaHV),
+            "phuHuynh" => (giamDan ? hocViens.OrderByDescending(h => h.PhuHuynh) : hocViens.OrderBy(h => h.PhuHuynh)).ThenBy(h => h.HocVien.MaHV),
+            "truongLop" => (giamDan ? hocViens.OrderByDescending(h => h.HocVien.TruongLop) : hocViens.OrderBy(h => h.HocVien.TruongLop)).ThenBy(h => h.HocVien.MaHV),
+            "trinhDo" => (giamDan ? hocViens.OrderByDescending(h => h.HocVien.TrinhDo) : hocViens.OrderBy(h => h.HocVien.TrinhDo)).ThenBy(h => h.HocVien.MaHV),
+            "dangHoc" => (giamDan ? hocViens.OrderByDescending(h => h.DangHocMon) : hocViens.OrderBy(h => h.DangHocMon)).ThenBy(h => h.HocVien.MaHV),
+            _ => hocViens
+        };
+        var ketQuaTrang = PhanTrang.Tao(hocViens, trang, soDong, sapXep, chieu,
+            new Dictionary<string, string>
+            {
+                ["tuKhoa"] = tuKhoa ?? "",
+                ["trinhDo"] = trinhDo ?? "",
+                ["tinhTrang"] = tinhTrang ?? ""
+            });
+        ViewBag.PhanTrang = ketQuaTrang;
         return View(new HocVienIndexVM
         {
             TuKhoa = tuKhoa,
             TrinhDo = trinhDo,
             TinhTrang = tinhTrang,
             DanhSachTrinhDo = levels,
-            TongSo = ds.Count,
+            TongSo = ketQuaTrang.TongSo,
             LaQuanLy = _nguoiDung.LaQuanLy,
-            HocViens = ds.Select(h => new HocVienListItemVM
-            {
-                HocVien = h,
-                DangHocMon = dangHoc.TryGetValue(h.MaHV, out var mon) ? mon : ""
-            }).ToList()
+            HocViens = ketQuaTrang.Items
         });
     }
 
