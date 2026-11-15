@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DoAnWeb.Data.Entities;
@@ -23,7 +23,6 @@ public partial class LopHoc
 
     public string CaHoc { get; set; }
 
-    public string NgayHocTrongTuan { get; set; }
 
     public string TenLop { get; set; }
 

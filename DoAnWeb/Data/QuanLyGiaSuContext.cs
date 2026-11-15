@@ -133,7 +133,6 @@ public partial class QuanLyGiaSuContext : DbContext
             entity.Property(e => e.CapDoDauVao).HasMaxLength(50);
             entity.Property(e => e.HocPhi).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MonHoc).HasMaxLength(50);
-            entity.Property(e => e.NgayHocTrongTuan).HasMaxLength(50);
             entity.Property(e => e.TenLop).HasMaxLength(150);
             entity.Property(e => e.ThoiGianBatDau).HasColumnType("datetime");
             entity.Property(e => e.ThoiGianKetThuc).HasColumnType("datetime");
