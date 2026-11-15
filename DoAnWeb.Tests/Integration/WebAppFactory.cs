@@ -29,7 +29,9 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration((_, cfg) =>
             cfg.AddInMemoryCollection(new[]
             {
-                new System.Collections.Generic.KeyValuePair<string, string>("ConnectionStrings:QuanLyGiaSu", TestDb.ConnStr)
+                new System.Collections.Generic.KeyValuePair<string, string>("ConnectionStrings:QuanLyGiaSu", TestDb.ConnStr),
+                new System.Collections.Generic.KeyValuePair<string, string>("SaoLuu:ThuMuc", System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DoAnWeb.Tests.SaoLuu")),
+                new System.Collections.Generic.KeyValuePair<string, string>("SaoLuu:GioTuDong", "Tat")
             }));
         // Máy test chạy runtime .NET 10 còn TestServer là bản 8.0: System.Text.Json 10 đòi PipeWriter.UnflushedBytes
         // mà PipeWriter của TestServer không có → mọi action trả Json() bị 500 (chỉ trong test, không phải lỗi app).
