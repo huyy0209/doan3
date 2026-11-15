@@ -27,12 +27,15 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 | 4 | `QuanLyGiaSu.bat sao-luu` | Sao lưu CSDL ra file `.bak` có ngày giờ | `scripts/SaoLuuCSDL.bat` |
 | 5 | `QuanLyGiaSu.bat dong-bo` | Kiểm tra đồng bộ CSDL giữa nhánh `app` và `web` | `scripts/kiem-dong-bo-csdl.ps1` |
 | 6 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư" trên Desktop (icon `assets/QuanLyGiaSu.ico`) | – |
+| 9 | `QuanLyGiaSu.bat dich-vu [-MoTuongLua\|-GoBo\|-WhatIf]` | Cài / gỡ bản web làm **dịch vụ Windows** tự chạy khi khởi động máy, tùy chọn mở cổng cho LAN (cần Administrator) | `scripts/cai-dich-vu-web.ps1` |
 
 Lần đầu: chọn **3** (cài CSDL) rồi **1**. Cần **.NET SDK 8 trở lên** (`dotnet --version`), SQL Server (2016+) đang chạy với Windows Authentication; không cần Visual Studio.
 
 Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`. Các script được gọi bởi menu nằm trong thư mục `scripts/`.
 
 Khi triển khai qua HTTPS ngoài localhost, đặt `BaoMat:BatBuocHttps` thành `true` trong `DoAnWeb/appsettings.json` (hoặc cấu hình tương ứng trong môi trường triển khai) để cookie chỉ được gửi qua HTTPS. Mặc định là `false` để `start-web.bat` tiếp tục chạy HTTP tại `http://localhost:5080`.
+
+**Chạy như dịch vụ Windows / mở cho máy khác trong LAN:** chạy `QuanLyGiaSu.bat dich-vu` bằng quyền Administrator (hoặc mục **9** trong menu) để publish và cài dịch vụ `QuanLyGiaSuWeb` tự khởi động cùng máy; thêm `-MoTuongLua` để mở cổng cho LAN, `-WhatIf` để xem trước các lệnh, `-GoBo` để gỡ. Hướng dẫn từng bước (tường lửa, HTTPS cho LAN, xem log ở `logs/`, quyền SQL Server, xử lý sự cố): **`docs/trien-khai.md`**.
 
 **Kiểm tra đồng bộ CSDL:** Chạy `QuanLyGiaSu.bat dong-bo` hoặc trực tiếp `powershell -ExecutionPolicy Bypass -File scripts/kiem-dong-bo-csdl.ps1` để kiểm tra Database/ giữa nhánh app và web. Script trả về 0 nếu giống, 1 nếu khác.
 
@@ -52,7 +55,7 @@ Tài liệu chuyển đổi: `docs/web-plan.md` (màn hình, quyền, luật ngh
 ```
 doan3/ (nhánh web)
 ├── QuanLyGiaSu.bat     # Menu khởi động
-├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat
+├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat, cai-dich-vu-web.ps1
 ├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
 ├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests
 ├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
