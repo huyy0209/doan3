@@ -1,0 +1,128 @@
+# CI cho nhánh web (đề xuất #9 trong docs/de-xuat.md):
+# mỗi lần push / pull request vào nhánh `web` thì build bản web và chạy toàn bộ test
+# trên SQL Server 2022 chạy trong container Linux, có sẵn CSDL QuanLyGiaSu.
+name: Web CI
+
+on:
+  push:
+    branches: [web]
+  pull_request:
+    branches: [web]
+
+# Chỉ cần đọc mã nguồn; không ghi gì lên repo.
+permissions:
+  contents: read
+
+# Push liên tiếp vào cùng nhánh thì hủy lần chạy cũ, đỡ tốn thời gian.
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: 8.0.x
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # Mật khẩu SA công khai, CHỈ dùng cho container SQL Server dùng một lần trong CI
+  # (không phải mật khẩu thật, container bị xóa sau mỗi lần chạy).
+  SQL_SA_PASSWORD: 'Ci!QuanLyGiaSu#2026'
+  # Fixture DoAnWeb.Tests đọc biến này để biết server test; không đặt thì giữ nguyên "Server=." như máy dev.
+  DOANWEB_TEST_SQL: 'Server=localhost,1433;User Id=sa;Password=Ci!QuanLyGiaSu#2026;TrustServerCertificate=True;MultipleActiveResultSets=True;Connect Timeout=60'
+
+jobs:
+  build-test:
+    name: Build + test (SQL Server 2022)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Ci!QuanLyGiaSu#2026'
+        ports:
+          - 1433:1433
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài .NET SDK 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Chờ SQL Server sẵn sàng
+        run: |
+          set -euo pipefail
+          ID="${{ job.services.sqlserver.id }}"
+
+          # Image 2022 có sẵn mssql-tools18; bản cũ hơn chỉ có mssql-tools.
+          if docker exec "$ID" test -x /opt/mssql-tools18/bin/sqlcmd; then
+            SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+          else
+            SQLCMD=/opt/mssql-tools/bin/sqlcmd
+          fi
+          echo "Dùng $SQLCMD trong container"
+
+          for i in $(seq 1 60); do
+            if docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" -C -l 5 -Q "SELECT 1" >/dev/null 2>&1; then
+              echo "SQL Server sẵn sàng sau $(( (i - 1) * 5 )) giây"
+              echo "SQLCMD=$SQLCMD" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "SQL Server không sẵn sàng sau 300 giây"
+          docker logs "$ID" | tail -n 50
+          exit 1
+
+      - name: Tạo CSDL QuanLyGiaSu (Database/0*.sql + dữ liệu mẫu)
+        run: |
+          set -euo pipefail
+          ID="${{ job.services.sqlserver.id }}"
+          docker cp Database/. "$ID":/tmp/Database
+
+          chay_sql() {
+            docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" \
+              -C -I -b -f 65001 -i "/tmp/Database/$1.sql"
+          }
+
+          # Cấu trúc: đúng thứ tự trong scripts/CaiDatCSDL.bat
+          for f in 01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 \
+                   05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8; do
+            echo "::group::$f.sql"
+            chay_sql "$f"
+            echo "::endgroup::"
+          done
+
+          # Dữ liệu mẫu như khi cài CSDL: fixture BACKUP/RESTORE cả CSDL QuanLyGiaSu
+          # nên dữ liệu mẫu cũng sang CSDL test, giống máy dev.
+          for f in 11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 \
+                   14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6; do
+            echo "::group::$f.sql"
+            chay_sql "$f"
+            echo "::endgroup::"
+          done
+
+          echo "CSDL đã tạo:"
+          docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" -C -h -1 -W \
+            -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE name LIKE N'QuanLyGiaSu%'"
+
+      - name: dotnet restore
+        run: |
+          dotnet restore DoAnWeb/DoAnWeb.csproj
+          dotnet restore DoAnWeb.Tests/DoAnWeb.Tests.csproj
+
+      - name: dotnet build (Release)
+        run: dotnet build DoAnWeb/DoAnWeb.csproj -c Release --no-restore
+
+      - name: dotnet test
+        # Test chỉ chạy được trên SQL Server Windows (nếu có) được đánh dấu
+        # [Trait("Can", "SqlServerWindows")] và lọc ra ở đây.
+        run: >
+          dotnet test DoAnWeb.Tests/DoAnWeb.Tests.csproj
+          -c Release --no-restore
+          --filter "Can!=SqlServerWindows"
+          --logger "console;verbosity=normal"
