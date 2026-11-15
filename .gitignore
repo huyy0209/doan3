@@ -120,6 +120,10 @@ ipch/
 
 # Visual Studio Trace Files
 *.e2e
+# ...nhưng project DoAnWeb.E2E (kiểm thử Playwright) khớp mẫu *.e2e nên phải bỏ ignore thư mục này
+!DoAnWeb.E2E/
+# Ảnh chụp khi test giao diện fail
+DoAnWeb.E2E/artifacts/
 
 # TFS 2012 Local Workspace
 $tf/
