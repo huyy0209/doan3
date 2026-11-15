@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using DoAnWeb.Data.Entities;
 
-namespace DoAnWeb.ViewModels.MonHoc
+namespace DoAnWeb.ViewModels.MonHocVM
 {
     /// <summary>Danh mục môn học (dlgMonHoc.cs): danh sách bên trái, biểu mẫu bên phải.</summary>
     public class MonHocVM

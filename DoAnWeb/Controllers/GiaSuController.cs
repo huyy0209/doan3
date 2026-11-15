@@ -1,7 +1,7 @@
 using DoAnWeb.Common;
 using DoAnWeb.Data;
 using DoAnWeb.Services;
-using DoAnWeb.ViewModels.GiaSu;
+using DoAnWeb.ViewModels.GiaSuVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

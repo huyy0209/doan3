@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DoAnWeb.Common;
 using DoAnWeb.Services;
-using DoAnWeb.ViewModels.MonHoc;
+using DoAnWeb.ViewModels.MonHocVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

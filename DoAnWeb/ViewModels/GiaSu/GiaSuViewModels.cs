@@ -4,7 +4,7 @@ using DoAnWeb.Data.Entities;
 using DoAnWeb.Services.Validators;
 using GiaSuEntity = DoAnWeb.Data.Entities.GiaSu;
 
-namespace DoAnWeb.ViewModels.GiaSu;
+namespace DoAnWeb.ViewModels.GiaSuVM;
 
 public class GiaSuIndexVM
 {
