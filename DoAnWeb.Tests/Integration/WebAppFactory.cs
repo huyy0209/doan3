@@ -68,10 +68,10 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<QuanLyGiaSuContext>();
         var ten = new SqlConnectionStringBuilder(db.Database.GetConnectionString()).InitialCatalog;
-        if (!string.Equals(ten, "QuanLyGiaSu_Test", StringComparison.OrdinalIgnoreCase))
+        if (!TestDb.LaCsdlTest(ten))
         {
             host.Dispose();
-            throw new InvalidOperationException($"Test web trỏ nhầm CSDL '{ten}' – chỉ được dùng QuanLyGiaSu_Test.");
+            throw new InvalidOperationException($"Test web trỏ nhầm CSDL '{ten}' – chỉ được dùng CSDL test (QuanLyGiaSu_Test*).");
         }
         return host;
     }
