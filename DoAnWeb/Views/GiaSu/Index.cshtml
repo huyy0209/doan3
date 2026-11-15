@@ -1,5 +1,6 @@
 @model DoAnWeb.ViewModels.GiaSuVM.GiaSuIndexVM
 @using DoAnWeb.Common
+@using DoAnWeb.Infrastructure
 @{
     ViewData["Title"] = "Gia sư";
     ViewData["PageSub"] = "Hồ sơ gia sư, ca nhận dạy và các lớp đang dạy.";
@@ -59,12 +60,12 @@
             <table class="table vo-table align-middle">
                 <thead>
                     <tr>
-                        <th>Họ tên</th>
-                        <th>Số ĐT</th>
-                        <th>Chuyên môn</th>
-                        <th>Ca nhận dạy</th>
-                        <th class="text-center">Số lớp</th>
-                        <th>Trạng thái</th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen"))">Họ tên @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt"))">Số ĐT @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon"))">Chuyên môn @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca"))">Ca nhận dạy @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca")</a></th>
+                        <th class="text-center"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop"))">Số lớp @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop")</a></th>
+                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai"))">Trạng thái @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai")</a></th>
                         <th class="text-end">Thao tác</th>
                     </tr>
                 </thead>
@@ -90,6 +91,7 @@
             </table>
         </div>
     }
+    <partial name="_PhanTrang" model="(IThongTinTrang)ViewBag.PhanTrang" />
 </section>
 
 <div class="modal fade" id="xoaGiaSuModal" tabindex="-1" aria-labelledby="xoaGiaSuLabel" aria-hidden="true">

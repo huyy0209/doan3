@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DoAnWeb.Common;
 using DoAnWeb.Data.Entities;
+using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
 using DoAnWeb.ViewModels.HocPhi;
@@ -25,23 +26,25 @@ namespace DoAnWeb.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(int? maLop, string tuKhoa, string tinhTrang)
+        public IActionResult Index(int? maLop, string tuKhoa, string tinhTrang,
+            int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
         {
-            return View(TaoModel(maLop, tuKhoa, tinhTrang, null));
+            return View(TaoModel(maLop, tuKhoa, tinhTrang, null, trang, soDong, sapXep, chieu));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ThemThanhToan(HocPhiIndexViewModel model)
+        public IActionResult ThemThanhToan(HocPhiIndexViewModel model,
+            int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
         {
             var input = model.ThanhToan;
             if (!ModelState.IsValid)
-                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input));
+                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input, trang, soDong, sapXep, chieu));
 
             if (!SoTien.TryParse(input.SoTien, out var soTien))
             {
                 ModelState.AddModelError("ThanhToan.SoTien", "Nhập số tiền, ví dụ 1.500.000.");
-                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input));
+                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input, trang, soDong, sapXep, chieu));
             }
 
             try
@@ -49,18 +52,23 @@ namespace DoAnWeb.Controllers
                 _hocPhi.ThemThanhToan(input.MaLop, soTien, input.NgayDong.Date.Add(DateTime.Now.TimeOfDay),
                     input.HinhThuc, input.GhiChu);
                 TempData["ThongBao"] = $"Đã ghi nhận {SoTien.Dinh(soTien)} đ.";
-                return RedirectToAction(nameof(Index), new { maLop = input.MaLop, tuKhoa = input.TuKhoa, tinhTrang = input.TinhTrang });
+                return RedirectToAction(nameof(Index), new
+                {
+                    maLop = input.MaLop, tuKhoa = input.TuKhoa, tinhTrang = input.TinhTrang,
+                    trang, soDong, sapXep, chieu
+                });
             }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input));
+                return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input, trang, soDong, sapXep, chieu));
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult XoaThanhToan(int maTT, int maLop, string tuKhoa, string tinhTrang)
+        public IActionResult XoaThanhToan(int maTT, int maLop, string tuKhoa, string tinhTrang,
+            int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
         {
             try
             {
@@ -71,7 +79,7 @@ namespace DoAnWeb.Controllers
             {
                 TempData["Loi"] = ex.Message;
             }
-            return RedirectToAction(nameof(Index), new { maLop, tuKhoa, tinhTrang });
+            return RedirectToAction(nameof(Index), new { maLop, tuKhoa, tinhTrang, trang, soDong, sapXep, chieu });
         }
 
         [HttpGet]
@@ -90,7 +98,8 @@ namespace DoAnWeb.Controllers
             return File(_baoCao.XuatCsv(rows), "text/csv", $"CongNo_{DateTime.Now:yyyyMMdd}.csv");
         }
 
-        private HocPhiIndexViewModel TaoModel(int? maLop, string tuKhoa, string tinhTrang, HocPhiThanhToanViewModel input)
+        private HocPhiIndexViewModel TaoModel(int? maLop, string tuKhoa, string tinhTrang, HocPhiThanhToanViewModel input,
+            int trang, int soDong, string sapXep, string chieu)
         {
             string loc = tinhTrang ?? CanThu;
             var all = _hocPhi.GetCongNo();
@@ -109,15 +118,36 @@ namespace DoAnWeb.Controllers
             form.TuKhoa = tuKhoa;
             form.TinhTrang = loc;
 
+            bool giamDan = chieu == "desc";
+            IEnumerable<CongNoLop> sapXepTheo = sapXep switch
+            {
+                "tenLop" => (giamDan ? ds.OrderByDescending(c => c.TenLop) : ds.OrderBy(c => c.TenLop)).ThenBy(c => c.MaLop),
+                "hocVien" => (giamDan ? ds.OrderByDescending(c => c.HocVien) : ds.OrderBy(c => c.HocVien)).ThenBy(c => c.MaLop),
+                "sdt" => (giamDan ? ds.OrderByDescending(c => c.SDTLienHe) : ds.OrderBy(c => c.SDTLienHe)).ThenBy(c => c.MaLop),
+                "giaSu" => (giamDan ? ds.OrderByDescending(c => c.GiaSu) : ds.OrderBy(c => c.GiaSu)).ThenBy(c => c.MaLop),
+                "hocPhi" => (giamDan ? ds.OrderByDescending(c => c.HocPhi) : ds.OrderBy(c => c.HocPhi)).ThenBy(c => c.MaLop),
+                "daDong" => (giamDan ? ds.OrderByDescending(c => c.DaDong) : ds.OrderBy(c => c.DaDong)).ThenBy(c => c.MaLop),
+                "conNo" => (giamDan ? ds.OrderByDescending(c => c.ConNo) : ds.OrderBy(c => c.ConNo)).ThenBy(c => c.MaLop),
+                "tinhTrang" => (giamDan ? ds.OrderByDescending(c => c.TinhTrang) : ds.OrderBy(c => c.TinhTrang)).ThenBy(c => c.MaLop),
+                _ => ds
+            };
+            var ketQuaTrang = PhanTrang.Tao(sapXepTheo, trang, soDong, sapXep, chieu,
+                new Dictionary<string, string>
+                {
+                    ["maLop"] = maLop?.ToString() ?? "",
+                    ["tuKhoa"] = tuKhoa ?? "",
+                    ["tinhTrang"] = loc
+                });
+            ViewBag.PhanTrang = ketQuaTrang;
             return new HocPhiIndexViewModel
             {
                 TuKhoa = tuKhoa,
                 TinhTrang = loc,
                 MaLop = maLop,
-                DanhSach = ds,
+                DanhSach = ketQuaTrang.Items,
                 TongHocPhi = all.Where(c => c.TrangThaiLop != Constants.LopHocStatus.DaHuy).Sum(c => c.HocPhi),
                 DaThu = all.Sum(c => c.DaDong),
-                ConNo = all.Where(c => c.TrangThaiLop != Constants.LopHocStatus.DaHuy).Sum(c => c.ConNo),
+                ConNo = ds.Where(c => c.TrangThaiLop != Constants.LopHocStatus.DaHuy).Sum(c => c.ConNo),
                 LopChon = selected,
                 LichSu = selected == null ? new List<ThanhToan>() : _hocPhi.GetLichSu(selected.MaLop),
                 ThanhToan = form
