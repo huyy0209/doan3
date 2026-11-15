@@ -83,6 +83,8 @@ Dọn: đã gỡ 16 worktree đã merge + sạch (web-w0..w12, web-c1/c2/c4); nh
 
 Giai đoạn E đã giao (15/11): E6 sao lưu từ web – copilot (ctx_3a06528d30d7, web-e6); E7 dịch vụ Windows + LAN (chỉ script/tài liệu) – opencode (ctx_feb36d57c662, web-e7); E8 Playwright E2E – claude-sonnet-5-5 (ctx_5bff41b422e1, web-e8). Đề xuất #2 (nhật ký thao tác) TẠM GIỮ: cần thêm bảng → trái yêu cầu giữ nguyên schema, chờ người dùng xác nhận.
 
+Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh. Phát hiện test chập chờn (DB test dùng chung) → F1 (claude-sonnet-5-5, ctx_246470ac83e2, web-f1) đang sửa. Hạn mức Claude lúc giao F1: 5h 65%, 7d 63% → hạn chế giao thêm Claude.
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
