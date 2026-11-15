@@ -4,7 +4,7 @@ using DoAnWeb.Data.Entities;
 using DoAnWeb.Services.Dto;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace DoAnWeb.ViewModels.HocTap
+namespace DoAnWeb.ViewModels.HocTapVM
 {
     public class DiemDanhViewModel
     {

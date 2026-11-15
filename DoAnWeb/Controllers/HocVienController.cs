@@ -1,7 +1,7 @@
 using DoAnWeb.Common;
 using DoAnWeb.Data;
 using DoAnWeb.Services;
-using DoAnWeb.ViewModels.HocVien;
+using DoAnWeb.ViewModels.HocVienVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

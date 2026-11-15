@@ -111,6 +111,17 @@ namespace DoAnWeb.Services
             return true;
         }
 
+        /// <summary>Cho phép hiện gợi ý đăng nhập khi tài khoản admin duy nhất vẫn dùng mật khẩu mặc định.</summary>
+        public bool CoTaiKhoanMacDinh()
+        {
+            var taiKhoans = _db.TaiKhoans.AsNoTracking()
+                .Select(t => new { t.TenDangNhap, t.MatKhauHash })
+                .ToList();
+            return taiKhoans.Count == 1
+                && string.Equals(taiKhoans[0].TenDangNhap, AdminMacDinh, StringComparison.OrdinalIgnoreCase)
+                && MatKhau.KiemTra(MatKhauMacDinh, taiKhoans[0].MatKhauHash);
+        }
+
         /// <summary>Đăng nhập; sai thì ném lỗi chung, không tiết lộ sai tên hay sai mật khẩu (TK-04..TK-09)</summary>
         public TaiKhoan DangNhap(string tenDangNhap, string matKhau)
         {

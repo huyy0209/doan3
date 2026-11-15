@@ -21,6 +21,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.Cookie.Name = "QuanLyGiaSu.Auth";
         o.Cookie.HttpOnly = true;
         o.Cookie.SameSite = SameSiteMode.Lax;
+        // Mặc định hỗ trợ localhost qua HTTP; triển khai HTTPS thì bật BaoMat:BatBuocHttps.
+        o.Cookie.SecurePolicy = builder.Configuration.GetValue<bool>("BaoMat:BatBuocHttps")
+            ? Microsoft.AspNetCore.Http.CookieSecurePolicy.Always
+            : Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
         o.ExpireTimeSpan = TimeSpan.FromHours(8);
         o.SlidingExpiration = true;
         // Review #1: kiểm lại tài khoản (khóa / đổi vai trò) ở mỗi request, có cache ngắn

@@ -1,7 +1,11 @@
 using System;
 using System.Linq;
 using DoAnWeb.Common;
+using DoAnWeb.Controllers;
 using DoAnWeb.Services;
+using DoAnWeb.ViewModels.TaiKhoan;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -161,6 +165,53 @@ public class DangNhapTests : DbTestBase
     {
         TaoTaiKhoan("test_co", Mk);
         Assert.False(TaoDichVu().DamBaoTaiKhoanMacDinh());
+    }
+
+    [Fact]
+    [Trait("Luat", "TK-10")]
+    public void DangNhap_AdminMacDinhDuyNhat_HienGoiY()
+    {
+        using var tx = Db.Database.BeginTransaction();
+        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        TaoTaiKhoan(TaiKhoanService.AdminMacDinh, TaiKhoanService.MatKhauMacDinh);
+
+        Assert.True(((DangNhapVM)TaoController().Model).LanDau);
+
+        tx.Rollback();
+    }
+
+    [Fact]
+    [Trait("Luat", "TK-10")]
+    public void DangNhap_NhieuTaiKhoan_KhongHienGoiY()
+    {
+        using var tx = Db.Database.BeginTransaction();
+        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        TaoTaiKhoan(TaiKhoanService.AdminMacDinh, TaiKhoanService.MatKhauMacDinh);
+        TaoTaiKhoan("other", Mk);
+
+        Assert.False(((DangNhapVM)TaoController().Model).LanDau);
+
+        tx.Rollback();
+    }
+
+    [Fact]
+    [Trait("Luat", "TK-10")]
+    public void DangNhap_AdminDaDoiMatKhau_KhongHienGoiY()
+    {
+        using var tx = Db.Database.BeginTransaction();
+        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        TaoTaiKhoan(TaiKhoanService.AdminMacDinh, Mk);
+
+        Assert.False(((DangNhapVM)TaoController().Model).LanDau);
+
+        tx.Rollback();
+    }
+
+    private ViewResult TaoController()
+    {
+        var controller = new TaiKhoanController(TaoDichVu(), QuanLy());
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        return Assert.IsType<ViewResult>(controller.DangNhap());
     }
 
     // ============ TK-14: đổi mật khẩu (mới ≠ cũ, ≠ admin123, đúng mk hiện tại) ============

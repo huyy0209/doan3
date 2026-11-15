@@ -6,7 +6,7 @@ using DoAnWeb.Data.Entities;
 using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
-using DoAnWeb.ViewModels.LopHoc;
+using DoAnWeb.ViewModels.LopHocVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using DoAnWeb.Data.Entities;
 using DoAnWeb.Services.Dto;
 
-namespace DoAnWeb.ViewModels.LopHoc
+namespace DoAnWeb.ViewModels.LopHocVM
 {
     /// <summary>Dữ liệu trang danh sách lớp (frmLopHoc.cs).</summary>
     public class LopHocIndexVM

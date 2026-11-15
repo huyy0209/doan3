@@ -4,7 +4,7 @@ using System.Linq;
 using DoAnWeb.Common;
 using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
-using DoAnWeb.ViewModels.HocTap;
+using DoAnWeb.ViewModels.HocTapVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
