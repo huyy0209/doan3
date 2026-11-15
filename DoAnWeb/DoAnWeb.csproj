@@ -17,6 +17,8 @@
     <!-- Ghi nhật ký hệ thống ra file theo ngày (đề xuất #5) -->
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <!-- Chạy như dịch vụ Windows (đề xuất #7): console vẫn chạy bình thường khi không phải dịch vụ -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
