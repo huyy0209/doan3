@@ -68,10 +68,10 @@ Chính sách model (người dùng chốt 2026-11-15): được dùng worker Cla
 | Task | Trạng thái | Agent | Worktree | Nội dung |
 |---|---|---|---|---|
 | W11 | đã merge + push (1bd33d6; 261/261, smoke 10 trang 200) | copilot | web-w11 | review #5–#9 |
-| C1 | đang chạy | opencode free (ctx_a96c6022b987) | web-c1 | CI GitHub Actions |
-| C2 | đang chạy | opencode free (ctx_4c819637eb30) | web-c2 | Serilog + trang lỗi tiếng Việt |
-| C3 | đang chạy | zai glm-4.5-flash (ctx_863b9289ef40) | web-c3 | script kiểm đồng bộ CSDL app↔web |
-| C4 | đang chạy | copilot (ctx_9e203181fe57) | web-c4 | phân trang + sắp xếp 4 danh sách |
+| C1 | đã merge + push (CI chạy thật lần đầu trên GitHub) | opencode free (ctx_a96c6022b987) | web-c1 | CI GitHub Actions |
+| C2 | đã merge + push (da5c0ea; 404 tiếng Việt + log theo ngày, thử OK) | opencode free (ctx_4c819637eb30) | web-c2 | Serilog + trang lỗi tiếng Việt |
+| C3 | đã merge + push (ce58ca4; coordinator bỏ nhãn lặp b00ad6c; dong-bo thử OK) | zai glm-4.5-flash (ctx_863b9289ef40) | web-c3 | script kiểm đồng bộ CSDL app↔web |
+| C4 | đã merge + push (0169f5d; 264/264; thử trang 0/999/sắp xếp OK) | copilot (ctx_9e203181fe57) | web-c4 | phân trang + sắp xếp 4 danh sách |
 
 Kiểm token 15/11 (kiem-tra-token.ps1): copilot, opencode, zai, claude dùng được; dsh thiếu key; qwen/gemini cần key; antigravity, muse hết. Chia: việc thường → opencode/copilot (miễn phí), việc nhỏ → zai, test khó → sonnet.
 | W12 | đang chạy | claude-sonnet-5-5 (ctx_928de4ebc088) | web-w12 | test tích hợp HTTP, review #2, #10; lỗi ghi LOI-xx |
