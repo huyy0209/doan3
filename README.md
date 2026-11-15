@@ -4,18 +4,18 @@
 
 Ứng dụng web quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm test, học bù, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả, học phí, lịch học, trang tổng quan và phân quyền Quản lý / Gia sư.
 
-> Đây là nhánh **`web`**. Bản app WinForms nằm ở nhánh **`app`**; hai bản dùng chung CSDL `QuanLyGiaSu`.
+> Đây là nhánh **`web`**. Bản app WinForms nằm ở nhánh **`app`**; mỗi bản có CSDL riêng (app: `QuanLyGiaSu`, web: `QuanLyGiaSu_Web`).
 
 ## Bản web
 
-Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với bản app WinForms ở nhánh `app` (không đổi schema, hai bản chạy song song được) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
+Bản web chạy trên trình duyệt, dùng **CSDL riêng `QuanLyGiaSu_Web`** (cùng schema với CSDL `QuanLyGiaSu` của bản app WinForms ở nhánh `app`, hai bản chạy song song không đụng nhau) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
 
 | Thành phần | Công nghệ |
 |---|---|
 | Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
 | ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
 | Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
-| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng mỗi tiến trình `QuanLyGiaSu_Web_Test_p{pid}` (tự RESTORE từ `QuanLyGiaSu_Web`, tự xóa khi xong), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
 
 **Cách chạy** – bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo, hoặc chạy thẳng một lệnh:
 
@@ -23,7 +23,7 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 |---|---|---|---|
 | 1 | `QuanLyGiaSu.bat web` | Build Release, chạy web tại `http://localhost:5080` (cửa sổ riêng) và mở trình duyệt | `scripts/start-web.bat` |
 | 2 | `QuanLyGiaSu.bat stop` | Tắt tiến trình web | `scripts/stop-web.bat` |
-| 3 | `QuanLyGiaSu.bat cai-csdl [.\SQLEXPRESS]` | Tạo / nâng cấp CSDL `QuanLyGiaSu`, hỏi thêm dữ liệu mẫu (cần `sqlcmd`) | `scripts/CaiDatCSDL.bat` |
+| 3 | `QuanLyGiaSu.bat cai-csdl [.\SQLEXPRESS]` | Tạo / nâng cấp CSDL `QuanLyGiaSu_Web`, hỏi thêm dữ liệu mẫu (cần `sqlcmd`) | `scripts/CaiDatCSDL.bat` |
 | 4 | `QuanLyGiaSu.bat sao-luu` | Sao lưu CSDL ra file `.bak` có ngày giờ | `scripts/SaoLuuCSDL.bat` |
 | 5 | `QuanLyGiaSu.bat dong-bo` | Kiểm tra đồng bộ CSDL giữa nhánh `app` và `web` | `scripts/kiem-dong-bo-csdl.ps1` |
 | 6 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư" trên Desktop (icon `assets/QuanLyGiaSu.ico`) | – |
@@ -35,7 +35,7 @@ Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.
 
 ### Kiểm thử giao diện tự động (Playwright)
 
-`DoAnWeb.E2E/` mở Chromium headless và thao tác như người dùng thật trên web Kestrel tự khởi động (cổng trống, chuỗi kết nối `QuanLyGiaSu_Test`, **không đụng `QuanLyGiaSu`**; CSDL test được tạo bằng cách của `DoAnWeb.Tests`). Dữ liệu thử có tiền tố `E2E_` và tự dọn. 5 kịch bản: đăng nhập quản lý → Tổng quan → đăng xuất; ghép lớp (kiểm tra xung đột, lưu, hủy, xóa); gia sư vào thẳng Điểm danh và lưu; học phí thêm / xóa lần đóng; giao diện điện thoại 390×844 (menu ☰, Điểm danh dạng thẻ).
+`DoAnWeb.E2E/` mở Chromium headless và thao tác như người dùng thật trên web Kestrel tự khởi động (cổng trống, CSDL test `QuanLyGiaSu_Web_Test_p{pid}`, **không đụng `QuanLyGiaSu` / `QuanLyGiaSu_Web`**; CSDL test được tạo bằng cách của `DoAnWeb.Tests`). Dữ liệu thử có tiền tố `E2E_` và tự dọn. 5 kịch bản: đăng nhập quản lý → Tổng quan → đăng xuất; ghép lớp (kiểm tra xung đột, lưu, hủy, xóa); gia sư vào thẳng Điểm danh và lưu; học phí thêm / xóa lần đóng; giao diện điện thoại 390×844 (menu ☰, Điểm danh dạng thẻ).
 
 ```
 dotnet build DoAnWeb.E2E
@@ -72,8 +72,8 @@ doan3/ (nhánh web)
 ├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
 ├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
 ├── DoAnWeb/            # ASP.NET Core 8 MVC: Controllers, Views, ViewModels, Services (nghiệp vụ), Data (EF Core), wwwroot
-├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Test
-├── DoAnWeb.E2E/        # Playwright – kiểm thử giao diện trên Chromium headless, web Kestrel thật + QuanLyGiaSu_Test
+├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Web_Test_p{pid}
+├── DoAnWeb.E2E/        # Playwright – kiểm thử giao diện trên Chromium headless, web Kestrel thật + QuanLyGiaSu_Web_Test_p{pid}
 └── docs/               # web-plan.md, web-progress.md, web-review.md, progress/
 ```
 

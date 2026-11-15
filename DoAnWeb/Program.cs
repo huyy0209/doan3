@@ -83,7 +83,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Không kết nối được CSDL QuanLyGiaSu. Kiểm tra SQL Server và chuỗi kết nối trong appsettings.json.");
+        app.Logger.LogError(ex, "Không kết nối được CSDL QuanLyGiaSu_Web. Kiểm tra SQL Server và chuỗi kết nối trong appsettings.json.");
     }
 }
 

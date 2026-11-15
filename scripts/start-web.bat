@@ -2,7 +2,7 @@
 rem ==========================================================================
 rem  Quan ly gia su - BAN WEB: build + chay DoAnWeb, tu mo trinh duyet.
 rem  Can: .NET SDK 8 tro len (may chi co .NET 10 van chay duoc nho RollForward),
-rem       SQL Server "." co CSDL QuanLyGiaSu (chay CaiDatCSDL.bat neu chua co).
+rem       SQL Server "." co CSDL QuanLyGiaSu_Web (chay CaiDatCSDL.bat neu chua co).
 rem  Dung web: scripts\stop-web.bat   (ban WinForms van dung start.bat / stop.bat)
 rem ==========================================================================
 setlocal EnableExtensions

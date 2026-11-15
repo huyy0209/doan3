@@ -1,6 +1,6 @@
 # CI cho nhánh web (đề xuất #9 trong docs/de-xuat.md):
 # mỗi lần push / pull request vào nhánh `web` thì build bản web và chạy toàn bộ test
-# trên SQL Server 2022 chạy trong container Linux, có sẵn CSDL QuanLyGiaSu.
+# trên SQL Server 2022 chạy trong container Linux, có sẵn CSDL QuanLyGiaSu_Web.
 name: Web CI
 
 on:
@@ -78,11 +78,13 @@ jobs:
           docker logs "$ID" | tail -n 50
           exit 1
 
-      - name: Tạo CSDL QuanLyGiaSu (Database/0*.sql + dữ liệu mẫu)
+      - name: Tạo CSDL QuanLyGiaSu_Web (Database/0*.sql + dữ liệu mẫu)
         run: |
           set -euo pipefail
           ID="${{ job.services.sqlserver.id }}"
           docker cp Database/. "$ID":/tmp/Database
+          # Bản web dùng CSDL riêng QuanLyGiaSu_Web: đổi tên CSDL trong script (giữ nguyên file Database/ để đồng bộ với nhánh app)
+          docker exec "$ID" sed -i -E             -e "s/DB_ID\(N'QuanLyGiaSu'\)/DB_ID(N'QuanLyGiaSu_Web')/"             -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/"             -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/"             /tmp/Database/0[1-8]_*.sql /tmp/Database/1[1-6]_*.sql
 
           chay_sql() {
             docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" \
@@ -97,7 +99,7 @@ jobs:
             echo "::endgroup::"
           done
 
-          # Dữ liệu mẫu như khi cài CSDL: fixture BACKUP/RESTORE cả CSDL QuanLyGiaSu
+          # Dữ liệu mẫu như khi cài CSDL: fixture BACKUP/RESTORE cả CSDL QuanLyGiaSu_Web
           # nên dữ liệu mẫu cũng sang CSDL test, giống máy dev.
           for f in 11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 \
                    14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6; do
@@ -179,11 +181,13 @@ jobs:
           docker logs "$ID" | tail -n 50
           exit 1
 
-      - name: Tạo CSDL QuanLyGiaSu (Database/0*.sql + dữ liệu mẫu)
+      - name: Tạo CSDL QuanLyGiaSu_Web (Database/0*.sql + dữ liệu mẫu)
         run: |
           set -euo pipefail
           ID="${{ job.services.sqlserver.id }}"
           docker cp Database/. "$ID":/tmp/Database
+          # Bản web dùng CSDL riêng QuanLyGiaSu_Web: đổi tên CSDL trong script (giữ nguyên file Database/ để đồng bộ với nhánh app)
+          docker exec "$ID" sed -i -E             -e "s/DB_ID\(N'QuanLyGiaSu'\)/DB_ID(N'QuanLyGiaSu_Web')/"             -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/"             -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/"             /tmp/Database/0[1-8]_*.sql /tmp/Database/1[1-6]_*.sql
 
           chay_sql() {
             docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD"               -C -I -b -f 65001 -i "/tmp/Database/$1.sql"
