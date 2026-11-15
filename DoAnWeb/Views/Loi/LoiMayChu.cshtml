@@ -1,0 +1,29 @@
+@model DoAnWeb.Controllers.TrangLoiModel
+@{
+    ViewData["Title"] = "Có lỗi xảy ra";
+    ViewData["PageSub"] = "Hệ thống đã ghi nhận lỗi vào nhật ký.";
+    var daDangNhap = User?.Identity?.IsAuthenticated == true;
+    Layout = daDangNhap ? "_Layout" : "_LayoutTrong";
+}
+<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow")" style="text-align:center">
+    <div class="vo-error-code">500</div>
+    <div class="vo-error-title">@Model.TieuDe</div>
+    <p class="vo-error-text mb-3">@Model.MoTa</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MaTraCuu))
+    {
+        <p class="vo-muted mb-1" style="font-size:.82rem">
+            Mã tra cứu: <code>@Model.MaTraCuu</code>
+        </p>
+        <p class="vo-error-text mb-4" style="font-size:.8rem">
+            Khi báo lỗi, anh/chị đọc mã này để quản lý tìm đúng dòng nhật ký.
+        </p>
+    }
+
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a href="/" class="btn btn-primary">
+            <partial name="_Icon" model='"home"' />Về trang chủ
+        </a>
+        <a href="/TaiKhoan/DangNhap" class="btn btn-outline-secondary">Đăng nhập lại</a>
+    </div>
+</div>

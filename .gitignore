@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # Dữ liệu công cụ cục bộ và bản sao lưu OpenClaw
 .claude-flow/
 *-openclaw-backup.tar.gz
+
+# Nhật ký hệ thống của bản web (Serilog), sinh ra lúc chạy
+DoAnWeb/logs/
