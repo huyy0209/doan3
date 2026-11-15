@@ -52,9 +52,11 @@ builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
 builder.Services.AddScoped<LopHocService>();
+builder.Services.AddScoped<SaoLuuService>();
 // Service phụ do W0 chuyển: HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao
 builder.Services.AddDichVuPhu();
 builder.Services.AddHostedService<CapNhatTrangThaiNen>();
+builder.Services.AddHostedService<TuSaoLuuNen>();
 
 var app = builder.Build();
 

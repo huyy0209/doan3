@@ -15,7 +15,7 @@ public class PhanQuyenHttpTests : HttpTestBase
     public static IEnumerable<object[]> TrangChiQuanLy => new[]
     {
         "/GiaSu", "/GiaSu/Create", "/LopHoc", "/LopHoc/GhepLop", "/MonHoc", "/HocPhi", "/HocPhi/XuatCsv",
-        "/TongQuan", "/CaiDat", "/QuanLyTaiKhoan", "/HocVien/Create"
+        "/TongQuan", "/CaiDat", "/QuanLyTaiKhoan", "/HocVien/Create", "/SaoLuu"
     }.Select(u => new object[] { u });
 
     [Theory]
@@ -133,6 +133,19 @@ public class PhanQuyenHttpTests : HttpTestBase
     {
         var t = await Khach().Get(url);
         Assert.True(t.VeDangNhap, $"GET {url} chưa đăng nhập phải về trang đăng nhập, nhưng được {(int)t.Status} {t.Location}");
+    }
+
+    [Fact]
+    public async Task Gia_su_bi_chan_trang_sao_luu_va_quan_ly_xem_duoc()
+    {
+        var gs = await DangNhapGS();
+        Assert.True((await gs.Get("/SaoLuu")).BiChan);
+
+        var ql = await DangNhapQL();
+        var trang = await ql.Get("/SaoLuu");
+        Assert.Equal(HttpStatusCode.OK, trang.Status);
+        Assert.Contains("Sao lưu ngay", trang.Chu);
+        Assert.Contains("Không khôi phục từ trang web", trang.Chu);
     }
 
     [Fact]
