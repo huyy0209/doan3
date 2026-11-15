@@ -52,7 +52,12 @@ namespace DoAnWeb.Controllers
         {
             if (ma == 403) return KhongCoQuyen();
             if (ma >= 500) return LoiMayChu();
-            return KhongTimThay();
+            if (ma == 404) return KhongTimThay();
+            // Giữ đúng mã gốc (400, 405…) – trước đây mọi mã khác đều bị đổi thành 404
+            if (ma == 400)
+                return DungTrang(400, "Yêu cầu không hợp lệ",
+                    "Biểu mẫu đã hết hạn hoặc không hợp lệ. Hãy tải lại trang rồi thử lại.");
+            return DungTrang(ma, $"Lỗi {ma}", "Không xử lý được yêu cầu này.");
         }
 
         private IActionResult DungTrang(int ma, string tieuDe, string moTa)
