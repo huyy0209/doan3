@@ -43,7 +43,8 @@ namespace DoAnWeb.Controllers
 
         /// <summary>Danh sách lớp, tìm không dấu và lọc trạng thái / ca / môn / gia sư.</summary>
         [HttpGet]
-        public IActionResult Index(string q, string trangThai, string ca, string mon, int? maGS, int? chon)
+        public IActionResult Index(string q, string trangThai, string ca, string mon, int? maGS, int? chon,
+            int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
         {
             var tatCa = _lopHoc.GetDanhSachLop();
             var vm = new LopHocIndexVM
@@ -71,10 +72,41 @@ namespace DoAnWeb.Controllers
                 ds = ds.Where(l => string.Equals(l.MonHoc, vm.MonHoc, StringComparison.OrdinalIgnoreCase));
             if (vm.MaGS.HasValue) ds = ds.Where(l => l.MaGS == vm.MaGS.Value);
 
-            vm.DanhSach = ds
+            var danhSach = ds
                 .Where(l => TimKiem.Khop(vm.TuKhoa, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc))
                 .ToList();
-            vm.TongSo = vm.DanhSach.Count;
+            bool giamDan = chieu == "desc";
+            IEnumerable<LopHocDong> sapXepTheo = sapXep switch
+            {
+                "tenLop" => (giamDan ? danhSach.OrderByDescending(l => l.TenLop) : danhSach.OrderBy(l => l.TenLop)).ThenBy(l => l.MaLop),
+                "hocVien" => (giamDan ? danhSach.OrderByDescending(l => l.HocVien) : danhSach.OrderBy(l => l.HocVien)).ThenBy(l => l.MaLop),
+                "giaSu" => (giamDan ? danhSach.OrderByDescending(l => l.GiaSu) : danhSach.OrderBy(l => l.GiaSu)).ThenBy(l => l.MaLop),
+                "monHoc" => (giamDan ? danhSach.OrderByDescending(l => l.MonHoc) : danhSach.OrderBy(l => l.MonHoc)).ThenBy(l => l.MaLop),
+                "loaiMon" => (giamDan ? danhSach.OrderByDescending(l => l.LoaiMon) : danhSach.OrderBy(l => l.LoaiMon)).ThenBy(l => l.MaLop),
+                "caHoc" => (giamDan ? danhSach.OrderByDescending(l => l.CaHoc) : danhSach.OrderBy(l => l.CaHoc)).ThenBy(l => l.MaLop),
+                "thuHoc" => (giamDan ? danhSach.OrderByDescending(l => l.ThuHoc) : danhSach.OrderBy(l => l.ThuHoc)).ThenBy(l => l.MaLop),
+                "soBuoi" => (giamDan ? danhSach.OrderByDescending(l => l.SoBuoi) : danhSach.OrderBy(l => l.SoBuoi)).ThenBy(l => l.MaLop),
+                "batDau" => (giamDan ? danhSach.OrderByDescending(l => l.BatDau) : danhSach.OrderBy(l => l.BatDau)).ThenBy(l => l.MaLop),
+                "ketThuc" => (giamDan ? danhSach.OrderByDescending(l => l.KetThuc) : danhSach.OrderBy(l => l.KetThuc)).ThenBy(l => l.MaLop),
+                "trangThaiLop" => (giamDan ? danhSach.OrderByDescending(l => l.TrangThai) : danhSach.OrderBy(l => l.TrangThai)).ThenBy(l => l.MaLop),
+                "hocPhi" => (giamDan ? danhSach.OrderByDescending(l => l.HocPhi) : danhSach.OrderBy(l => l.HocPhi)).ThenBy(l => l.MaLop),
+                "danhGia" => (giamDan ? danhSach.OrderByDescending(l => l.DanhGia) : danhSach.OrderBy(l => l.DanhGia)).ThenBy(l => l.MaLop),
+                "diemTB" => (giamDan ? danhSach.OrderByDescending(l => l.DiemTB) : danhSach.OrderBy(l => l.DiemTB)).ThenBy(l => l.MaLop),
+                _ => danhSach
+            };
+            var ketQuaTrang = PhanTrang.Tao(sapXepTheo, trang, soDong, sapXep, chieu,
+                new Dictionary<string, string>
+                {
+                    ["q"] = q ?? "",
+                    ["trangThai"] = vm.TrangThai ?? "",
+                    ["ca"] = ca ?? "",
+                    ["mon"] = mon ?? "",
+                    ["maGS"] = maGS?.ToString() ?? "",
+                    ["chon"] = chon?.ToString() ?? ""
+                });
+            ViewBag.PhanTrang = ketQuaTrang;
+            vm.DanhSach = ketQuaTrang.Items;
+            vm.TongSo = ketQuaTrang.TongSo;
             return View(vm);
         }
 

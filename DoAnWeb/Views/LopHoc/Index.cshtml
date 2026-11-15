@@ -1,5 +1,6 @@
 @model DoAnWeb.ViewModels.LopHocVM.LopHocIndexVM
 @using DoAnWeb.Common
+@using DoAnWeb.Infrastructure
 @using DoAnWeb.Services.Dto
 @{
     ViewData["Title"] = "Lớp học";
@@ -18,6 +19,9 @@
         if (tt == Constants.LopHocStatus.DaKetThuc) return "vo-tag-neutral";
         return "vo-tag-ink";
     }
+    var phanTrang = (IThongTinTrang)ViewBag.PhanTrang;
+    string SortUrl(string key) => Url.Action("Index", PhanTrang.TaoThamSoSapXep(phanTrang, key));
+    string SortIndicator(string key) => PhanTrang.BieuTuongSapXep(phanTrang, key);
 }
 
 <div id="lop-hoc-page">
@@ -98,19 +102,23 @@
                 <table class="vo-table">
                     <thead>
                         <tr>
-                            <th>Tên lớp</th>
-                            <th>Học viên</th>
-                            <th>Gia sư</th>
-                            <th>Môn</th>
-                            <th>Loại môn</th>
-                            <th>Ca</th>
-                            <th>Thứ học</th>
-                            <th class="vo-cell-number">Số buổi</th>
-                            <th>Bắt đầu</th>
-                            <th>Kết thúc</th>
-                            <th>Trạng thái</th>
-                            <th class="vo-cell-number">Học phí</th>
-                            <th>Đánh giá</th>
+                            <th><a href="@SortUrl("tenLop")">Tên lớp @SortIndicator("tenLop")</a></th>
+                            <th><a href="@SortUrl("hocVien")">Học viên @SortIndicator("hocVien")</a></th>
+                            <th><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
+                            <th><a href="@SortUrl("monHoc")">Môn @SortIndicator("monHoc")</a></th>
+                            <th><a href="@SortUrl("loaiMon")">Loại môn @SortIndicator("loaiMon")</a></th>
+                            <th><a href="@SortUrl("caHoc")">Ca @SortIndicator("caHoc")</a></th>
+                            <th><a href="@SortUrl("thuHoc")">Thứ học @SortIndicator("thuHoc")</a></th>
+                            <th class="vo-cell-number"><a href="@SortUrl("soBuoi")">Số buổi @SortIndicator("soBuoi")</a></th>
+                            <th><a href="@SortUrl("batDau")">Bắt đầu @SortIndicator("batDau")</a></th>
+                            <th><a href="@SortUrl("ketThuc")">Kết thúc @SortIndicator("ketThuc")</a></th>
+                            <th><a href="@SortUrl("trangThaiLop")">Trạng thái @SortIndicator("trangThaiLop")</a></th>
+                            <th class="vo-cell-number"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
+                            <th>
+                                <a href="@SortUrl("danhGia")">Đánh giá @SortIndicator("danhGia")</a>
+                                <span>/</span>
+                                <a href="@SortUrl("diemTB")">TB @SortIndicator("diemTB")</a>
+                            </th>
                             <th class="vo-cell-actions">Thao tác</th>
                         </tr>
                     </thead>
@@ -156,5 +164,6 @@
                 </table>
             </div>
         }
+        <partial name="_PhanTrang" model="phanTrang" />
     </div>
 </div>
