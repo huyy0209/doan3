@@ -1,5 +1,7 @@
 # Hệ thống Quản lý Gia sư – Bản web
 
+[![Web CI](https://github.com/huyy0209/doan3/actions/workflows/web-ci.yml/badge.svg?branch=web)](https://github.com/huyy0209/doan3/actions/workflows/web-ci.yml)
+
 Ứng dụng web quản lý **gia sư, học viên và ghép lớp theo ca + thứ học** cho trung tâm gia sư: ghép lớp không trùng lịch, sửa / gia hạn lớp, điểm danh + điểm test, học bù, đánh giá môn chính theo xếp loại và môn năng khiếu theo cấp độ, phiếu báo kết quả, học phí, lịch học, trang tổng quan và phân quyền Quản lý / Gia sư.
 
 > Đây là nhánh **`web`**. Bản app WinForms nằm ở nhánh **`app`**; hai bản dùng chung CSDL `QuanLyGiaSu`.
