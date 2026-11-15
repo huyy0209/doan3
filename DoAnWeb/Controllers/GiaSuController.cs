@@ -1,5 +1,6 @@
 using DoAnWeb.Common;
 using DoAnWeb.Data;
+using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.ViewModels.GiaSuVM;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,8 @@ public class GiaSuController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index(string tuKhoa, string mon, string ca, string trangThai)
+    public IActionResult Index(string tuKhoa, string mon, string ca, string trangThai,
+        int trang = 1, int soDong = PhanTrang.SoDongMacDinh, string sapXep = null, string chieu = null)
     {
         var ds = _giaSu.GetDanhSach(tuKhoa);
         var danhSachMon = _db.MonHocs.AsNoTracking().Where(m => !m.NgungDay).Select(m => m.TenMon).ToList()
@@ -41,15 +43,36 @@ public class GiaSuController : Controller
                 ? g.GiaSu.TrangThai == Constants.GiaSuStatus.Ban || g.GiaSu.TrangThai == Constants.GiaSuStatus.DangDay
                 : (g.GiaSu.TrangThai ?? Constants.GiaSuStatus.Ranh) == trangThai).ToList();
 
+        IEnumerable<GiaSuDong> danhSach = ds;
+        bool giamDan = chieu == "desc";
+        danhSach = sapXep switch
+        {
+            "hoTen" => (giamDan ? danhSach.OrderByDescending(g => g.GiaSu.HoTen) : danhSach.OrderBy(g => g.GiaSu.HoTen)).ThenBy(g => g.GiaSu.MaGS),
+            "sdt" => (giamDan ? danhSach.OrderByDescending(g => g.GiaSu.SDT) : danhSach.OrderBy(g => g.GiaSu.SDT)).ThenBy(g => g.GiaSu.MaGS),
+            "chuyenMon" => (giamDan ? danhSach.OrderByDescending(g => g.GiaSu.ChuyenMon) : danhSach.OrderBy(g => g.GiaSu.ChuyenMon)).ThenBy(g => g.GiaSu.MaGS),
+            "ca" => (giamDan ? danhSach.OrderByDescending(g => g.GiaSu.CaNhanDay) : danhSach.OrderBy(g => g.GiaSu.CaNhanDay)).ThenBy(g => g.GiaSu.MaGS),
+            "soLop" => (giamDan ? danhSach.OrderByDescending(g => g.SoLop) : danhSach.OrderBy(g => g.SoLop)).ThenBy(g => g.GiaSu.MaGS),
+            "trangThai" => (giamDan ? danhSach.OrderByDescending(g => g.GiaSu.TrangThai) : danhSach.OrderBy(g => g.GiaSu.TrangThai)).ThenBy(g => g.GiaSu.MaGS),
+            _ => danhSach
+        };
+        var ketQuaTrang = PhanTrang.Tao(danhSach, trang, soDong, sapXep, chieu,
+            new Dictionary<string, string>
+            {
+                ["tuKhoa"] = tuKhoa ?? "",
+                ["mon"] = mon ?? "",
+                ["ca"] = ca ?? "",
+                ["trangThai"] = trangThai ?? ""
+            });
+        ViewBag.PhanTrang = ketQuaTrang;
         return View(new GiaSuIndexVM
         {
             TuKhoa = tuKhoa,
             Mon = mon,
             Ca = ca,
             TrangThai = trangThai,
-            TongSo = ds.Count,
+            TongSo = ketQuaTrang.TongSo,
             DanhSachMon = danhSachMon,
-            GiaSus = ds.Select(g => new GiaSuListItemVM { GiaSu = g.GiaSu, SoLop = g.SoLop }).ToList()
+            GiaSus = ketQuaTrang.Items.Select(g => new GiaSuListItemVM { GiaSu = g.GiaSu, SoLop = g.SoLop }).ToList()
         });
     }
 

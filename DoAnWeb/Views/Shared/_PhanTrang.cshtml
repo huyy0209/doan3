@@ -1,0 +1,32 @@
+@model DoAnWeb.Infrastructure.IThongTinTrang
+@{
+    var thamSo = new Microsoft.AspNetCore.Routing.RouteValueDictionary(Model.ThamSo);
+    string UrlTrang(int trang, int? soDong = null)
+    {
+        thamSo["trang"] = trang;
+        thamSo["soDong"] = soDong ?? Model.SoDong;
+        return Url.Action("Index", thamSo);
+    }
+    int dauTrang = Math.Max(1, Model.Trang - 2);
+    int cuoiTrang = Math.Min(Model.SoTrang, Model.Trang + 2);
+}
+<nav class="vo-pager" aria-label="Phân trang danh sách">
+    <span class="vo-pager-count">Hiện @Model.TuDong–@Model.DenDong / @Model.TongSo</span>
+    <div class="vo-pager-pages">
+        <a href="@UrlTrang(1)" aria-label="Trang đầu" aria-disabled="@(Model.Trang == 1)">«</a>
+        <a href="@UrlTrang(Math.Max(1, Model.Trang - 1))" aria-label="Trang trước" aria-disabled="@(Model.Trang == 1)">‹</a>
+        @for (int i = dauTrang; i <= cuoiTrang; i++)
+        {
+            <a href="@UrlTrang(i)" aria-current="@(i == Model.Trang ? "page" : null)">@i</a>
+        }
+        <a href="@UrlTrang(Math.Min(Model.SoTrang, Model.Trang + 1))" aria-label="Trang sau" aria-disabled="@(Model.Trang == Model.SoTrang)">›</a>
+        <a href="@UrlTrang(Model.SoTrang)" aria-label="Trang cuối" aria-disabled="@(Model.Trang == Model.SoTrang)">»</a>
+    </div>
+    <div class="vo-pager-size" aria-label="Số dòng mỗi trang">
+        @foreach (int soDong in new[] { 20, 50, 100 })
+        {
+            <a href="@UrlTrang(1, soDong)" aria-current="@(soDong == Model.SoDong ? "true" : null)">@soDong</a>
+        }
+        <span>dòng</span>
+    </div>
+</nav>
