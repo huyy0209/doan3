@@ -15,6 +15,8 @@ namespace DoAnWeb.Services
             s.AddScoped<CaiDatService>();
             s.AddScoped<ThongKeService>();
             s.AddScoped<BaoCaoService>();
+            // Xuất Excel .xlsx (đề xuất #4) – không giữ trạng thái giữa các lần gọi
+            s.AddScoped<XuatExcelService>();
             return s;
         }
     }

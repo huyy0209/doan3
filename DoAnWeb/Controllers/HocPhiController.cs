@@ -18,11 +18,13 @@ namespace DoAnWeb.Controllers
         private const string CanThu = "Cần thu (còn nợ + chưa đóng)";
         private readonly HocPhiService _hocPhi;
         private readonly BaoCaoService _baoCao;
+        private readonly XuatExcelService _excel;
 
-        public HocPhiController(HocPhiService hocPhi, BaoCaoService baoCao)
+        public HocPhiController(HocPhiService hocPhi, BaoCaoService baoCao, XuatExcelService excel)
         {
             _hocPhi = hocPhi;
             _baoCao = baoCao;
+            _excel = excel;
         }
 
         [HttpGet]
@@ -96,6 +98,16 @@ namespace DoAnWeb.Controllers
                 c.HocPhi.ToString("0"), c.DaDong.ToString("0"), c.ConNo.ToString("0"), c.TinhTrang
             }));
             return File(_baoCao.XuatCsv(rows), "text/csv", $"CongNo_{DateTime.Now:yyyyMMdd}.csv");
+        }
+
+        /// <summary>Xuất công nợ học phí ra Excel (.xlsx) theo đúng bộ lọc của trang.</summary>
+        [HttpGet]
+        public IActionResult XuatExcel(string tuKhoa, string tinhTrang)
+        {
+            var ds = LocCongNo(_hocPhi.GetCongNo(), tuKhoa, tinhTrang);
+            return File(_excel.CongNo(ds),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"CongNo_{DateTime.Now:yyyyMMdd}.xlsx");
         }
 
         private HocPhiIndexViewModel TaoModel(int? maLop, string tuKhoa, string tinhTrang, HocPhiThanhToanViewModel input,

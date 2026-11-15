@@ -25,9 +25,14 @@
         <section class="vo-card w6-panel">
             <div class="w6-panel-heading">
                 <div><h2>Công nợ theo lớp</h2><span>@phanTrang.TongSo lớp phù hợp</span></div>
-                <a class="btn btn-outline-ink" asp-action="XuatCsv" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">
-                    <partial name="_Icon" model='"download"' /> Xuất CSV
-                </a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-ink" asp-action="XuatExcel" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">
+                        <partial name="_Icon" model='"download"' /> Xuất Excel
+                    </a>
+                    <a class="btn btn-outline-ink" asp-action="XuatCsv" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">
+                        <partial name="_Icon" model='"download"' /> Xuất CSV
+                    </a>
+                </div>
             </div>
             <form method="get" class="vo-toolbar w6-filter-form">
                 <input type="search" name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm lớp, học viên, SĐT, môn, gia sư..." />
