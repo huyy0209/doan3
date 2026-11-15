@@ -64,6 +64,14 @@ Chính sách model (người dùng chốt 2026-11-15): được dùng worker Cla
 - `app`: xong, đã push (03ba338) – worktree `../ban-app`. = master + QuanLyGiaSu.bat (chỉ mục app) + scripts/ + assets/ icon, README cập nhật.
 - `web`: chờ W10 merge vào nhánh này rồi tạo từ đây, bỏ DoAnWD/ + script app, menu chỉ mục web.
 
+## Đợt 3 – hoàn thiện trên nhánh `web` (từ 15/11/2026, theo dõi tại đây; nhánh huyy0209/cập-nhật-lên-web dừng cập nhật)
+| Task | Trạng thái | Agent | Worktree | Nội dung |
+|---|---|---|---|---|
+| W11 | đang chạy | copilot (ctx_da1aba019e27) | web-w11 | review #5–#9 |
+| W12 | đang chạy | claude-sonnet-5-5 (ctx_928de4ebc088) | web-w12 | test tích hợp HTTP, review #2, #10; lỗi ghi LOI-xx |
+
+Đề xuất tiếp theo: `docs/de-xuat.md` (chờ người dùng chọn). Mỗi giai đoạn xong → merge vào `web` → build + test → push.
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
