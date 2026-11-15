@@ -17,13 +17,16 @@ namespace DoAnWeb.Controllers
         private readonly HocTapService _hocTap;
         private readonly HocVienService _hocVien;
         private readonly BaoCaoService _baoCao;
+        private readonly XuatExcelService _excel;
         private readonly INguoiDungHienTai _nguoiDung;
 
-        public HocTapController(HocTapService hocTap, HocVienService hocVien, BaoCaoService baoCao, INguoiDungHienTai nguoiDung)
+        public HocTapController(HocTapService hocTap, HocVienService hocVien, BaoCaoService baoCao,
+            XuatExcelService excel, INguoiDungHienTai nguoiDung)
         {
             _hocTap = hocTap;
             _hocVien = hocVien;
             _baoCao = baoCao;
+            _excel = excel;
             _nguoiDung = nguoiDung;
         }
 
@@ -171,6 +174,23 @@ namespace DoAnWeb.Controllers
             if (hocVien == null) return NotFound();
             var ketQua = _hocTap.GetKetQuaHocVien(maHV, _nguoiDung.GioiHanGiaSu);
             return Content(_baoCao.TaoPhieuBao(hocVien, ketQua), "text/html; charset=utf-8");
+        }
+
+        /// <summary>
+        /// Xuất kết quả học tập của một học viên ra Excel (.xlsx): mỗi lớp một sheet + sheet tổng hợp.
+        /// Gia sư chỉ xuất được học viên mình dạy (HocVienService.DuocXem), ngoài phạm vi trả 403.
+        /// </summary>
+        [HttpGet("HocTap/XuatExcel/{maHV:int}")]
+        public IActionResult XuatExcel(int maHV)
+        {
+            if (!_hocVien.DuocXem(maHV)) return StatusCode(403);
+            var hocVien = _hocVien.GetById(maHV);
+            if (hocVien == null) return NotFound();
+
+            var ketQua = _hocTap.GetKetQuaHocVien(maHV, _nguoiDung.GioiHanGiaSu);
+            return File(_excel.KetQuaHocTap(hocVien.HoTen, ketQua),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"KetQuaHocTap_{DateTime.Now:yyyyMMdd}.xlsx");
         }
 
         private HocVienKetQuaViewModel TaoKetQua(HocVien hocVien, IEnumerable<string> loi, IEnumerable<BuoiHocSuaDongInput> posted)

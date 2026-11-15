@@ -10,9 +10,14 @@
         <a asp-action="Index" class="small text-decoration-none">&larr; Danh sách học viên</a>
         <h2 class="h4 mt-2 mb-0">@Model.TenHocVien</h2>
     </div>
-    <a class="btn btn-outline-primary" asp-action="PhieuBao" asp-route-maHV="@Model.MaHV" target="_blank">
-        <partial name="_Icon" model='"print"' /> Phiếu báo kết quả
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-primary" asp-action="XuatExcel" asp-route-maHV="@Model.MaHV">
+            <partial name="_Icon" model='"download"' /> Xuất Excel
+        </a>
+        <a class="btn btn-outline-primary" asp-action="PhieuBao" asp-route-maHV="@Model.MaHV" target="_blank">
+            <partial name="_Icon" model='"print"' /> Phiếu báo kết quả
+        </a>
+    </div>
 </div>
 
 @if (Model.Loi.Count > 0)

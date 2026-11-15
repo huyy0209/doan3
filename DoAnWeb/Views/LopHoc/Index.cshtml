@@ -76,16 +76,23 @@
     <div class="vo-section">
         <div class="vo-section-head">
             <h2 class="vo-section-title">Danh sách lớp</h2>
-            <span class="vo-page-sub mb-0">
-                @if (Model.TongSo == 0)
-                {
-                    <span>Không có lớp nào khớp bộ lọc.</span>
-                }
-                else
-                {
-                    <span>@Model.TongSo / @Model.TongSoTatCa lớp</span>
-                }
-            </span>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="vo-page-sub mb-0">
+                    @if (Model.TongSo == 0)
+                    {
+                        <span>Không có lớp nào khớp bộ lọc.</span>
+                    }
+                    else
+                    {
+                        <span>@Model.TongSo / @Model.TongSoTatCa lớp</span>
+                    }
+                </span>
+                <a class="btn btn-outline-ink" asp-action="XuatExcel"
+                   asp-route-q="@Model.TuKhoa" asp-route-trangThai="@Model.TrangThai"
+                   asp-route-ca="@Model.CaHoc" asp-route-mon="@Model.MonHoc" asp-route-maGS="@Model.MaGS">
+                    <partial name="_Icon" model='"download"' /> Xuất Excel
+                </a>
+            </div>
         </div>
 
         @if (Model.DanhSach.Count == 0)
