@@ -23,11 +23,14 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 | 2 | `QuanLyGiaSu.bat stop` | Tắt tiến trình web | `scripts/stop-web.bat` |
 | 3 | `QuanLyGiaSu.bat cai-csdl [.\SQLEXPRESS]` | Tạo / nâng cấp CSDL `QuanLyGiaSu`, hỏi thêm dữ liệu mẫu (cần `sqlcmd`) | `scripts/CaiDatCSDL.bat` |
 | 4 | `QuanLyGiaSu.bat sao-luu` | Sao lưu CSDL ra file `.bak` có ngày giờ | `scripts/SaoLuuCSDL.bat` |
-| 5 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư" trên Desktop (icon `assets/QuanLyGiaSu.ico`) | – |
+| 5 | `QuanLyGiaSu.bat dong-bo` | Kiểm tra đồng bộ CSDL giữa nhánh `app` và `web` | `scripts/kiem-dong-bo-csdl.ps1` |
+| 6 | `QuanLyGiaSu.bat shortcut` | Tạo shortcut "Quản lý gia sư" trên Desktop (icon `assets/QuanLyGiaSu.ico`) | – |
 
 Lần đầu: chọn **3** (cài CSDL) rồi **1**. Cần **.NET SDK 8 trở lên** (`dotnet --version`), SQL Server (2016+) đang chạy với Windows Authentication; không cần Visual Studio.
 
 Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`. Các script được gọi bởi menu nằm trong thư mục `scripts/`.
+
+**Kiểm tra đồng bộ CSDL:** Chạy `QuanLyGiaSu.bat dong-bo` hoặc trực tiếp `powershell -ExecutionPolicy Bypass -File scripts/kiem-dong-bo-csdl.ps1` để kiểm tra Database/ giữa nhánh app và web. Script trả về 0 nếu giống, 1 nếu khác.
 
 **Tài khoản demo** (CSDL hiện tại của nhóm):
 
