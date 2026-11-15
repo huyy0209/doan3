@@ -85,8 +85,131 @@
     background: linear-gradient(transparent, var(--vo-paper, #f2f5f3) 35%);
 }
 
+.dd-table .dd-score {
+    min-width: 105px;
+}
+
+.dd-table .dd-comment {
+    min-width: 190px;
+}
+
 @media (max-width: 767.98px) {
     .hoc-tap-stats .vo-stat {
         flex: 1 1 7rem;
+    }
+
+    .dd-form {
+        padding-bottom: 5rem;
+    }
+
+    .dd-actions {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        justify-content: space-between;
+        padding-top: .65rem;
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: calc(.65rem + env(safe-area-inset-bottom));
+        padding-left: max(10px, env(safe-area-inset-left));
+        border-top: 1px solid var(--vo-rule, #dfe6e2);
+        background: var(--vo-surface, #fff);
+        box-shadow: 0 -4px 14px rgba(20, 45, 37, .1);
+    }
+
+    .dd-actions .btn {
+        min-height: 44px;
+    }
+
+    .dd-table-wrap {
+        overflow: visible;
+    }
+
+    .table-responsive table.dd-table {
+        width: 100%;
+        min-width: 0;
+    }
+
+    table.dd-table,
+    table.dd-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    table.dd-table thead {
+        display: none;
+    }
+
+    table.dd-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 .75rem;
+        margin-bottom: .75rem;
+        padding: .45rem .7rem;
+        border: 1px solid var(--vo-rule, #dfe6e2);
+        border-radius: .65rem;
+        background: var(--vo-surface, #fff);
+    }
+
+    table.dd-table tbody tr.table-info {
+        background: var(--vo-info-soft, #e4eefb);
+    }
+
+    table.dd-table tbody td {
+        min-width: 0;
+        padding: .45rem 0;
+        border: 0;
+        background: transparent;
+        overflow-wrap: anywhere;
+    }
+
+    table.dd-table tbody td.dd-score,
+    table.dd-table tbody td.dd-comment {
+        min-width: 0;
+    }
+
+    table.dd-table tbody td::before {
+        display: block;
+        margin-bottom: .15rem;
+        color: var(--vo-text-muted, #687a73);
+        font-size: .72rem;
+        font-weight: 600;
+        content: attr(data-label);
+    }
+
+    table.dd-table .dd-student,
+    table.dd-table .dd-class,
+    table.dd-table .dd-tutor,
+    table.dd-table .dd-shift,
+    table.dd-table .dd-status {
+        grid-column: 1 / -1;
+    }
+
+    table.dd-table .dd-student {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    table.dd-table .dd-score,
+    table.dd-table .dd-comment {
+        grid-column: span 1;
+    }
+
+    table.dd-table .dd-score input,
+    table.dd-table .dd-comment input {
+        min-width: 0;
+        width: 100%;
+    }
+
+    table.dd-table .dd-status select {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    table.dd-table .dd-promote,
+    table.dd-table .dd-note,
+    table.dd-table .dd-state {
+        display: none;
     }
 }
