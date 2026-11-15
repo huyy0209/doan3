@@ -40,8 +40,8 @@ public sealed class Trang
          (Location.Contains("KhongCoQuyen", StringComparison.OrdinalIgnoreCase) ||
           Location.Contains("/TaiKhoan/DangNhap", StringComparison.OrdinalIgnoreCase)));
 
-    public string ThongBaoThanhCong => Doc?.QuerySelector(".alert-success")?.TextContent.Trim();
-    public string ThongBaoLoi => Doc?.QuerySelector(".alert-danger")?.TextContent.Trim();
+    public string ThongBaoThanhCong => (Doc?.QuerySelector(".alert-success") ?? Doc?.QuerySelector(".vo-toast-success"))?.TextContent.Trim();
+    public string ThongBaoLoi => (Doc?.QuerySelector(".alert-danger") ?? Doc?.QuerySelector(".vo-toast-danger"))?.TextContent.Trim();
 
     /// <summary>Toàn bộ chữ trong trang (để tìm câu lỗi validate/summary)</summary>
     public string Chu => Doc?.Body?.TextContent ?? Html ?? "";
@@ -80,6 +80,9 @@ public sealed class Trang
         return f;
     }
 
+    /// <summary>Giá trị thuộc tính của phần tử đầu tiên khớp selector (null nếu không có)</summary>
+    public string Thuoc(string selector, string attr) => Doc.QuerySelector(selector)?.GetAttribute(attr);
+
     /// <summary>Token antiforgery của form đầu tiên có token trong trang</summary>
     public string Token =>
         (Doc.QuerySelector("input[name=__RequestVerificationToken]") as IHtmlInputElement)?.Value;
@@ -89,7 +92,7 @@ public sealed class Trang
 public sealed class FormDuLieu
 {
     public string Url { get; init; }
-    public string Action { get; init; }
+    public string Action { get; set; }
     public List<KeyValuePair<string, string>> Fields { get; } = new();
 
     /// <summary>Đặt giá trị một field (thay mọi giá trị cũ cùng tên; thêm mới nếu chưa có)</summary>

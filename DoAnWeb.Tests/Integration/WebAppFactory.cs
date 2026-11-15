@@ -31,6 +31,32 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
             {
                 new System.Collections.Generic.KeyValuePair<string, string>("ConnectionStrings:QuanLyGiaSu", TestDb.ConnStr)
             }));
+        // Máy test chạy runtime .NET 10 còn TestServer là bản 8.0: System.Text.Json 10 đòi PipeWriter.UnflushedBytes
+        // mà PipeWriter của TestServer không có → mọi action trả Json() bị 500 (chỉ trong test, không phải lỗi app).
+        // Đệm body vào MemoryStream (StreamPipeWriter có UnflushedBytes) ở middleware ngoài cùng.
+        builder.ConfigureServices(s => s.AddTransient<IStartupFilter, DemBodyStartupFilter>());
+    }
+
+    private sealed class DemBodyStartupFilter : IStartupFilter
+    {
+        public Action<Microsoft.AspNetCore.Builder.IApplicationBuilder> Configure(
+            Action<Microsoft.AspNetCore.Builder.IApplicationBuilder> next) => app =>
+        {
+            Microsoft.AspNetCore.Builder.UseExtensions.Use(app, async (Microsoft.AspNetCore.Http.HttpContext ctx, Microsoft.AspNetCore.Http.RequestDelegate nextMw) =>
+            {
+                var goc = ctx.Response.Body;
+                await using var dem = new System.IO.MemoryStream();
+                ctx.Response.Body = dem;
+                try
+                {
+                    await nextMw(ctx);
+                    dem.Position = 0;
+                    await dem.CopyToAsync(goc);
+                }
+                finally { ctx.Response.Body = goc; }
+            });
+            next(app);
+        };
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
