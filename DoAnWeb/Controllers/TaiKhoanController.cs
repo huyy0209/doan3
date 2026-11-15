@@ -28,9 +28,13 @@ namespace DoAnWeb.Controllers
         public IActionResult DangNhap(string returnUrl = null)
         {
             if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
-            // TK-10: bảng tài khoản rỗng thì tạo admin/admin123 và hiện gợi ý lần đầu
+            // TK-10: tạo mặc định lần đầu hoặc gợi ý nếu admin duy nhất chưa đổi mật khẩu
             bool lanDau = false;
-            try { lanDau = _taiKhoan.DamBaoTaiKhoanMacDinh(); } catch { /* CSDL lỗi: báo khi bấm đăng nhập */ }
+            try
+            {
+                lanDau = _taiKhoan.DamBaoTaiKhoanMacDinh() || _taiKhoan.CoTaiKhoanMacDinh();
+            }
+            catch { /* CSDL lỗi: báo khi bấm đăng nhập */ }
             return View(new DangNhapVM { ReturnUrl = returnUrl, LanDau = lanDau });
         }
 
