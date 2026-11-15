@@ -81,6 +81,8 @@ Kiểm token 15/11 (kiem-tra-token.ps1): copilot, opencode, zai, claude dùng đ
 CI GitHub Actions xanh sau khi sửa lỗi cột `NgayHocTrongTuan` (38b39a6) và trang lỗi (98e4adf). Giai đoạn D XONG: D1 merge e2cd8e4 (399/399), D2 merge (408/408; tải thử 3 file .xlsx qua app OK). Giao lúc đầu (15/11): D1 giao diện điện thoại – copilot (ctx_a77c793196b4, web-d1); D2 xuất Excel – opencode (ctx_d92160ec71cb, web-d2). Kiểm token trước khi giao: copilot/opencode/zai/claude dùng được.
 Dọn: đã gỡ 16 worktree đã merge + sạch (web-w0..w12, web-c1/c2/c4); nhánh git vẫn giữ nên mở lại được. Giữ web-c3 (còn docs/progress/C3.md chưa commit).
 
+Giai đoạn E đã giao (15/11): E6 sao lưu từ web – copilot (ctx_3a06528d30d7, web-e6); E7 dịch vụ Windows + LAN (chỉ script/tài liệu) – opencode (ctx_feb36d57c662, web-e7); E8 Playwright E2E – claude-sonnet-5-5 (ctx_5bff41b422e1, web-e8). Đề xuất #2 (nhật ký thao tác) TẠM GIỮ: cần thêm bảng → trái yêu cầu giữ nguyên schema, chờ người dùng xác nhận.
+
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
 - Copilot hay rớt prompt đầu ("Managed account policy is still loading") → sau khi start phải `worker-read` kiểm, rớt thì `send` lại.
