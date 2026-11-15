@@ -166,6 +166,8 @@ namespace DoAnWeb.Services
         private static string Csv(string s)
         {
             s = s ?? "";
+            if (s.Length > 0 && s[0] is '=' or '+' or '-' or '@' or '\t' or '\r')
+                s = "'" + s;
             if (s.IndexOfAny(new[] { ',', '"', '\n', '\r' }) >= 0)
                 s = "\"" + s.Replace("\"", "\"\"") + "\"";
             return s;
