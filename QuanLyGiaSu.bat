@@ -1,7 +1,7 @@
 @echo off
 rem ==========================================================================
 rem  Quản lý gia sư - BẢN WEB: menu khởi động duy nhất.
-rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|shortcut
+rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|dong-bo|shortcut
 rem  Các script con nằm trong thư mục scripts\
 rem ==========================================================================
 setlocal EnableExtensions
@@ -12,6 +12,7 @@ if /I "%~1"=="web" goto mo_web
 if /I "%~1"=="stop" goto tat_web
 if /I "%~1"=="cai-csdl" goto cai_csdl
 if /I "%~1"=="sao-luu" goto sao_luu
+if /I "%~1"=="dong-bo" goto dong_bo
 if /I "%~1"=="shortcut" goto tao_shortcut
 if /I not "%~1"=="" goto lenh_khong_hop_le
 
@@ -25,13 +26,15 @@ echo  ║  1. Mở bản web (trình duyệt)                             ║
 echo  ║  2. Tắt bản web                                          ║
 echo  ║  3. Cài / nâng cấp CSDL                                  ║
 echo  ║  4. Sao lưu CSDL                                         ║
-echo  ║  5. Tạo shortcut "Quản lý gia sư" ra Desktop             ║
+echo  ║  5. Kiểm đồng bộ CSDL app ↔ web                          ║
+echo  ║  6. Tạo shortcut "Quản lý gia sư" ra Desktop             ║
 echo  ║  0. Thoát                                                ║
 echo  ╚══════════════════════════════════════════════════════════╝
 echo.
-choice /c 123450 /n /m "Chọn chức năng: "
-if errorlevel 6 goto thoat
-if errorlevel 5 goto menu_shortcut
+choice /c 1234560 /n /m "Chọn chức năng: "
+if errorlevel 7 goto thoat
+if errorlevel 6 goto menu_shortcut
+if errorlevel 5 goto menu_dong_bo
 if errorlevel 4 goto menu_sao_luu
 if errorlevel 3 goto menu_cai_csdl
 if errorlevel 2 goto menu_tat_web
@@ -52,6 +55,10 @@ goto menu_cho_tiep
 
 :menu_sao_luu
 call "%~dp0scripts\SaoLuuCSDL.bat"
+goto menu_cho_tiep
+
+:menu_dong_bo
+call :dong_bo
 goto menu_cho_tiep
 
 :menu_shortcut
@@ -87,6 +94,10 @@ if "%~2"=="" (
 )
 exit /b %ERRORLEVEL%
 
+:dong_bo
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\kiem-dong-bo-csdl.ps1"
+exit /b %ERRORLEVEL%
+
 :tao_shortcut
 call :shortcut
 exit /b %ERRORLEVEL%
@@ -102,7 +113,7 @@ exit /b 0
 
 :lenh_khong_hop_le
 echo [X] Lệnh không hợp lệ: %~1
-echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|shortcut
+echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|dong-bo^|shortcut
 exit /b 2
 
 :thoat
