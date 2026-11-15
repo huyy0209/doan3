@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ---------- Chạy như dịch vụ Windows (đề xuất #7); ngoài dịch vụ vẫn chạy console như cũ ----------
+builder.Host.UseWindowsService();
+
 // ---------- Nhật ký hệ thống ra file theo ngày (Serilog, đề xuất #5) ----------
 DoAnWeb.Infrastructure.CauHinhLog.ThemCauHinhLog(builder);
 
