@@ -126,3 +126,93 @@ jobs:
           -c Release --no-restore
           --filter "Can!=SqlServerWindows"
           --logger "console;verbosity=normal"
+
+  # Kiểm thử giao diện tự động bằng Playwright (đề xuất #8, DoAnWeb.E2E).
+  # Job riêng, continue-on-error: lần đầu chạy trên CI chưa chắc ổn định nên không chặn merge;
+  # khi chạy xanh vài lần liên tiếp thì bỏ dòng continue-on-error.
+  e2e:
+    name: E2E giao diện (Playwright + Chromium)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 30
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Ci!QuanLyGiaSu#2026'
+        ports:
+          - 1433:1433
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài .NET SDK 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Chờ SQL Server sẵn sàng
+        run: |
+          set -euo pipefail
+          ID="${{ job.services.sqlserver.id }}"
+
+          if docker exec "$ID" test -x /opt/mssql-tools18/bin/sqlcmd; then
+            SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+          else
+            SQLCMD=/opt/mssql-tools/bin/sqlcmd
+          fi
+          echo "Dùng $SQLCMD trong container"
+
+          for i in $(seq 1 60); do
+            if docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" -C -l 5 -Q "SELECT 1" >/dev/null 2>&1; then
+              echo "SQL Server sẵn sàng sau $(( (i - 1) * 5 )) giây"
+              echo "SQLCMD=$SQLCMD" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "SQL Server không sẵn sàng sau 300 giây"
+          docker logs "$ID" | tail -n 50
+          exit 1
+
+      - name: Tạo CSDL QuanLyGiaSu (Database/0*.sql + dữ liệu mẫu)
+        run: |
+          set -euo pipefail
+          ID="${{ job.services.sqlserver.id }}"
+          docker cp Database/. "$ID":/tmp/Database
+
+          chay_sql() {
+            docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD"               -C -I -b -f 65001 -i "/tmp/Database/$1.sql"
+          }
+
+          for f in 01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4                    05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8; do
+            chay_sql "$f"
+          done
+          for f in 11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3                    14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6; do
+            chay_sql "$f"
+          done
+
+      - name: dotnet build E2E (Release)
+        run: dotnet build DoAnWeb.E2E/DoAnWeb.E2E.csproj -c Release
+
+      - name: Cài Chromium cho Playwright
+        run: pwsh DoAnWeb.E2E/bin/Release/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: dotnet test E2E
+        run: >
+          dotnet test DoAnWeb.E2E/DoAnWeb.E2E.csproj
+          -c Release --no-build
+          --logger "console;verbosity=normal"
+
+      # Test fail thì ảnh chụp trang nằm trong DoAnWeb.E2E/artifacts/ – giữ lại để xem.
+      - name: Lưu ảnh chụp khi E2E fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-anh-chup
+          path: DoAnWeb.E2E/artifacts/
+          if-no-files-found: ignore
