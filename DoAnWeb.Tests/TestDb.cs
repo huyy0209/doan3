@@ -13,12 +13,38 @@ namespace DoAnWeb.Tests;
 /// </summary>
 public static class TestDb
 {
-    /// <summary>Chuỗi kết nối tới CSDL test (không phải QuanLyGiaSu thật).</summary>
-    public const string ConnStr =
-        "Server=.;Database=QuanLyGiaSu_Test;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True";
+    /// <summary>
+    /// Phần chung của chuỗi kết nối (chưa có Database), đọc từ biến môi trường DOANWEB_TEST_SQL.
+    /// Máy dev không đặt biến này thì giữ nguyên "Server=." + Windows Authentication như cũ;
+    /// CI (Linux) đặt biến trỏ tới container SQL Server, ví dụ:
+    ///   Server=localhost,1433;User Id=sa;Password=...;TrustServerCertificate=True
+    /// Database được thêm riêng cho từng kết nối (QuanLyGiaSu_Test / master).
+    /// </summary>
+    private static readonly string ChuoiKetNoiGoc = LayChuoiKetNoiGoc();
 
-    private const string MasterConnStr =
-        "Server=.;Database=master;Trusted_Connection=True;TrustServerCertificate=True";
+    private static string LayChuoiKetNoiGoc()
+    {
+        string tuMoiTruong = Environment.GetEnvironmentVariable("DOANWEB_TEST_SQL");
+        return string.IsNullOrWhiteSpace(tuMoiTruong)
+            ? "Server=.;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+            : tuMoiTruong;
+    }
+
+    private static string VoiDatabase(string tenCsdl)
+    {
+        var builder = new SqlConnectionStringBuilder(ChuoiKetNoiGoc)
+        {
+            InitialCatalog = tenCsdl,
+            TrustServerCertificate = true,
+            MultipleActiveResultSets = true
+        };
+        return builder.ConnectionString;
+    }
+
+    /// <summary>Chuỗi kết nối tới CSDL test (không phải QuanLyGiaSu thật).</summary>
+    public static string ConnStr => VoiDatabase("QuanLyGiaSu_Test");
+
+    private static string MasterConnStr => VoiDatabase("master");
 
     private static readonly object Khoa = new object();
     private static bool _daTao;
@@ -45,11 +71,9 @@ public static class TestDb
 
             if (!tonTai)
             {
-                // Lấy thư mục DATA của SQL Server (nơi service SQL có quyền ghi) từ file .mdf của DB gốc.
-                string dataDir;
-                using (var cmd = new SqlCommand(
-                           "SELECT physical_name FROM sys.master_files WHERE database_id = DB_ID('QuanLyGiaSu') AND type = 0", conn))
-                    dataDir = Path.GetDirectoryName((string)cmd.ExecuteScalar());
+                // Thư mục DATA mặc định của SQL Server, không hard-code đường dẫn Windows:
+                // /var/opt/mssql/data trên Linux (CI) và ...\MSSQL\DATA trên Windows.
+                string dataDir = LayThuMucDuLieuMacDinh(conn);
 
                 string bak = Path.Combine(dataDir, "QuanLyGiaSu_W3Test.bak");
                 string mdf = Path.Combine(dataDir, "QuanLyGiaSu_Test.mdf");
@@ -74,6 +98,25 @@ public static class TestDb
 
             _daTao = true;
         }
+    }
+
+    /// <summary>
+    /// Thư mục DATA mặc định của SQL Server (nơi service SQL có quyền ghi), lấy từ server
+    /// nên chạy được cả trên Windows lẫn Linux: /var/opt/mssql/data hoặc ...\MSSQL\DATA.
+    /// </summary>
+    private static string LayThuMucDuLieuMacDinh(SqlConnection conn)
+    {
+        using (var cmd = new SqlCommand(
+                   "SELECT CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(4000))", conn))
+        {
+            string macDinh = cmd.ExecuteScalar() as string;
+            if (!string.IsNullOrWhiteSpace(macDinh)) return macDinh.TrimEnd('\\', '/');
+        }
+
+        // SQL Server cũ không trả về InstanceDefaultDataPath: lấy thư mục chứa file .mdf của CSDL gốc.
+        using (var cmd = new SqlCommand(
+                   "SELECT physical_name FROM sys.master_files WHERE database_id = DB_ID('QuanLyGiaSu') AND type = 0", conn))
+            return Path.GetDirectoryName((string)cmd.ExecuteScalar());
     }
 
     /// <summary>Xóa mọi dữ liệu test (tiền tố TEST_) khỏi CSDL test, theo đúng thứ tự khóa ngoại.</summary>
