@@ -15,7 +15,7 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 | Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
 | ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
 | Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
-| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
 
 **Cách chạy** – bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo, hoặc chạy thẳng một lệnh:
 
@@ -31,6 +31,18 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 Lần đầu: chọn **3** (cài CSDL) rồi **1**. Cần **.NET SDK 8 trở lên** (`dotnet --version`), SQL Server (2016+) đang chạy với Windows Authentication; không cần Visual Studio.
 
 Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.Tests`. Đổi SQL Server: sửa `ConnectionStrings:QuanLyGiaSu` trong `DoAnWeb/appsettings.json`. Các script được gọi bởi menu nằm trong thư mục `scripts/`.
+
+### Kiểm thử giao diện tự động (Playwright)
+
+`DoAnWeb.E2E/` mở Chromium headless và thao tác như người dùng thật trên web Kestrel tự khởi động (cổng trống, chuỗi kết nối `QuanLyGiaSu_Test`, **không đụng `QuanLyGiaSu`**; CSDL test được tạo bằng cách của `DoAnWeb.Tests`). Dữ liệu thử có tiền tố `E2E_` và tự dọn. 5 kịch bản: đăng nhập quản lý → Tổng quan → đăng xuất; ghép lớp (kiểm tra xung đột, lưu, hủy, xóa); gia sư vào thẳng Điểm danh và lưu; học phí thêm / xóa lần đóng; giao diện điện thoại 390×844 (menu ☰, Điểm danh dạng thẻ).
+
+```
+dotnet build DoAnWeb.E2E
+pwsh DoAnWeb.E2E/bin/Debug/net8.0/playwright.ps1 install chromium   # một lần: tải trình duyệt (không có pwsh thì dùng powershell)
+dotnet test DoAnWeb.E2E
+```
+
+Test fail thì ảnh chụp trang nằm ở `DoAnWeb.E2E/artifacts/` (đã ignore trong git). Cần SQL Server như khi chạy `DoAnWeb.Tests` (biến môi trường `DOANWEB_TEST_SQL` đổi server test, giống bộ test kia). Trên CI bộ E2E là job riêng `e2e` trong `.github/workflows/web-ci.yml`.
 
 Khi triển khai qua HTTPS ngoài localhost, đặt `BaoMat:BatBuocHttps` thành `true` trong `DoAnWeb/appsettings.json` (hoặc cấu hình tương ứng trong môi trường triển khai) để cookie chỉ được gửi qua HTTPS. Mặc định là `false` để `start-web.bat` tiếp tục chạy HTTP tại `http://localhost:5080`.
 
@@ -54,10 +66,11 @@ doan3/ (nhánh web)
 ├── QuanLyGiaSu.bat     # Menu khởi động
 ├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat
 ├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
-├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests
+├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
 ├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
 ├── DoAnWeb/            # ASP.NET Core 8 MVC: Controllers, Views, ViewModels, Services (nghiệp vụ), Data (EF Core), wwwroot
 ├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Test
+├── DoAnWeb.E2E/        # Playwright – kiểm thử giao diện trên Chromium headless, web Kestrel thật + QuanLyGiaSu_Test
 └── docs/               # web-plan.md, web-progress.md, web-review.md, progress/
 ```
 
