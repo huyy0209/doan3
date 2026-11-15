@@ -24,16 +24,18 @@ namespace DoAnWeb.Controllers
         private readonly GiaSuService _giaSu;
         private readonly HocVienService _hocVien;
         private readonly MonHocService _monHoc;
+        private readonly XuatExcelService _excel;
         private readonly Microsoft.Extensions.Logging.ILogger<LopHocController> _logger;
 
         public LopHocController(LopHocService lopHoc, GiaSuService giaSu,
-            HocVienService hocVien, MonHocService monHoc,
+            HocVienService hocVien, MonHocService monHoc, XuatExcelService excel,
             Microsoft.Extensions.Logging.ILogger<LopHocController> logger)
         {
             _lopHoc = lopHoc;
             _giaSu = giaSu;
             _hocVien = hocVien;
             _monHoc = monHoc;
+            _excel = excel;
             _logger = logger;
         }
 
@@ -61,20 +63,7 @@ namespace DoAnWeb.Controllers
                     .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(m => m).ToList()
             };
 
-            IEnumerable<LopHocDong> ds = tatCa;
-            if (vm.TrangThai == "Còn hoạt động")
-                ds = ds.Where(l => Constants.LopHocStatus.LaHoatDong(l.TrangThai));
-            else if (vm.TrangThai != "Tất cả")
-                ds = ds.Where(l => l.TrangThai == vm.TrangThai);
-
-            if (!string.IsNullOrWhiteSpace(vm.CaHoc)) ds = ds.Where(l => l.CaHoc == vm.CaHoc);
-            if (!string.IsNullOrWhiteSpace(vm.MonHoc))
-                ds = ds.Where(l => string.Equals(l.MonHoc, vm.MonHoc, StringComparison.OrdinalIgnoreCase));
-            if (vm.MaGS.HasValue) ds = ds.Where(l => l.MaGS == vm.MaGS.Value);
-
-            var danhSach = ds
-                .Where(l => TimKiem.Khop(vm.TuKhoa, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc))
-                .ToList();
+            var danhSach = LocDanhSach(tatCa, vm.TuKhoa, vm.TrangThai, vm.CaHoc, vm.MonHoc, vm.MaGS);
             bool giamDan = chieu == "desc";
             IEnumerable<LopHocDong> sapXepTheo = sapXep switch
             {
@@ -108,6 +97,37 @@ namespace DoAnWeb.Controllers
             vm.DanhSach = ketQuaTrang.Items;
             vm.TongSo = ketQuaTrang.TongSo;
             return View(vm);
+        }
+
+        /// <summary>Xuất danh sách lớp ra Excel (.xlsx) theo đúng bộ lọc của trang.</summary>
+        [HttpGet]
+        public IActionResult XuatExcel(string q, string trangThai, string ca, string mon, int? maGS)
+        {
+            string loc = string.IsNullOrWhiteSpace(trangThai) ? "Còn hoạt động" : trangThai;
+            var ds = LocDanhSach(_lopHoc.GetDanhSachLop(), q, loc, ca, mon, maGS);
+            return File(_excel.DanhSachLop(ds),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"DanhSachLop_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
+        /// <summary>Lọc danh sách lớp theo trạng thái, ca, môn, gia sư và từ khóa không dấu.</summary>
+        private static List<LopHocDong> LocDanhSach(IEnumerable<LopHocDong> tatCa,
+            string tuKhoa, string trangThai, string caHoc, string monHoc, int? maGS)
+        {
+            IEnumerable<LopHocDong> ds = tatCa;
+            if (trangThai == "Còn hoạt động")
+                ds = ds.Where(l => Constants.LopHocStatus.LaHoatDong(l.TrangThai));
+            else if (trangThai != "Tất cả")
+                ds = ds.Where(l => l.TrangThai == trangThai);
+
+            if (!string.IsNullOrWhiteSpace(caHoc)) ds = ds.Where(l => l.CaHoc == caHoc);
+            if (!string.IsNullOrWhiteSpace(monHoc))
+                ds = ds.Where(l => string.Equals(l.MonHoc, monHoc, StringComparison.OrdinalIgnoreCase));
+            if (maGS.HasValue) ds = ds.Where(l => l.MaGS == maGS.Value);
+
+            return ds
+                .Where(l => TimKiem.Khop(tuKhoa, l.TenLop, l.HocVien, l.GiaSu, l.MonHoc))
+                .ToList();
         }
 
         /// <summary>Chi tiết một lớp: thông tin, đánh giá / tiến trình cấp độ, nút sửa – hủy – xóa.</summary>
