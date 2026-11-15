@@ -31,8 +31,8 @@ public sealed class MayChuWeb : IDisposable
     {
         // Chốt an toàn như WebAppFactory: chỉ chấp nhận CSDL QuanLyGiaSu_Test.
         string ten = new SqlConnectionStringBuilder(chuoiKetNoi).InitialCatalog;
-        if (!string.Equals(ten, "QuanLyGiaSu_Test", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"E2E trỏ nhầm CSDL '{ten}' – chỉ được dùng QuanLyGiaSu_Test.");
+        if (!DoAnWeb.Tests.TestDb.LaCsdlTest(ten))
+            throw new InvalidOperationException($"E2E trỏ nhầm CSDL '{ten}' – chỉ được dùng CSDL test (QuanLyGiaSu_Test*).");
 
         string dll = TimDoAnWebDll(out string thuMucWeb);
         int cong = LayCongTrong();

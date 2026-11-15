@@ -15,7 +15,7 @@ Bản web chạy trên trình duyệt, dùng **chung CSDL `QuanLyGiaSu`** với 
 | Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
 | ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
 | Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
-| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng `QuanLyGiaSu_Test` (tự BACKUP/RESTORE từ `QuanLyGiaSu`), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng mỗi tiến trình `QuanLyGiaSu_Test_p{pid}` (tự RESTORE từ bản backup của `QuanLyGiaSu`, tự xóa khi xong), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
 
 **Cách chạy** – bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo, hoặc chạy thẳng một lệnh:
 
