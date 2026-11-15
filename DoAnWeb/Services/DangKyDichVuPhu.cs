@@ -7,9 +7,6 @@ namespace DoAnWeb.Services
     {
         public static IServiceCollection AddDichVuPhu(this IServiceCollection s)
         {
-            s.AddMemoryCache();
-            s.AddHttpContextAccessor();
-            s.AddScoped<INguoiDungHienTai, NguoiDungHttp>();
             s.AddScoped<HocTapService>();
             s.AddScoped<HocPhiService>();
             s.AddScoped<MonHocService>();
