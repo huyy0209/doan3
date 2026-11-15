@@ -1,10 +1,14 @@
 @model DoAnWeb.ViewModels.HocPhi.HocPhiIndexViewModel
 @using System.Globalization
+@using DoAnWeb.Infrastructure
 @using DoAnWeb.Services
 @{
     ViewData["Title"] = "Học phí";
     ViewData["PageSub"] = "Công nợ theo lớp và lịch sử các lần đóng học phí.";
     var vi = CultureInfo.GetCultureInfo("vi-VN");
+    var phanTrang = (IThongTinTrang)ViewBag.PhanTrang;
+    string SortUrl(string key) => Url.Action("Index", PhanTrang.TaoThamSoSapXep(phanTrang, key));
+    string SortIndicator(string key) => PhanTrang.BieuTuongSapXep(phanTrang, key);
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
@@ -20,7 +24,7 @@
     <div class="w6-hocphi-grid">
         <section class="vo-card w6-panel">
             <div class="w6-panel-heading">
-                <div><h2>Công nợ theo lớp</h2><span>@Model.DanhSach.Count lớp phù hợp</span></div>
+                <div><h2>Công nợ theo lớp</h2><span>@phanTrang.TongSo lớp phù hợp</span></div>
                 <a class="btn btn-outline-ink" asp-action="XuatCsv" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">
                     <partial name="_Icon" model='"download"' /> Xuất CSV
                 </a>
@@ -48,7 +52,15 @@
                 <div class="table-responsive w6-table-scroll">
                     <table class="table vo-table align-middle">
                         <thead>
-                            <tr><th>Lớp</th><th>Liên hệ</th><th>Gia sư</th><th class="text-end">Học phí</th><th class="text-end">Đã đóng</th><th class="text-end">Còn nợ</th><th>Tình trạng</th></tr>
+                            <tr>
+                                <th><a href="@SortUrl("tenLop")">Lớp @SortIndicator("tenLop")</a></th>
+                                <th><a href="@SortUrl("sdt")">Liên hệ @SortIndicator("sdt")</a></th>
+                                <th><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
+                                <th class="text-end"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
+                                <th class="text-end"><a href="@SortUrl("daDong")">Đã đóng @SortIndicator("daDong")</a></th>
+                                <th class="text-end"><a href="@SortUrl("conNo")">Còn nợ @SortIndicator("conNo")</a></th>
+                                <th><a href="@SortUrl("tinhTrang")">Tình trạng @SortIndicator("tinhTrang")</a></th>
+                            </tr>
                         </thead>
                         <tbody>
                         @foreach (var row in Model.DanhSach)
@@ -59,7 +71,7 @@
                                 row.TinhTrang == HocPhiService.ChuaDong ? "danger" : "neutral";
                             <tr class="@(selected ? "is-selected" : "")">
                                 <td>
-                                    <a class="w6-class-link" asp-action="Index" asp-route-maLop="@row.MaLop" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang">@row.TenLop</a>
+                                    <a class="w6-class-link" asp-action="Index" asp-route-maLop="@row.MaLop" asp-route-tuKhoa="@Model.TuKhoa" asp-route-tinhTrang="@Model.TinhTrang" asp-route-trang="@phanTrang.Trang" asp-route-soDong="@phanTrang.SoDong" asp-route-sapXep="@phanTrang.SapXep" asp-route-chieu="@phanTrang.Chieu">@row.TenLop</a>
                                     <small class="d-block text-muted">@row.HocVien · @row.MonHoc</small>
                                 </td>
                                 <td>@row.SDTLienHe</td>
@@ -74,6 +86,7 @@
                     </table>
                 </div>
             }
+            <partial name="_PhanTrang" model="phanTrang" />
         </section>
 
         <section class="vo-card w6-panel w6-payment-panel">
@@ -94,6 +107,10 @@
                     <input type="hidden" asp-for="ThanhToan.MaLop" />
                     <input type="hidden" asp-for="ThanhToan.TuKhoa" />
                     <input type="hidden" asp-for="ThanhToan.TinhTrang" />
+                    <input type="hidden" name="trang" value="@phanTrang.Trang" />
+                    <input type="hidden" name="soDong" value="@phanTrang.SoDong" />
+                    <input type="hidden" name="sapXep" value="@phanTrang.SapXep" />
+                    <input type="hidden" name="chieu" value="@phanTrang.Chieu" />
                     <div asp-validation-summary="All" class="text-danger"></div>
                     <div>
                         <label asp-for="ThanhToan.SoTien" class="form-label">Số tiền (đ)</label>
@@ -170,6 +187,10 @@
                     <input type="hidden" name="maLop" value="@Model.LopChon.MaLop" />
                     <input type="hidden" name="tuKhoa" value="@Model.TuKhoa" />
                     <input type="hidden" name="tinhTrang" value="@Model.TinhTrang" />
+                    <input type="hidden" name="trang" value="@phanTrang.Trang" />
+                    <input type="hidden" name="soDong" value="@phanTrang.SoDong" />
+                    <input type="hidden" name="sapXep" value="@phanTrang.SapXep" />
+                    <input type="hidden" name="chieu" value="@phanTrang.Chieu" />
                     <div class="modal-header"><h2 class="modal-title fs-5">Xóa lần đóng học phí?</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
                     <div class="modal-body">Xóa khoản <strong id="w6-xoa-thanh-toan-text"></strong>? Thao tác này không thể hoàn tác.</div>
                     <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-danger">Xóa lần đóng</button></div>
