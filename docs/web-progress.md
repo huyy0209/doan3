@@ -78,7 +78,8 @@ Kiểm token 15/11 (kiem-tra-token.ps1): copilot, opencode, zai, claude dùng đ
 
 Đề xuất tiếp theo: `docs/de-xuat.md` (chờ người dùng chọn). Mỗi giai đoạn xong → merge vào `web` → build + test → push.
 
-CI GitHub Actions xanh sau khi sửa lỗi cột `NgayHocTrongTuan` (38b39a6) và trang lỗi (98e4adf). Giai đoạn D (điện thoại, Excel) chờ người dùng đồng ý.
+CI GitHub Actions xanh sau khi sửa lỗi cột `NgayHocTrongTuan` (38b39a6) và trang lỗi (98e4adf). Giai đoạn D đã giao (15/11): D1 giao diện điện thoại – copilot (ctx_a77c793196b4, web-d1); D2 xuất Excel – opencode (ctx_d92160ec71cb, web-d2). Kiểm token trước khi giao: copilot/opencode/zai/claude dùng được.
+Dọn: đã gỡ 16 worktree đã merge + sạch (web-w0..w12, web-c1/c2/c4); nhánh git vẫn giữ nên mở lại được. Giữ web-c3 (còn docs/progress/C3.md chưa commit).
 
 ## Lưu ý vận hành
 - Run Orca: `run_b78b76a4f111`. Spec từng task: scratchpad coordinator (W0.md, W7.md, W1..W3-full.md); nội dung tóm tắt ở web-plan mục 6.
