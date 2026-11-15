@@ -3,6 +3,9 @@
     ViewData["Title"] = "Điểm danh";
     ViewData["PageSub"] = "Điểm danh và nhập điểm test theo ngày, ca học.";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/hoctap.css" asp-append-version="true" />
+}
 
 <section class="vo-section">
     <div class="vo-toolbar">
@@ -52,7 +55,7 @@
     </div>
 }
 
-<form asp-action="Luu" method="post">
+<form asp-action="Luu" method="post" class="dd-form">
     @Html.AntiForgeryToken()
     <input type="hidden" name="Ngay" value="@Model.Ngay.ToString("yyyy-MM-dd")" />
     <input type="hidden" name="Ca" value="@Model.Ca" />
@@ -67,7 +70,7 @@
                 <h2 class="h5 mb-1">Học viên trong ca</h2>
                 <div class="text-muted small">Gồm lớp theo lịch và học viên đến học bù. Bỏ trống điểm nếu không kiểm tra.</div>
             </div>
-            <div class="d-flex gap-2">
+            <div class="dd-actions d-flex gap-2">
                 <button type="button" class="btn btn-outline-secondary" id="diemDanhTatCa">Tất cả có mặt</button>
                 <button type="submit" class="btn btn-primary">Lưu tất cả</button>
             </div>
@@ -78,8 +81,8 @@
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table vo-table align-middle">
+            <div class="table-responsive dd-table-wrap">
+                <table class="table vo-table dd-table align-middle">
                     <thead>
                         <tr>
                             <th>Học viên</th>
@@ -99,7 +102,7 @@
                     {
                         var row = Model.Rows[i];
                         <tr class="@(row.LaHocBu ? "table-info" : "")" data-da-xep-bu="@row.DaXepBu.ToString().ToLowerInvariant()">
-                            <td>
+                            <td class="dd-student" data-label="Học viên">
                                 <input type="hidden" name="Rows[@i].MaLop" value="@row.MaLop" />
                                 <input type="hidden" name="Rows[@i].MaBuoi" value="@row.MaBuoi" />
                                 <input type="hidden" name="Rows[@i].MaHV" value="@row.MaHV" />
@@ -116,32 +119,33 @@
                                 <input type="hidden" name="Rows[@i].DaXepBu" value="@row.DaXepBu" />
                                 <a asp-controller="HocTap" asp-action="KetQua" asp-route-maHV="@row.MaHV" class="fw-semibold">@row.HocVien</a>
                             </td>
-                            <td>
+                            <td class="dd-class" data-label="Lớp / môn">
                                 <div>@row.TenLop</div>
                                 <small class="text-muted">@row.MonHoc</small>
                             </td>
-                            @if (Model.LaQuanLy) { <td>@row.GiaSu</td> }
-                            <td>@Constants.CaHoc.TenNgan(row.CaHoc)</td>
-                            <td>
-                                <select name="Rows[@i].DiemDanh" class="form-select form-select-sm">
+                            @if (Model.LaQuanLy) { <td class="dd-tutor" data-label="Gia sư">@row.GiaSu</td> }
+                            <td class="dd-shift" data-label="Ca">@Constants.CaHoc.TenNgan(row.CaHoc)</td>
+                            <td class="dd-status" data-label="Điểm danh">
+                                <select name="Rows[@i].DiemDanh" class="form-select form-select-sm" aria-label="Điểm danh @row.HocVien">
                                     @foreach (var trangThai in Constants.DiemDanh.TatCa)
                                     {
                                         <option value="@trangThai" selected="@(row.DiemDanh == trangThai)">@trangThai</option>
                                     }
                                 </select>
                             </td>
-                            <td style="min-width:105px">
+                            <td class="dd-score" data-label="Điểm test">
                                 <input name="Rows[@i].DiemText" value="@row.DiemText" class="form-control form-control-sm"
-                                       inputmode="decimal" placeholder="0–10" />
+                                       inputmode="decimal" placeholder="0–10" aria-label="Điểm test @row.HocVien" />
                             </td>
-                            <td style="min-width:190px">
-                                <input name="Rows[@i].NhanXet" value="@row.NhanXet" maxlength="300" class="form-control form-control-sm" />
+                            <td class="dd-comment" data-label="Nhận xét">
+                                <input name="Rows[@i].NhanXet" value="@row.NhanXet" maxlength="300" class="form-control form-control-sm"
+                                       aria-label="Nhận xét @row.HocVien" />
                             </td>
-                            <td class="text-center">
+                            <td class="dd-promote text-center">
                                 @Html.CheckBoxFor(m => m.Rows[i].ThiLenCap, new { @class = "form-check-input", disabled = !row.LaNangKhieu })
                             </td>
-                            <td class="small">@row.GhiChu</td>
-                            <td class="small">
+                            <td class="dd-note small">@row.GhiChu</td>
+                            <td class="dd-state small">
                                 @if (row.DaLuu) { <span class="vo-tag vo-tag-success">Đã lưu</span> }
                                 else { <span class="text-muted">Chưa lưu</span> }
                             </td>

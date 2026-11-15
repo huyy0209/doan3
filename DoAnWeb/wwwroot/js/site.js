@@ -35,18 +35,29 @@
         var nut = document.getElementById("vo-sidebar-toggle");
         if (!app || !nut) { return; }
 
-        nut.addEventListener("click", function () {
-            var mo = app.classList.toggle("is-sidebar-open");
+        function datTrangThai(mo) {
+            app.classList.toggle("is-sidebar-open", mo);
+            document.body.classList.toggle("vo-menu-open", mo);
             nut.setAttribute("aria-expanded", mo ? "true" : "false");
             nut.setAttribute("aria-label", mo ? "Đóng menu" : "Mở menu");
+        }
+
+        nut.addEventListener("click", function () {
+            datTrangThai(!app.classList.contains("is-sidebar-open"));
         });
 
         // Bấm ra ngoài sidebar (trên màn hẹp) thì đóng lại.
         document.addEventListener("click", function (e) {
             if (!app.classList.contains("is-sidebar-open")) { return; }
             if (app.querySelector(".vo-sidebar").contains(e.target) || nut.contains(e.target)) { return; }
-            app.classList.remove("is-sidebar-open");
-            nut.setAttribute("aria-expanded", "false");
+            datTrangThai(false);
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && app.classList.contains("is-sidebar-open")) {
+                datTrangThai(false);
+                nut.focus();
+            }
         });
     }
 
