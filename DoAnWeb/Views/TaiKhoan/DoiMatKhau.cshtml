@@ -19,7 +19,7 @@
             <span class="vo-brand-mark"><partial name="_Icon" model='"book"' /></span>
             <span>
                 <span class="vo-strong d-block">@tenTrungTam</span>
-                <span class="vo-muted" style="font-size:.8rem">Phần mềm quản lý gia sư</span>
+                <span class="vo-muted g3-smaller">Phần mềm quản lý gia sư</span>
             </span>
         </div>
     }
@@ -36,7 +36,7 @@
     }
     else if (!string.IsNullOrWhiteSpace(tenDangNhap))
     {
-        <p class="vo-muted" style="font-size:.86rem">Tài khoản: <span class="vo-strong">@tenDangNhap</span></p>
+        <p class="vo-muted g3-account-label">Tài khoản: <span class="vo-strong">@tenDangNhap</span></p>
     }
 
     <form method="post" asp-controller="TaiKhoan" asp-action="DoiMatKhau" autocomplete="off">

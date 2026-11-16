@@ -3,7 +3,9 @@ using DoAnWeb.Data;
 using DoAnWeb.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +16,12 @@ builder.Host.UseWindowsService();
 DoAnWeb.Infrastructure.CauHinhLog.ThemCauHinhLog(builder);
 
 // ---------- CSDL: dùng nguyên CSDL QuanLyGiaSu của bản WinForms (không migration) ----------
-builder.Services.AddDbContext<QuanLyGiaSuContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu")));
+builder.Services.AddScoped<NhatKySaveChangesInterceptor>();
+builder.Services.AddDbContext<QuanLyGiaSuContext>((services, o) =>
+{
+    o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu"));
+    o.AddInterceptors(services.GetRequiredService<NhatKySaveChangesInterceptor>());
+});
 
 // ---------- Đăng nhập bằng cookie, đọc bảng TaiKhoan ----------
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -48,9 +54,32 @@ builder.Services.AddControllersWithViews(o =>
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddResponseCompression(o =>
+{
+    o.EnableForHttps = true;
+    o.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    o.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.AddRateLimiter(o =>
+{
+    int soLan = Math.Clamp(builder.Configuration.GetValue<int?>("BaoMat:GioiHanDangNhap:SoLan") ?? 10, 1, 1000);
+    int soPhut = Math.Clamp(builder.Configuration.GetValue<int?>("BaoMat:GioiHanDangNhap:TrongPhut") ?? 5, 1, 1440);
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("gioi-han-dang-nhap", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "khong-ro-ip",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = soLan,
+            Window = TimeSpan.FromMinutes(soPhut),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+});
 
 // ---------- Service nghiệp vụ (scoped: mỗi request một DbContext) ----------
 builder.Services.AddScoped<INguoiDungHienTai, NguoiDungHttp>();
+builder.Services.AddScoped<NhatKyService>();
+builder.Services.AddScoped<NhatKyExcelService>();
 builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
@@ -61,11 +90,27 @@ builder.Services.AddDichVuPhu();
 builder.Services.AddScoped<ThongKeBieuDoService>();
 builder.Services.AddHostedService<CapNhatTrangThaiNen>();
 builder.Services.AddHostedService<TuSaoLuuNen>();
+builder.Services.AddHostedService<NhatKyDonDepNen>();
 
 var app = builder.Build();
 
 // ---------- Trang lỗi tiếng Việt: 404/403/500 dùng chung giao diện app ----------
 app.UseStatusCodePagesWithReExecute("/Loi/{0}");
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+        return Task.CompletedTask;
+    });
+    await next();
+});
 
 if (!app.Environment.IsDevelopment())
 {
@@ -98,8 +143,20 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 });
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseResponseCompression();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        string path = context.Context.Request.Path.Value ?? "";
+        if (path.StartsWith("/lib/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/", StringComparison.OrdinalIgnoreCase))
+            context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+    }
+});
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

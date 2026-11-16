@@ -1,0 +1,6 @@
+﻿.g3-center { text-align: center; }
+.g3-small { font-size: .82rem; }
+.g3-smaller { font-size: .8rem; }
+.g3-account-label { font-size: .86rem; }
+.g3-month-rows-5 { grid-template-rows: 36px repeat(5, minmax(112px, 1fr)); }
+.g3-month-rows-6 { grid-template-rows: 36px repeat(6, minmax(112px, 1fr)); }

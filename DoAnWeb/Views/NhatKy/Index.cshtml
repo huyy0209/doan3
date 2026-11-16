@@ -1,0 +1,85 @@
+@model DoAnWeb.ViewModels.NhatKyVM.NhatKyIndexVM
+@{
+    ViewData["Title"] = "Nhật ký thao tác";
+    ViewData["PageSub"] = "Theo dõi thay đổi và hoạt động tài khoản";
+}
+
+<section class="vo-card">
+    <form method="get" asp-action="Index" class="row g-2 align-items-end mb-3">
+        <div class="col-sm-6 col-lg-2">
+            <label class="form-label" for="tuNgay">Từ ngày</label>
+            <input class="form-control" type="date" id="tuNgay" name="tuNgay" value="@Model.TuNgay?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <label class="form-label" for="denNgay">Đến ngày</label>
+            <input class="form-control" type="date" id="denNgay" name="denNgay" value="@Model.DenNgay?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <label class="form-label" for="nguoi">Người dùng</label>
+            <select class="form-select" id="nguoi" name="nguoi">
+                <option value="">Tất cả</option>
+                @foreach (var ten in Model.DanhSachNguoi)
+                {
+                    <option value="@ten" selected="@(Model.Nguoi == ten)">@ten</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <label class="form-label" for="hanhDong">Hành động</label>
+            <select class="form-select" id="hanhDong" name="hanhDong">
+                <option value="">Tất cả</option>
+                @foreach (var hanhDong in new[] { "Them", "Sua", "Xoa", "DangNhap", "DangNhapLoi", "DangXuat" })
+                {
+                    <option value="@hanhDong" selected="@(Model.HanhDong == hanhDong)">@hanhDong</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <label class="form-label" for="bang">Bảng</label>
+            <select class="form-select" id="bang" name="bang">
+                <option value="">Tất cả</option>
+                @foreach (var bang in Model.DanhSachBang)
+                {
+                    <option value="@bang" selected="@(Model.Bang == bang)">@bang</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-6 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Xóa lọc</a>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-end mb-2">
+        <a class="btn btn-outline-success btn-sm"
+           href="@Url.Action("XuatExcel", new { tuNgay = Model.TuNgay?.ToString("yyyy-MM-dd"), denNgay = Model.DenNgay?.ToString("yyyy-MM-dd"), nguoi = Model.Nguoi, hanhDong = Model.HanhDong, bang = Model.Bang })">
+            Xuất Excel
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Thời gian</th><th>Người dùng</th><th>Hành động</th><th>Bảng</th><th>Khóa chính</th><th>IP</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var muc in Model.KetQua.Items)
+            {
+                <tr>
+                    <td>@muc.ThoiGian.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@(muc.TenDangNhap ?? "—")</td>
+                    <td>@muc.HanhDong</td>
+                    <td>@(muc.Bang ?? "—")</td>
+                    <td>@(muc.KhoaChinh ?? "—")</td>
+                    <td>@(muc.DiaChiIP ?? "—")</td>
+                    <td><a asp-action="ChiTiet" asp-route-id="@muc.MaNK">Chi tiết</a></td>
+                </tr>
+            }
+            @if (Model.KetQua.Items.Count == 0)
+            {
+                <tr><td colspan="7" class="text-center text-muted py-4">Không có nhật ký phù hợp.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_PhanTrang", Model.KetQua)
+</section>

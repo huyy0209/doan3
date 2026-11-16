@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace DoAnWeb.Controllers
 {
@@ -16,11 +17,13 @@ namespace DoAnWeb.Controllers
     {
         private readonly TaiKhoanService _taiKhoan;
         private readonly INguoiDungHienTai _nguoiDung;
+        private readonly NhatKyService _nhatKy;
 
-        public TaiKhoanController(TaiKhoanService taiKhoan, INguoiDungHienTai nguoiDung)
+        public TaiKhoanController(TaiKhoanService taiKhoan, INguoiDungHienTai nguoiDung, NhatKyService nhatKy)
         {
             _taiKhoan = taiKhoan;
             _nguoiDung = nguoiDung;
+            _nhatKy = nhatKy;
         }
 
         [AllowAnonymous]
@@ -40,6 +43,7 @@ namespace DoAnWeb.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [EnableRateLimiting("gioi-han-dang-nhap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DangNhap(DangNhapVM vm)
         {
@@ -48,6 +52,7 @@ namespace DoAnWeb.Controllers
                 var tk = _taiKhoan.DangNhap(vm.TenDangNhap, vm.MatKhau);
                 // TK-11: dùng mật khẩu mặc định ai cũng biết => bắt đặt mật khẩu riêng
                 bool phaiDoi = vm.MatKhau == TaiKhoanService.MatKhauMacDinh;
+                await _nhatKy.GhiSuKienAsync("DangNhap", tk.TenDangNhap, tk.MaTK);
 
                 var claims = new List<Claim>
                 {
@@ -68,6 +73,7 @@ namespace DoAnWeb.Controllers
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException)
             {
+                await _nhatKy.GhiSuKienAsync("DangNhapLoi", vm.TenDangNhap);
                 ModelState.AddModelError(string.Empty, ex.Message);
             }
             catch (Exception)
@@ -82,6 +88,7 @@ namespace DoAnWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DangXuat()
         {
+            await _nhatKy.GhiSuKienAsync("DangXuat", _nguoiDung.TenDangNhap, _nguoiDung.MaTK);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(DangNhap));
         }

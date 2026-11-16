@@ -1,0 +1,33 @@
+@model DoAnWeb.ViewModels.NhatKyVM.NhatKyChiTietTrangVM
+@{
+    ViewData["Title"] = "Chi tiết nhật ký";
+    ViewData["PageSub"] = $"{Model.NhatKy.HanhDong} · {Model.NhatKy.ThoiGian:dd/MM/yyyy HH:mm:ss}";
+}
+
+<section class="vo-card">
+    <dl class="row">
+        <dt class="col-sm-3">Người dùng</dt><dd class="col-sm-9">@(Model.NhatKy.TenDangNhap ?? "—")</dd>
+        <dt class="col-sm-3">Bảng</dt><dd class="col-sm-9">@(Model.NhatKy.Bang ?? "—")</dd>
+        <dt class="col-sm-3">Khóa chính</dt><dd class="col-sm-9">@(Model.NhatKy.KhoaChinh ?? "—")</dd>
+        <dt class="col-sm-3">Địa chỉ IP</dt><dd class="col-sm-9">@(Model.NhatKy.DiaChiIP ?? "—")</dd>
+    </dl>
+    @if (Model.CacTruong.Count > 0)
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead><tr><th>Cột</th><th>Giá trị cũ</th><th>Giá trị mới</th></tr></thead>
+                <tbody>
+                @foreach (var truong in Model.CacTruong)
+                {
+                    <tr><th>@truong.Ten</th><td>@(truong.Cu ?? "—")</td><td>@(truong.Moi ?? "—")</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.JsonKhongHopLe))
+    {
+        <pre class="text-break">@Model.JsonKhongHopLe</pre>
+    }
+    <a class="btn btn-outline-secondary" asp-action="Index">Quay lại nhật ký</a>
+</section>

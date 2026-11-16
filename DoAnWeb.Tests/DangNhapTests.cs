@@ -209,7 +209,7 @@ public class DangNhapTests : DbTestBase
 
     private ViewResult TaoController()
     {
-        var controller = new TaiKhoanController(TaoDichVu(), QuanLy());
+        var controller = new TaiKhoanController(TaoDichVu(), QuanLy(), new NhatKyService(Db, new HttpContextAccessor()));
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
         return Assert.IsType<ViewResult>(controller.DangNhap());
     }

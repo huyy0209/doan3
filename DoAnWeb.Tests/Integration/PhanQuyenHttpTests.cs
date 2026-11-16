@@ -15,7 +15,7 @@ public class PhanQuyenHttpTests : HttpTestBase
     public static IEnumerable<object[]> TrangChiQuanLy => new[]
     {
         "/GiaSu", "/GiaSu/Create", "/LopHoc", "/LopHoc/GhepLop", "/MonHoc", "/HocPhi", "/HocPhi/XuatCsv",
-        "/TongQuan", "/CaiDat", "/QuanLyTaiKhoan", "/HocVien/Create", "/SaoLuu"
+        "/TongQuan", "/CaiDat", "/QuanLyTaiKhoan", "/HocVien/Create", "/SaoLuu", "/NhatKy"
     }.Select(u => new object[] { u });
 
     [Theory]

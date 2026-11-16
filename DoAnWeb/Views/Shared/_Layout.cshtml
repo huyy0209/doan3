@@ -1,4 +1,4 @@
-﻿@inject DoAnWeb.Services.INguoiDungHienTai NguoiDung
+@inject DoAnWeb.Services.INguoiDungHienTai NguoiDung
 @{
     // ----- Dữ liệu khung -----
     var daDangNhap = NguoiDung?.DaDangNhap == true;
@@ -34,6 +34,7 @@
         ("Gia sư",          "user",     "/GiaSu",           new[] { "GiaSu" },                     true),
         ("Tài khoản",       "key",      "/QuanLyTaiKhoan",  new[] { "QuanLyTaiKhoan" },            true),
         ("Sao lưu CSDL",    "download", "/SaoLuu",          new[] { "SaoLuu" },                    true),
+        ("Nhật ký thao tác","book",     "/NhatKy",          new[] { "NhatKy" },                     true),
     };
 
     var thongBao = TempData["ThongBao"] as string;
@@ -48,8 +49,9 @@
     <link rel="icon" type="image/svg+xml" href="~/img/logo.svg" />
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="apple-touch-icon" href="~/img/logo-180.png" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/g3.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="vo-body">
@@ -171,10 +173,11 @@
     }
 </div>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 <script src="~/js/w6.js" asp-append-version="true"></script>
+<script src="~/js/g3.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
