@@ -96,3 +96,8 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 ## Bước tiếp theo
 1. Đợi người dùng trả lời "duyệt" + câu hỏi.
 2. GĐ1: dựng `DoAnWeb/`, commit từng phần nhỏ, cuối cùng commit "feat(web): dựng khung ASP.NET Core".
+
+## Đợt G (2026-11-16)
+- Chủ repo chọn **tách CSDL**: web dùng `QuanLyGiaSu_Web`, app giữ `QuanLyGiaSu` (merge e1fc92d, 2e18474 từ web-f1). Test 417/417 x2.
+- Chủ repo đồng ý đề xuất #2: thêm bảng `NhatKy` (chỉ trong `QuanLyGiaSu_Web`, script nâng cấp riêng cho web) — chờ giao worker.
+- Thêm thành viên Codex (ChatGPT, `--agent codex`), cần `codex login` bằng tài khoản ChatGPT.
