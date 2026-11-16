@@ -28,7 +28,7 @@ public abstract class GiaoDienTestBase
     /// Chạy một kịch bản trong context mới; nếu ném lỗi (assert / timeout) thì chụp ảnh vào
     /// DoAnWeb.E2E/artifacts/&lt;tên&gt;-&lt;giờ&gt;.png rồi ném lại lỗi cũ.
     /// </summary>
-    protected async Task Chay(string ten, Func<IPage, Task> kichBan, ViewportSize khung = null)
+    protected async Task Chay(string ten, Func<IPage, Task> kichBan, ViewportSize khung = null, string subThuMucAnh = null)
     {
         await using var context = await F.TrinhDuyet.NewContextAsync(new BrowserNewContextOptions
         {
@@ -46,8 +46,11 @@ public abstract class GiaoDienTestBase
         {
             try
             {
-                Directory.CreateDirectory(GiaoDienFixture.ThuMucAnh);
-                string tep = Path.Combine(GiaoDienFixture.ThuMucAnh, $"{ten}-{DateTime.Now:yyyyMMdd-HHmmss}.png");
+                string thuMuc = string.IsNullOrWhiteSpace(subThuMucAnh)
+                    ? GiaoDienFixture.ThuMucAnh
+                    : Path.Combine(GiaoDienFixture.ThuMucAnh, subThuMucAnh);
+                Directory.CreateDirectory(thuMuc);
+                string tep = Path.Combine(thuMuc, $"{ten}-{DateTime.Now:yyyyMMdd-HHmmss}.png");
                 await trang.ScreenshotAsync(new PageScreenshotOptions { Path = tep, FullPage = true });
             }
             catch { /* không chụp được thì thôi, giữ lỗi gốc */ }
