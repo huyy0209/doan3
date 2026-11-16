@@ -33,7 +33,7 @@ namespace DoAnWeb.ViewModels.LopHocVM
         public int? MaHV { get; set; }
         public int? MaGS { get; set; }
         public string MonHoc { get; set; }
-        /// <summary>Nhập dạng "1.500.000" (SoTien.TryParse đọc phần chữ số).</summary>
+        /// <summary>Nhập số nguyên, ví dụ "1.500.000"; SoTien.TryParse kiểm tra dấu phân nhóm.</summary>
         public string HocPhi { get; set; }
         public DateTime? BatDau { get; set; }
         public DateTime? KetThuc { get; set; }

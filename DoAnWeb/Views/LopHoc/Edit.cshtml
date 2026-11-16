@@ -43,6 +43,7 @@
                                 <label class="form-label" for="hoc-phi">Học phí cả khóa (đ)</label>
                                 <input type="text" class="form-control vo-input-tien" id="hoc-phi" name="HocPhi"
                                        value="@Model.HocPhi" inputmode="numeric" placeholder="Ví dụ: 1.500.000" />
+                                <span asp-validation-for="HocPhi" class="text-danger small"></span>
                             </div>
 
                             <div class="vo-field vo-field-required">

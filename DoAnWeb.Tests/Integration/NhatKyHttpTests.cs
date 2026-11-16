@@ -90,6 +90,66 @@ public sealed class NhatKyHttpTests : HttpTestBase
     }
 
     [Fact]
+    public void Chi_tiet_che_du_lieu_ca_nhan_ke_ca_nhat_ky_cu()
+    {
+        var muc = new NhatKy
+        {
+            ThoiGian = DateTime.Now,
+            HanhDong = "Sua",
+            Bang = "HocVien",
+            ChiTiet = "{\"SDT\":{\"cu\":\"0912345678\",\"moi\":\"0987654321\"}," +
+                "\"DiaChi\":{\"cu\":\"123\",\"moi\":\"4567\"}," +
+                "\"HoTen\":{\"cu\":\"Nguyen An\",\"moi\":\"Nguyen Binh\"}}"
+        };
+        Db.NhatKys.Add(muc);
+        Db.SaveChanges();
+
+        var trang = new NhatKyService(Db, new HttpContextAccessor()).ChiTiet(muc.MaNK);
+
+        Assert.Equal("*******678", trang.CacTruong.Single(x => x.Ten == "SDT").Cu);
+        Assert.Equal("*******321", trang.CacTruong.Single(x => x.Ten == "SDT").Moi);
+        Assert.Equal("***", trang.CacTruong.Single(x => x.Ten == "DiaChi").Cu);
+        Assert.Equal("*567", trang.CacTruong.Single(x => x.Ten == "DiaChi").Moi);
+        Assert.Equal("Nguyen An", trang.CacTruong.Single(x => x.Ten == "HoTen").Cu);
+    }
+
+    [Fact]
+    public async Task Nhat_ky_mac_dinh_chi_hien_30_ngay_gan_nhat()
+    {
+        var homNay = DateTime.Today;
+        Db.NhatKys.AddRange(
+            new NhatKy
+            {
+                ThoiGian = homNay.AddDays(-31),
+                MaTK = QL.MaTK,
+                TenDangNhap = QL.TenDangNhap,
+                HanhDong = "Sua",
+                Bang = "KhoangNgayTest",
+                KhoaChinh = "CU_31_NGAY"
+            },
+            new NhatKy
+            {
+                ThoiGian = homNay,
+                MaTK = QL.MaTK,
+                TenDangNhap = QL.TenDangNhap,
+                HanhDong = "Sua",
+                Bang = "KhoangNgayTest",
+                KhoaChinh = "TRONG_30_NGAY"
+            });
+        Db.SaveChanges();
+
+        var ql = await DangNhapQL();
+        var trang = await ql.Get("/NhatKy?bang=KhoangNgayTest");
+
+        Assert.Equal(HttpStatusCode.OK, trang.Status);
+        Assert.Contains("TRONG_30_NGAY", trang.Chu);
+        Assert.DoesNotContain("CU_31_NGAY", trang.Chu);
+        var vm = new NhatKyService(Db, new HttpContextAccessor()).TaoTrang(null, null, null, null, "KhoangNgayTest", 1, 20);
+        Assert.Equal(homNay.AddDays(-29), vm.TuNgay);
+        Assert.Equal(homNay, vm.DenNgay);
+    }
+
+    [Fact]
     public async Task Dang_nhap_thanh_cong_that_bai_va_xuat_ban_duoc_ghi()
     {
         string sai = TenItg();

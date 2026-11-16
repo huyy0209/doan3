@@ -180,6 +180,7 @@
                     <label class="form-label mt-3">Học phí cả khóa (đ)</label>
                     <input type="text" class="form-control vo-input-tien" name="HocPhi" id="hoc-phi"
                            value="@Model.HocPhi" placeholder="Ví dụ: 1.500.000" inputmode="numeric" />
+                    <span asp-validation-for="HocPhi" class="text-danger small"></span>
 
                     <div id="ghep-status" class="ghep-status is-trong">Chọn một ca học.</div>
                 </section>

@@ -242,7 +242,7 @@ public class MonHocCaiDatHocPhiHttpTests : HttpTestBase
 
         var chu = await ql.Gui((await FormThanhToan(ql, lop.MaLop)).Dat("ThanhToan.SoTien", "abc"));
         Assert.Equal(HttpStatusCode.OK, chu.Status);
-        Assert.Contains("Nhập số tiền", chu.Chu);
+        Assert.Contains("Số tiền không hợp lệ", chu.Chu);
 
         var am = await ql.Gui((await FormThanhToan(ql, lop.MaLop)).Dat("ThanhToan.SoTien", "0"));
         Assert.Equal(HttpStatusCode.OK, am.Status);

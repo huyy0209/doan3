@@ -169,7 +169,7 @@ namespace DoAnWeb.Controllers
             if (string.IsNullOrWhiteSpace(vm.CaHoc))
                 ModelState.AddModelError(string.Empty, Constants.Messages.VuiLongChonCaHoc);
             if (!SoTien.TryParse(vm.HocPhi, out decimal hocPhi))
-                ModelState.AddModelError(string.Empty, "Học phí phải là số, ví dụ 1.500.000.");
+                ModelState.AddModelError(nameof(vm.HocPhi), SoTien.ThongBaoDinhDang);
 
             if (!ModelState.IsValid)
             {
@@ -341,7 +341,7 @@ namespace DoAnWeb.Controllers
             if (vm.KetThuc == null)
                 ModelState.AddModelError(string.Empty, "Chọn ngày kết thúc.");
             if (!SoTien.TryParse(vm.HocPhi, out decimal hocPhi))
-                ModelState.AddModelError(string.Empty, "Học phí phải là số, ví dụ 1.500.000.");
+                ModelState.AddModelError(nameof(vm.HocPhi), SoTien.ThongBaoDinhDang);
             if (vm.MaGS <= 0)
                 ModelState.AddModelError(string.Empty, Constants.Messages.VuiLongChonGiaSu);
 

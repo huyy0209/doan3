@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace DoAnWeb.Common
 {
@@ -8,15 +9,53 @@ namespace DoAnWeb.Common
     public static class SoTien
     {
         public static readonly CultureInfo Vi = CultureInfo.GetCultureInfo("vi-VN");
+        public const string ThongBaoDinhDang = "Số tiền không hợp lệ. Nhập số nguyên dương, phân nhóm đủ 3 chữ số (ví dụ 1.500.000), có thể thêm đ hoặc VND.";
 
-        /// <summary>Chấp nhận "1.500.000", "1,500,000", "1500000 đ"... (chỉ lấy chữ số), phải &gt; 0</summary>
+        /// <summary>Chấp nhận số nguyên dương có dấu phân nhóm hợp lệ và hậu tố tiền tệ tùy chọn.</summary>
         public static bool TryParse(string text, out decimal soTien)
         {
             soTien = 0;
             if (string.IsNullOrWhiteSpace(text)) return false;
-            string so = new string(text.Where(char.IsDigit).ToArray());
-            return so.Length > 0 && so.Length <= 12 && decimal.TryParse(so, out soTien) && soTien > 0;
+            string so = text.Trim();
+            if (so.EndsWith("VND", StringComparison.OrdinalIgnoreCase))
+                so = so.Substring(0, so.Length - 3).TrimEnd();
+            else if (so.EndsWith("đ", StringComparison.OrdinalIgnoreCase) ||
+                     so.EndsWith("d", StringComparison.OrdinalIgnoreCase))
+                so = so.Substring(0, so.Length - 1).TrimEnd();
+
+            if (so.Length == 0 || so.Any(c => !char.IsDigit(c) && c != '.' && c != ',' && !char.IsWhiteSpace(c)))
+                return false;
+
+            char[] dauPhanNhom = so.Where(c => c == '.' || c == ',').Distinct().ToArray();
+            if (dauPhanNhom.Length > 1) return false;
+
+            string[] nhom;
+            if (dauPhanNhom.Length == 1)
+            {
+                nhom = so.Split(dauPhanNhom[0]);
+                if (!CacNhomHopLe(nhom)) return false;
+            }
+            else if (so.Any(char.IsWhiteSpace))
+            {
+                nhom = Regex.Split(so.Trim(), @"\s+");
+                if (!CacNhomHopLe(nhom)) return false;
+            }
+            else
+            {
+                nhom = new[] { so };
+                if (!LaChuSo(so)) return false;
+            }
+
+            string chuSo = string.Concat(nhom);
+            return chuSo.Length <= 12 && decimal.TryParse(chuSo, NumberStyles.None, CultureInfo.InvariantCulture, out soTien) && soTien > 0;
         }
+
+        private static bool CacNhomHopLe(string[] nhom) =>
+            nhom.Length > 1 && nhom[0].Length >= 1 && nhom[0].Length <= 3 && LaChuSo(nhom[0]) &&
+            nhom.Skip(1).All(n => n.Length == 3 && LaChuSo(n));
+
+        private static bool LaChuSo(string nhom) =>
+            nhom.Length > 0 && nhom.All(c => c >= '0' && c <= '9');
 
         /// <summary>1500000 =&gt; "1.500.000"</summary>
         public static string Dinh(decimal soTien) => soTien.ToString("N0", Vi);

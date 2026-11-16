@@ -98,7 +98,7 @@ public class LopHocHttpTests : HttpTestBase
 
         var hocPhiChu = await ql.Gui(DienGhepLop(trang, _hv.MaHV, GS.MaGS, _mon.TenMon, hocPhi: "abc"));
         Assert.Equal(HttpStatusCode.OK, hocPhiChu.Status);
-        Assert.Contains("Học phí phải là số", hocPhiChu.Chu);
+        Assert.Contains("Số tiền không hợp lệ", hocPhiChu.Chu);
 
         var thieuCa = await ql.Gui(DienGhepLop(trang, _hv.MaHV, GS.MaGS, _mon.TenMon).Bo("CaHoc"));
         Assert.Equal(HttpStatusCode.OK, thieuCa.Status);

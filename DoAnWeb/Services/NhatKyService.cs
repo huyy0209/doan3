@@ -27,18 +27,42 @@ public sealed class NhatKyService
         DateTime? tuNgay, DateTime? denNgay, string nguoi, string hanhDong, string bang,
         int trang, int soDong)
     {
+        if (!tuNgay.HasValue && !denNgay.HasValue)
+        {
+            denNgay = DateTime.Today;
+            tuNgay = denNgay.Value.AddDays(-29);
+        }
         var q = Loc(tuNgay, denNgay, nguoi, hanhDong, bang);
-        var danhSach = q.OrderByDescending(n => n.ThoiGian).ThenByDescending(n => n.MaNK).ToList();
+        int tongSo = q.Count();
+        if (soDong != 20 && soDong != 50 && soDong != 100)
+            soDong = PhanTrang.SoDongMacDinh;
+        int soTrang = Math.Max(1, (int)Math.Ceiling(tongSo / (double)soDong));
+        trang = Math.Clamp(trang, 1, soTrang);
+        var ketQua = new KetQuaTrang<NhatKy>
+        {
+            Items = q.OrderByDescending(n => n.ThoiGian).ThenByDescending(n => n.MaNK)
+                .Skip((trang - 1) * soDong).Take(soDong).ToList(),
+            Trang = trang,
+            SoTrang = soTrang,
+            SoDong = soDong,
+            TongSo = tongSo,
+            TuDong = tongSo == 0 ? 0 : (trang - 1) * soDong + 1,
+            DenDong = Math.Min(trang * soDong, tongSo),
+            Chieu = "desc"
+        };
         var thamSo = new Dictionary<string, string>();
         if (tuNgay.HasValue) thamSo["tuNgay"] = tuNgay.Value.ToString("yyyy-MM-dd");
         if (denNgay.HasValue) thamSo["denNgay"] = denNgay.Value.ToString("yyyy-MM-dd");
         if (!string.IsNullOrWhiteSpace(nguoi)) thamSo["nguoi"] = nguoi;
         if (!string.IsNullOrWhiteSpace(hanhDong)) thamSo["hanhDong"] = hanhDong;
         if (!string.IsNullOrWhiteSpace(bang)) thamSo["bang"] = bang;
+        thamSo["trang"] = trang.ToString();
+        thamSo["soDong"] = soDong.ToString();
+        ketQua.ThamSo = thamSo;
 
         return new NhatKyIndexVM
         {
-            KetQua = PhanTrang.Tao(danhSach, trang, soDong, thamSo: thamSo),
+            KetQua = ketQua,
             TuNgay = tuNgay,
             DenNgay = denNgay,
             Nguoi = nguoi,
@@ -73,6 +97,11 @@ public sealed class NhatKyService
                 {
                     if (truong.Value.TryGetProperty("cu", out var cuValue)) cu = HienThi(cuValue);
                     if (truong.Value.TryGetProperty("moi", out var moiValue)) moi = HienThi(moiValue);
+                    if (NhatKyBaoMat.LaTruongNhayCam(truong.Name))
+                    {
+                        cu = NhatKyBaoMat.Che(cu);
+                        moi = NhatKyBaoMat.Che(moi);
+                    }
                 }
                 vm.CacTruong.Add(new NhatKyTruongVM { Ten = truong.Name, Cu = cu, Moi = moi });
             }
