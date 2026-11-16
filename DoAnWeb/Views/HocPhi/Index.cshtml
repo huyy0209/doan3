@@ -12,7 +12,9 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/in-an.css" asp-append-version="true" />
 }
+@section Scripts { <script src="~/js/in-an.js" asp-append-version="true"></script> }
 
 <div class="w6-dashboard w6-hocphi">
     <section class="w6-stat-grid w6-stat-grid-3">
@@ -144,7 +146,10 @@
                         <partial name="_Icon" model='"money"' /> Ghi nhận đóng tiền
                     </button>
                 </form>
-                <div class="w6-history-heading">Các lần đã đóng</div>
+                <div class="w6-history-heading d-flex align-items-center justify-content-between gap-2">
+                    <span>Các lần đã đóng</span>
+                    <a class="btn btn-sm btn-outline-ink" asp-action="BangKe" asp-route-maLop="@Model.LopChon.MaLop">In bảng kê</a>
+                </div>
                 @if (Model.LichSu.Count == 0)
                 {
                     <div class="vo-empty">Chưa có lần đóng tiền nào.</div>
@@ -163,6 +168,7 @@
                                     <td>@payment.HinhThuc</td>
                                     <td>@payment.GhiChu</td>
                                     <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-ink" asp-action="PhieuThu" asp-route-id="@payment.MaTT">In phiếu thu</a>
                                         <button type="button" class="btn btn-sm btn-outline-danger"
                                                 data-bs-toggle="modal" data-bs-target="#w6-xoa-thanh-toan"
                                                 data-ma-tt="@payment.MaTT"

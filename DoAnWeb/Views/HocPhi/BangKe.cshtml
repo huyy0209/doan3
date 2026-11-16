@@ -1,0 +1,38 @@
+@model DoAnWeb.Data.Entities.LopHoc
+@using DoAnWeb.Common
+@using DoAnWeb.Data.Entities
+@{
+    ViewData["Title"] = "Bảng kê học phí";
+    ViewData["PageSub"] = Model.HocVien?.HoTen;
+    var lichSu = (List<ThanhToan>)ViewBag.LichSu;
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+}
+@section Styles { <link rel="stylesheet" href="~/css/in-an.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/in-an.js" asp-append-version="true"></script> }
+
+<div class="print-actions d-flex gap-2 mb-3">
+    <button type="button" class="btn btn-primary" data-in-an>In</button>
+    <a class="btn btn-outline-secondary" asp-action="Index" asp-route-maLop="@Model.MaLop">Quay lại học phí</a>
+</div>
+<article class="giay-in bang-ke">
+    <header class="phieu-dau">
+        <div class="phieu-trung-tam">@(string.IsNullOrWhiteSpace(tenTrungTam) ? "Quản lý gia sư" : tenTrungTam)</div>
+        <div class="phieu-dia-chi">BẢNG KÊ CÁC LẦN ĐÓNG HỌC PHÍ</div>
+        <p>Học viên: <strong>@Model.HocVien?.HoTen</strong></p>
+        <p>Lớp / môn học: <strong>@(Model.TenLop ?? "Lớp học") / @Model.MonHoc</strong></p>
+        <p>Ngày lập: @DateTime.Today.ToString("dd/MM/yyyy")</p>
+    </header>
+    <table class="table bang-ke-bang">
+        <thead><tr><th>STT</th><th>Ngày đóng</th><th>Số phiếu</th><th>Hình thức</th><th class="text-end">Số tiền</th></tr></thead>
+        <tbody>
+        @for (int i = 0; i < lichSu.Count; i++)
+        {
+            var p = lichSu[i];
+            <tr><td>@(i + 1)</td><td>@p.NgayDong.ToString("dd/MM/yyyy")</td><td>@p.MaTT</td><td>@(p.HinhThuc ?? "—")</td><td class="text-end">@SoTien.Dinh(p.SoTien) đ</td></tr>
+        }
+        @if (lichSu.Count == 0) { <tr><td colspan="5" class="text-center">Chưa có lần đóng học phí.</td></tr> }
+        </tbody>
+        <tfoot><tr><th colspan="4">Tổng đã đóng</th><th class="text-end">@SoTien.Dinh((decimal)ViewBag.TongDaDong) đ</th></tr></tfoot>
+    </table>
+    <footer class="phieu-ky"><div>Người lập bảng kê<br /><span>@ViewBag.NguoiLap</span></div><div>Người xác nhận<br /><span>(Ký, ghi rõ họ tên)</span></div></footer>
+</article>
