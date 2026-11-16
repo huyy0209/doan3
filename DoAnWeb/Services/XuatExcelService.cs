@@ -10,7 +10,7 @@ namespace DoAnWeb.Services
 {
     /// <summary>
     /// Xuất báo cáo ra Excel (.xlsx) bằng ClosedXML (đề xuất #4):
-    /// công nợ học phí, danh sách lớp, kết quả học tập của một học viên.
+    /// công nợ học phí, nhắc nợ học phí, danh sách lớp, kết quả học tập của một học viên.
     /// Dịch vụ thuần dữ liệu – controller quyết định bộ lọc và quyền xem.
     /// </summary>
     public class XuatExcelService
@@ -60,7 +60,60 @@ namespace DoAnWeb.Services
         }
 
         // ===================================================================
-        // 2. Danh sách lớp
+        // 2. Nhắc nợ học phí
+        // ===================================================================
+
+        /// <summary>
+        /// Danh sách nhắc nợ: giống công nợ nhưng thêm "Lần đóng gần nhất" và "Số ngày chưa đóng".
+        /// Số tiền do <see cref="NhacNoDong"/> mang sẵn từ trang Học phí – service này không tính lại.
+        /// </summary>
+        public byte[] NhacNo(IEnumerable<NhacNoDong> danhSach)
+        {
+            var ds = (danhSach ?? Enumerable.Empty<NhacNoDong>()).ToList();
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Nhắc nợ");
+
+            TieuDe(ws, "Lớp", "Học viên", "SĐT liên hệ", "Môn",
+                "Tổng phải đóng", "Đã đóng", "Còn nợ", "Lần đóng gần nhất", "Số ngày chưa đóng");
+
+            int dong = 2;
+            foreach (var c in ds)
+            {
+                ws.Cell(dong, 1).Value = Chuoi(c.TenLop);
+                ws.Cell(dong, 2).Value = Chuoi(c.HocVien);
+                ws.Cell(dong, 3).Value = Chuoi(c.SDTLienHe);
+                ws.Cell(dong, 4).Value = Chuoi(c.MonHoc);
+                ws.Cell(dong, 5).Value = c.PhaiDong;
+                ws.Cell(dong, 6).Value = c.DaDong;
+                ws.Cell(dong, 7).Value = c.ConNo;
+                if (c.LanDongGanNhat.HasValue)
+                {
+                    ws.Cell(dong, 8).Value = c.LanDongGanNhat.Value.Date;
+                    ws.Cell(dong, 8).Style.NumberFormat.Format = "dd/MM/yyyy";
+                }
+                else
+                {
+                    ws.Cell(dong, 8).Value = "Chưa đóng lần nào";
+                }
+                ws.Cell(dong, 9).Value = c.SoNgayChuaDong;
+                dong++;
+            }
+
+            int dongTong = dong;
+            ws.Cell(dongTong, 1).Value = "Tổng cộng";
+            ws.Cell(dongTong, 2).Value = $"{ds.Count} lớp";
+            ws.Cell(dongTong, 5).Value = ds.Sum(c => c.PhaiDong);
+            ws.Cell(dongTong, 6).Value = ds.Sum(c => c.DaDong);
+            ws.Cell(dongTong, 7).Value = ds.Sum(c => c.ConNo);
+            ws.Range(dongTong, 1, dongTong, 9).Style.Font.Bold = true;
+
+            ws.Range(2, 5, dongTong, 7).Style.NumberFormat.Format = DinhDangTien;
+            HoanThien(ws, 9);
+            return Luu(wb);
+        }
+
+        // ===================================================================
+        // 3. Danh sách lớp
         // ===================================================================
 
         /// <summary>Danh sách lớp theo bộ lọc hiện tại của trang Lớp học.</summary>
@@ -100,7 +153,7 @@ namespace DoAnWeb.Services
         }
 
         // ===================================================================
-        // 3. Kết quả học tập
+        // 4. Kết quả học tập
         // ===================================================================
 
         /// <summary>
