@@ -31,12 +31,18 @@ self.addEventListener("fetch", event => {
     }
 
     if (!TAI_NGUYEN_TINH.test(url.pathname)) return;
-    const response = caches.match(request).then(cached => cached || fetch(request));
+    // Tách bản sao ngay khi có phản hồi từ mạng (trước khi trình duyệt đọc body), tránh lỗi "body already used"
+    let banSao = null;
+    const response = caches.match(request).then(cached => cached || fetch(request).then(ketQua => {
+        banSao = ketQua.clone();
+        return ketQua;
+    }));
     event.respondWith(response);
-    event.waitUntil(response.then(result => {
-        const contentType = result.headers.get("content-type") || "";
-        if (result.ok && !contentType.includes("text/html")) {
-            return caches.open(CACHE_NAME).then(cache => cache.put(request, result.clone()));
+    event.waitUntil(response.then(() => {
+        if (!banSao) return;
+        const contentType = banSao.headers.get("content-type") || "";
+        if (banSao.ok && !contentType.includes("text/html")) {
+            return caches.open(CACHE_NAME).then(cache => cache.put(request, banSao));
         }
     }));
 });
