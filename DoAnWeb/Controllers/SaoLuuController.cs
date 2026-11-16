@@ -1,5 +1,6 @@
 using DoAnWeb.ViewModels.SaoLuuVM;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using DoAnWeb.Data;
 using DoAnWeb.Services;
@@ -41,6 +42,7 @@ public class SaoLuuController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("gioi-han-dang-nhap")]
     public async Task<IActionResult> KhoiPhuc(KhoiPhucSaoLuuVM vm, CancellationToken cancellationToken)
     {
         if (!string.Equals(vm.TenTep, vm.XacNhanTenTep, StringComparison.Ordinal))
