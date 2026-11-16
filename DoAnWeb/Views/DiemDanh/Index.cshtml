@@ -160,19 +160,4 @@
 </form>
 
 @section Scripts {
-    <script>
-        document.getElementById("diemDanhTatCa")?.addEventListener("click", function () {
-            document.querySelectorAll('select[name$=".DiemDanh"]').forEach(function (select) {
-                if (select.closest("tr")?.dataset.daXepBu !== "true") select.value = "Có mặt";
-            });
-        });
-        document.querySelectorAll('select[name$=".DiemDanh"]').forEach(function (select) {
-            select.addEventListener("change", function () {
-                if (select.value === "Vắng có phép" || select.value === "Vắng không phép") {
-                    const input = select.closest("tr")?.querySelector('input[name$=".DiemText"]');
-                    if (input) input.value = "";
-                }
-            });
-        });
-    </script>
 }

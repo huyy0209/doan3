@@ -28,7 +28,7 @@
                     <input type="hidden" name="nam" value="@month.Year" />
                     <input type="hidden" name="thang" value="@month.Month" />
                     <label class="form-label mb-0" for="maGS">Gia sư</label>
-                    <select class="form-select" name="maGS" id="maGS" onchange="this.form.submit()">
+                    <select class="form-select" name="maGS" id="maGS" data-submit-on-change>
                         <option value="">Tất cả gia sư</option>
                         @foreach (var gs in Model.GiaSus)
                         {
@@ -39,7 +39,7 @@
             }
         </div>
 
-        <div class="w6-month-grid" style="grid-template-rows: 36px repeat(@Model.SoHang, minmax(112px, 1fr));">
+        <div class="w6-month-grid g3-month-rows-@Model.SoHang">
             @foreach (var header in headers)
             {
                 <div class="w6-month-head @(header == "CN" ? "is-sunday" : "")">@header</div>

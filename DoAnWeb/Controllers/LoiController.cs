@@ -22,6 +22,10 @@ namespace DoAnWeb.Controllers
         public IActionResult KhongTimThay() => DungTrang(404, "Không tìm thấy trang",
             "Đường dẫn không tồn tại hoặc đã bị đổi. Anh/chị kiểm tra lại địa chỉ, hoặc dùng nút bên dưới để về trang trước.");
 
+        [Route("Loi/429")]
+        public IActionResult QuaGioiHan() => DungTrang(429, "Thử đăng nhập quá nhiều lần",
+            "Anh/chị đã gửi quá nhiều yêu cầu đăng nhập. Vui lòng chờ vài phút rồi thử lại.");
+
         /// <summary>Không đủ quyền (403)</summary>
         [Route("Loi/403")]
         public IActionResult KhongCoQuyen() => DungTrang(403, "Bạn không có quyền vào trang này",

@@ -1,9 +1,9 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
     ViewData["Title"] = "Có lỗi xảy ra";
     Layout = "_LayoutTrong";
 }
-<div class="vo-panel-narrow" style="text-align:center">
+<div class="vo-panel-narrow g3-center">
     <div class="vo-error-code">!</div>
     <div class="vo-error-title">Có lỗi xảy ra khi xử lý yêu cầu</div>
     <p class="vo-error-text mb-3">
@@ -13,7 +13,7 @@
 
     @if (Model?.ShowRequestId == true)
     {
-        <p class="vo-muted" style="font-size:.82rem">
+        <p class="vo-muted g3-small">
             Mã yêu cầu: <code>@Model.RequestId</code>
         </p>
     }
