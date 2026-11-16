@@ -1,0 +1,14 @@
+.git
+.vs
+**/bin
+**/obj
+**/TestResults
+DoAnWeb.Tests
+DoAnWeb.E2E
+DoAnWeb/logs
+backups
+.env
+.env.*
+!.env.example
+*.user
+*.suo

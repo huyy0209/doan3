@@ -10,12 +10,22 @@
 
 Bản web chạy trên trình duyệt, dùng **CSDL riêng `QuanLyGiaSu_Web`** (cùng schema với CSDL `QuanLyGiaSu` của bản app WinForms ở nhánh `app`, hai bản chạy song song không đụng nhau) và giữ nguyên nghiệp vụ: ghép lớp theo ca + thứ không trùng lịch, sửa / hủy / xóa lớp trong transaction, điểm danh, điểm test, học bù, môn năng khiếu theo cấp độ, học phí, lịch học, tổng quan, thông báo lớp sắp bắt đầu, phân quyền Quản lý / Gia sư. Giao diện bám bộ "Vở ô li" của app (sidebar xanh bảng, font Be Vietnam Pro).
 
+### Tính năng bản web
+
+- **Quản lý:** hồ sơ gia sư, học viên và tài khoản; danh mục môn học; ghép/sửa/hủy lớp có kiểm tra lịch; tổng quan và lịch hôm nay; lịch tháng và thời khóa biểu tuần.
+- **Học tập:** điểm danh theo ngày/ca, nhập điểm và nhận xét, xem kết quả học tập, xếp học bù; phiếu báo kết quả có thể in.
+- **Tài chính:** công nợ và lịch sử học phí, ghi nhận khoản thu, in phiếu thu/bảng kê, xuất báo cáo; danh sách nhắc nợ có thể lọc, xuất Excel và sao chép tin nhắn.
+- **Tiện ích đợt G:** nhật ký thao tác; biểu đồ tổng quan và khối Hôm nay; bảo mật bằng CSP/security headers, giới hạn thử đăng nhập, nén Brotli/Gzip và cache tệp tĩnh; nhập Excel, tìm kiếm nhanh bằng Ctrl+K, giao diện sáng/tối, PWA, sao lưu CSDL và nhắc nợ.
+- **Phân quyền:** gia sư chỉ xem học viên/lớp được phân công và lịch của mình; các chức năng quản lý dành riêng cho tài khoản Quản lý.
+
+Xem từng bước và ảnh minh họa trong **[Hướng dẫn sử dụng bản web](docs/huong-dan-su-dung-web.md)**.
+
 | Thành phần | Công nghệ |
 |---|---|
 | Web | ASP.NET Core 8 MVC + Razor + Bootstrap 5 (`DoAnWeb/`, target `net8.0`, `RollForward=Major` nên chạy được trên runtime .NET 10) |
 | ORM | Entity Framework Core 8, scaffold Database-First từ CSDL có sẵn (không migration) |
 | Đăng nhập | Cookie authentication trên bảng `TaiKhoan`, **giữ nguyên thuật toán băm PBKDF2-SHA256 100.000 vòng** nên mọi tài khoản cũ đăng nhập được; khóa 5 phút sau 5 lần sai; bắt đổi mật khẩu mặc định |
-| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 251 test) chạy trên CSDL riêng mỗi tiến trình `QuanLyGiaSu_Web_Test_p{pid}` (tự RESTORE từ `QuanLyGiaSu_Web`, tự xóa khi xong), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`, 5 kịch bản) |
+| Kiểm thử | xUnit (`DoAnWeb.Tests/`, 487 test) chạy trên CSDL riêng mỗi tiến trình `QuanLyGiaSu_Web_Test_p{pid}` (tự RESTORE từ `QuanLyGiaSu_Web`, tự xóa khi xong), không ghi vào dữ liệu thật; kiểm thử giao diện tự động Playwright (`DoAnWeb.E2E/`) |
 
 **Cách chạy** – bấm đúp **`QuanLyGiaSu.bat`** ở gốc repo, hoặc chạy thẳng một lệnh:
 
@@ -35,15 +45,16 @@ Chạy tay: `dotnet run --project DoAnWeb` · chạy test: `dotnet test DoAnWeb.
 
 ### Kiểm thử giao diện tự động (Playwright)
 
-`DoAnWeb.E2E/` mở Chromium headless và thao tác như người dùng thật trên web Kestrel tự khởi động (cổng trống, CSDL test `QuanLyGiaSu_Web_Test_p{pid}`, **không đụng `QuanLyGiaSu` / `QuanLyGiaSu_Web`**; CSDL test được tạo bằng cách của `DoAnWeb.Tests`). Dữ liệu thử có tiền tố `E2E_` và tự dọn. 5 kịch bản: đăng nhập quản lý → Tổng quan → đăng xuất; ghép lớp (kiểm tra xung đột, lưu, hủy, xóa); gia sư vào thẳng Điểm danh và lưu; học phí thêm / xóa lần đóng; giao diện điện thoại 390×844 (menu ☰, Điểm danh dạng thẻ).
+`DoAnWeb.E2E/` mở Chromium headless và thao tác như người dùng thật trên web Kestrel tự khởi động (cổng trống, CSDL test `QuanLyGiaSu_Web_Test_p{pid}`, **không đụng `QuanLyGiaSu` / `QuanLyGiaSu_Web`**; CSDL test được tạo bằng cách của `DoAnWeb.Tests`). Dữ liệu thử có tiền tố `E2E_` và tự dọn. Bộ test có kịch bản đăng nhập, ghép lớp, điểm danh, học phí, tìm kiếm nhanh, thời khóa biểu, giao diện tối, nhật ký và điểm danh điện thoại. Test chụp ảnh tài liệu có `[Trait("Loai","ChupAnh")]`; trước khi chụp chỉ giữ dữ liệu E2E trong CSDL test.
 
 ```
 dotnet build DoAnWeb.E2E
 pwsh DoAnWeb.E2E/bin/Debug/net8.0/playwright.ps1 install chromium   # một lần: tải trình duyệt (không có pwsh thì dùng powershell)
 dotnet test DoAnWeb.E2E
+dotnet test DoAnWeb.E2E --filter "Loai=ChupAnh"                    # chụp lại ảnh vào docs/anh/
 ```
 
-Test fail thì ảnh chụp trang nằm ở `DoAnWeb.E2E/artifacts/` (đã ignore trong git). Cần SQL Server như khi chạy `DoAnWeb.Tests` (biến môi trường `DOANWEB_TEST_SQL` đổi server test, giống bộ test kia). Trên CI bộ E2E là job riêng `e2e` trong `.github/workflows/web-ci.yml`.
+Ảnh chụp tài liệu được lưu ở `docs/anh/` (mỗi ảnh tối đa 200 KB); khi test fail, ảnh debug nằm ở `DoAnWeb.E2E/artifacts/` (đã ignore trong git). Cần SQL Server như khi chạy `DoAnWeb.Tests` (biến môi trường `DOANWEB_TEST_SQL` đổi server test, giống bộ test kia). Trên CI bộ E2E là job riêng `e2e` trong `.github/workflows/web-ci.yml`.
 
 Khi triển khai qua HTTPS ngoài localhost, đặt `BaoMat:BatBuocHttps` thành `true` trong `DoAnWeb/appsettings.json` (hoặc cấu hình tương ứng trong môi trường triển khai) để cookie chỉ được gửi qua HTTPS. Mặc định là `false` để `start-web.bat` tiếp tục chạy HTTP tại `http://localhost:5080`.
 

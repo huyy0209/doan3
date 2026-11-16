@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,8 @@ builder.Services.AddDbContext<QuanLyGiaSuContext>((services, o) =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu"));
     o.AddInterceptors(services.GetRequiredService<NhatKySaveChangesInterceptor>());
 });
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<QuanLyGiaSuContext>();
 
 // ---------- Đăng nhập bằng cookie, đọc bảng TaiKhoan ----------
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -85,6 +88,7 @@ builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
 builder.Services.AddScoped<TimKiemNhanhService>();
+builder.Services.AddScoped<NhapExcelService>();
 builder.Services.AddScoped<LopHocService>();
 builder.Services.AddScoped<LichDayService>();
 builder.Services.AddScoped<SaoLuuService>();
@@ -97,6 +101,16 @@ builder.Services.AddHostedService<TuSaoLuuNen>();
 builder.Services.AddHostedService<NhatKyDonDepNen>();
 
 var app = builder.Build();
+
+// Endpoint cho Docker và bộ giám sát; chỉ công khai trạng thái, không trả chi tiết lỗi kết nối.
+app.MapHealthChecks("/suc-khoe", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json; charset=utf-8";
+        await context.Response.WriteAsJsonAsync(new { trangThai = report.Status.ToString() });
+    }
+}).AllowAnonymous();
 
 // ---------- Trang lỗi tiếng Việt: 404/403/500 dùng chung giao diện app ----------
 app.UseStatusCodePagesWithReExecute("/Loi/{0}");

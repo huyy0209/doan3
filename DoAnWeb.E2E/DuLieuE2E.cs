@@ -42,7 +42,7 @@ public sealed class DuLieuE2E
             $"DELETE FROM LopHoc WHERE MaLop IN {lop};" +
             "DELETE FROM TaiKhoan WHERE TenDangNhap LIKE 'e2e[_]%' OR MaGS IN (SELECT MaGS FROM GiaSu WHERE HoTen LIKE 'E2E[_]%');" +
             "DELETE FROM GiaSu WHERE HoTen LIKE 'E2E[_]%';" +
-            "DELETE FROM HocVien WHERE HoTen LIKE 'E2E[_]%';" +
+            "DELETE FROM HocVien WHERE HoTen LIKE 'E2E[_]%' OR GhiChu LIKE 'E2E[_]%';" +
             "DELETE FROM MonHoc WHERE TenMon LIKE 'E2E[_]%';");
     }
 
@@ -52,7 +52,7 @@ public sealed class DuLieuE2E
         db.MonHocs.Add(new MonHocDanhMuc { TenMon = TenMon, LoaiMon = "Chính", NgungDay = false });
 
         HV1 = new HocVien { HoTen = "E2E_HV1_" + Hau, SDT = Sdt() };
-        HV2 = new HocVien { HoTen = "E2E_HV2_" + Hau, SDT = Sdt() };
+        HV2 = new HocVien { HoTen = $"E2E_Học viên thử_{Hau}", SDT = Sdt() };
         HV3 = new HocVien { HoTen = "E2E_HV3_" + Hau, SDT = Sdt() };
         HV4 = new HocVien { HoTen = "E2E_HV4_" + Hau, SDT = Sdt() };
         db.HocViens.AddRange(HV1, HV2, HV3, HV4);

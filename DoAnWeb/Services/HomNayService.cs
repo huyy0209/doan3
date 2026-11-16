@@ -61,11 +61,12 @@ namespace DoAnWeb.Services
             if (!maGS.HasValue) return new HomNayGiaSuDuLieu();
 
             var now = thoiDiem ?? DateTime.Now;
-            var homNay = _hocTap.GetLopTrongNgay(now.Date, maGS: maGS.Value);
+            var lichBayNgay = _hocTap.GetLopTrongKhoangNgay(now.Date.AddDays(-6), now.Date, maGS.Value);
+            var homNay = lichBayNgay[now.Date];
             var chuaDiemDanh = new List<HomNayBuoi>();
-            for (var ngay = now.Date.AddDays(-6); ngay <= now.Date; ngay = ngay.AddDays(1))
+            foreach (var (ngay, buoiTrongNgay) in lichBayNgay)
             {
-                foreach (var buoi in _hocTap.GetLopTrongNgay(ngay, maGS: maGS.Value))
+                foreach (var buoi in buoiTrongNgay)
                 {
                     if (ChuaDiemDanh(buoi) && (ngay < now.Date || DaQuaGio(buoi.CaHoc, now)))
                         chuaDiemDanh.Add(new HomNayBuoi { Ngay = ngay, Buoi = buoi });

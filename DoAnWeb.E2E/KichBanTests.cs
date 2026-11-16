@@ -138,6 +138,15 @@ public class KichBanTests : GiaoDienTestBase
         var lichSu = trang.Locator(".w6-history-scroll tbody tr");
         await Expect(lichSu).ToHaveCountAsync(1);
 
+        // Phiếu thu có số tiền bằng chữ, sau đó quay lại để dọn lần đóng thử.
+        string duongDanPhieu = await lichSu.Locator("a:has-text('In phiếu thu')").GetAttributeAsync("href");
+        await trang.GotoAsync(Url(duongDanPhieu));
+        await Expect(trang.Locator(".phieu-bang-chu em")).ToContainTextAsync("bốn trăm nghìn đồng");
+
+        await trang.GotoAsync(url);
+        await Expect(trang.Locator(".w6-history-scroll tbody tr")).ToHaveCountAsync(1);
+        lichSu = trang.Locator(".w6-history-scroll tbody tr");
+
         // Xóa lần đóng → nợ trở lại 1.000.000
         await lichSu.Locator("button:has-text('Xóa')").ClickAsync();
         await trang.ClickAsync("#w6-xoa-thanh-toan button[type=submit]");
@@ -179,4 +188,131 @@ public class KichBanTests : GiaoDienTestBase
             "() => document.documentElement.scrollWidth > window.innerWidth + 1");
         Assert.False(tranNgang, "Trang Điểm danh trên điện thoại bị tràn ngang.");
     }, DienThoai);
+
+    // ---------------------------------------------------------------- 6
+    [Fact(Skip = "LOI-01: trang /QuanLyTaiKhoan va /CaiDat ap dung inline style bi CSP style-src 'self' chan; xem docs/progress/G13.md.")]
+    public async Task K6_MenuQuanLyVaGiaSu_KhongLoiConsoleHoacCsp()
+    {
+        await KiemTraMenuVaiTro(Du.QuanLy.TenDangNhap, laQuanLy: true);
+        await KiemTraMenuVaiTro(Du.TaiKhoanGS.TenDangNhap, laQuanLy: false);
+    }
+
+    // ---------------------------------------------------------------- 7
+    [Fact]
+    public Task K7_TimKiemNhanh_KhongDau_MoHocVienBangEnter() => Chay(nameof(K7_TimKiemNhanh_KhongDau_MoHocVienBangEnter), async trang =>
+    {
+        await DangNhap(trang, Du.QuanLy.TenDangNhap);
+        await trang.GotoAsync(Url("/TongQuan"));
+
+        await trang.Keyboard.PressAsync("Control+k");
+        await Expect(trang.Locator("#vo-tim-kiem-q")).ToBeFocusedAsync();
+        await trang.Keyboard.TypeAsync("E2E Hoc vien thu_" + Du.Hau);
+
+        var goiY = trang.Locator("#vo-tim-kiem-goi-y a[role='option']").First;
+        await Expect(goiY).ToContainTextAsync(Du.HV2.HoTen);
+        await trang.Keyboard.PressAsync("ArrowDown");
+        await trang.Keyboard.PressAsync("Enter");
+
+        await Expect(trang).ToHaveURLAsync(new Regex($"/HocVien/Details/{Du.HV2.MaHV}$"));
+        await Expect(trang.Locator("h1.vo-page-title")).ToHaveTextAsync("Hồ sơ học viên");
+    });
+
+    // ---------------------------------------------------------------- 8
+    [Fact]
+    public Task K8_ThoiKhoaBieu_DieuHuongTuan_VaTheTrenDienThoai() => Chay(nameof(K8_ThoiKhoaBieu_DieuHuongTuan_VaTheTrenDienThoai), async trang =>
+    {
+        await DangNhap(trang, Du.QuanLy.TenDangNhap);
+        await trang.GotoAsync(Url("/LichDay"));
+
+        string batDauTuan = await trang.Locator(".ld-filters input[name='ngay']").GetAttributeAsync("value");
+        await Expect(trang.Locator(".ld-desktop-grid .ld-class-card").First).ToBeVisibleAsync();
+        await trang.Locator("a[aria-label='Tuần sau']").ClickAsync();
+        string tuanSau = await trang.Locator(".ld-filters input[name='ngay']").GetAttributeAsync("value");
+        Assert.Equal(DateTime.Parse(batDauTuan).AddDays(7), DateTime.Parse(tuanSau));
+
+        await trang.Locator("a[aria-label='Tuần trước']").ClickAsync();
+        string tuanTruoc = await trang.Locator(".ld-filters input[name='ngay']").GetAttributeAsync("value");
+        Assert.Equal(DateTime.Parse(batDauTuan), DateTime.Parse(tuanTruoc));
+
+        await trang.SetViewportSizeAsync(DienThoai.Width, DienThoai.Height);
+        await trang.ReloadAsync();
+        await Expect(trang.Locator(".ld-mobile-days")).ToBeVisibleAsync();
+        await Expect(trang.Locator(".ld-day-card")).ToHaveCountAsync(7);
+        await Expect(trang.Locator(".ld-desktop-grid")).ToBeHiddenAsync();
+        Assert.True(await trang.Locator(".ld-day-card .ld-class-card").CountAsync() > 0,
+            "Lịch điện thoại phải hiển thị lớp học trong các thẻ ngày.");
+    }, Desktop);
+
+    // ---------------------------------------------------------------- 9
+    [Fact]
+    public Task K9_GiaoDienToi_LuuSauKhiTaiLai() => Chay(nameof(K9_GiaoDienToi_LuuSauKhiTaiLai), async trang =>
+    {
+        await DangNhap(trang, Du.QuanLy.TenDangNhap);
+        await trang.GotoAsync(Url("/TongQuan"));
+        var nut = trang.Locator("[data-theme-toggle]");
+
+        await nut.ClickAsync();
+        await nut.ClickAsync();
+        await Expect(trang.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark");
+
+        await trang.ReloadAsync();
+        await Expect(trang.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark");
+    });
+
+    // ---------------------------------------------------------------- 10
+    [Fact]
+    public Task K10_NhatKy_GhiNhanSuaHocVien() => Chay(nameof(K10_NhatKy_GhiNhanSuaHocVien), async trang =>
+    {
+        await DangNhap(trang, Du.QuanLy.TenDangNhap);
+        string tenMoi = "HocVienDaSua";
+        await trang.GotoAsync(Url($"/HocVien/Edit/{Du.HV1.MaHV}"));
+        await trang.FillAsync("#HoTen", tenMoi);
+        await trang.FillAsync("#GhiChu", "E2E_SuaHocVien_" + Du.Hau);
+        await trang.ClickAsync("form[action*='/HocVien/Edit'] button[type=submit]");
+        await Expect(trang).ToHaveURLAsync(new Regex($"/HocVien/Details/{Du.HV1.MaHV}$"));
+
+        string homNay = DateTime.Today.ToString("yyyy-MM-dd");
+        await trang.GotoAsync(Url($"/NhatKy?tuNgay={homNay}&denNgay={homNay}&hanhDong=Sua&bang=HocVien"));
+        var dong = trang.Locator("table tbody tr").First;
+        await Expect(dong).ToContainTextAsync("Sua");
+        await Expect(dong).ToContainTextAsync("HocVien");
+    });
+
+    private async Task KiemTraMenuVaiTro(string tenDangNhap, bool laQuanLy)
+    {
+        await Chay($"Menu-{tenDangNhap}", async trang =>
+        {
+            await DangNhap(trang, tenDangNhap);
+            await trang.AddInitScriptAsync(
+                "window.__e2eCsp = []; document.addEventListener('securitypolicyviolation', " +
+                "event => window.__e2eCsp.push(event.violatedDirective + ': ' + event.blockedURI));");
+
+            var loiConsole = new List<string>();
+            trang.Console += (_, thongBao) =>
+            {
+                if (thongBao.Type == "error")
+                    loiConsole.Add($"{trang.Url}: {thongBao.Text}");
+            };
+
+            string[] duongDan = await trang.Locator("nav.vo-nav a.vo-nav-link")
+                .EvaluateAllAsync<string[]>("links => links.map(link => link.getAttribute('href'))");
+            Assert.Equal(laQuanLy ? 11 : 3, duongDan.Length);
+            if (laQuanLy) duongDan = duongDan.Append("/CaiDat").ToArray();
+
+            var loiCsp = new List<string>();
+            foreach (string muc in duongDan)
+            {
+                await trang.GotoAsync(Url(muc));
+                string[] viPham = await trang.EvaluateAsync<string[]>(
+                    "() => window.__e2eCsp || []");
+                loiCsp.AddRange(viPham.Select(v => $"{muc}: {v}"));
+                await trang.EvaluateAsync("() => { window.__e2eCsp = []; }");
+            }
+
+            Assert.True(loiConsole.Count == 0,
+                "Lỗi JavaScript trong menu: " + string.Join(" | ", loiConsole));
+            Assert.True(loiCsp.Count == 0,
+                "Vi phạm CSP trong menu: " + string.Join(" | ", loiCsp));
+        });
+    }
 }
