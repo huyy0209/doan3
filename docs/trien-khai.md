@@ -7,6 +7,38 @@
 > Chạy thử không cần cài gì: `powershell -ExecutionPolicy Bypass -File scripts\cai-dich-vu-web.ps1 -WhatIf`
 > — chỉ in ra các lệnh sẽ chạy, không thay đổi máy.
 
+## Chạy bằng Docker (tùy chọn)
+
+Docker Compose khởi chạy SQL Server 2022, tạo riêng CSDL `QuanLyGiaSu_Web` từ
+`Database/0*.sql`, rồi chạy web trên cổng `5080`. CSDL của app WinForms
+`QuanLyGiaSu` không được dùng. Endpoint kiểm tra `/suc-khoe` không yêu cầu đăng nhập,
+chỉ trả trạng thái kết nối ngắn gọn (`Healthy`/`Unhealthy`), không trả thông tin kết nối.
+
+Cài Docker Desktop hoặc Docker Engine có Compose v2, mở PowerShell ở thư mục gốc repo:
+
+```powershell
+Copy-Item .env.example .env
+# Sửa MSSQL_SA_PASSWORD trong .env thành mật khẩu riêng đạt yêu cầu của SQL Server.
+docker compose build
+docker compose up -d
+docker compose ps
+Invoke-WebRequest http://localhost:5080/suc-khoe -UseBasicParsing | Select-Object StatusCode, Content
+```
+
+Lần đầu, Compose chờ SQL Server sẵn sàng, chạy một lần dịch vụ `khoi-tao-csdl`, rồi mới
+khởi động `web`. Dữ liệu mẫu tắt mặc định; muốn nạp các script `Database/11`–`16`, đặt
+`NAP_DU_LIEU_MAU=true` trong `.env` trước khi khởi tạo CSDL. Nếu đổi lựa chọn sau khi CSDL
+đã được tạo, script nâng cấp có thể chạy lại nhưng các script dữ liệu mẫu chỉ chèn dữ liệu
+mới theo luật riêng của chúng.
+
+Volume `sql-data` giữ dữ liệu CSDL qua lần dừng/chạy lại; volume `sql-backups` được chia sẻ
+giữa SQL Server và web để tính năng sao lưu/khôi phục có thể đọc các file SQL Server tạo.
+Log web nằm ở `DoAnWeb/logs/`. `docker compose down` giữ dữ liệu; `docker compose down -v`
+xóa cả dữ liệu CSDL và bản sao lưu. Không chia sẻ file `.env` vì nó chứa mật khẩu SA.
+
+Compose healthcheck gọi `/suc-khoe`; trạng thái chỉ `Healthy` khi ứng dụng truy vấn được
+CSDL. Có thể xem log khi khởi động lỗi bằng `docker compose logs -f sql khoi-tao-csdl web`.
+
 ## 1. Cần có trước khi cài
 
 | Thành phần | Ghi chú |
