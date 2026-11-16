@@ -103,7 +103,7 @@ public class NhacNoHttpTests : HttpTestBase
 
     [Fact]
     [Trait("Luat", "NO-07")]
-    public async Task XuatExcel_dung_danh_sach_dang_loc()
+    public async Task XuatExcel_dung_danh_sach_dang_loc_va_co_cot_lan_dong_so_ngay()
     {
         var (hvA, _, monA) = TaoLopConNo();
         var (hvB, _, monB) = TaoLopConNo();
@@ -116,9 +116,38 @@ public class NhacNoHttpTests : HttpTestBase
         byte[] bytes = await r.Content.ReadAsByteArrayAsync();
         using var wb = new XLWorkbook(new MemoryStream(bytes));
         var ws = wb.Worksheet(1);
+
+        var tieuDe = ws.Row(1).CellsUsed().Select(c => c.GetString()).ToList();
+        Assert.Contains("Lần đóng gần nhất", tieuDe);
+        Assert.Contains("Số ngày chưa đóng", tieuDe);
+
         var tenHocVien = ws.CellsUsed().Select(c => c.GetString()).ToList();
         Assert.Contains(hvA.HoTen, tenHocVien);
         Assert.DoesNotContain(hvB.HoTen, tenHocVien);
         Assert.DoesNotContain(monB, tenHocVien);
+
+        // Dòng của học viên A: lần đóng gần nhất = 3 ngày trước, số ngày chưa đóng = 3.
+        int dongA = ws.RowsUsed().First(x => x.CellsUsed().Any(c => c.GetString() == hvA.HoTen)).RowNumber();
+        Assert.Equal(DateTime.Today.AddDays(-3), ws.Cell(dongA, 8).GetDateTime().Date);
+        Assert.Equal(3, ws.Cell(dongA, 9).GetValue<int>());
+    }
+
+    [Fact]
+    [Trait("Luat", "NO-07")]
+    public async Task XuatExcel_hoc_vien_chua_dong_lan_nao_ghi_chu_thich()
+    {
+        var hv = TaoHocVien(TenItg());
+        string mon = "ITG_Mon" + Guid.NewGuid().ToString("N").Substring(0, 6);
+        TaoLop(GS, hv, mon, batDau: DateTime.Today.AddDays(-40), hocPhi: 150000);
+        var ql = await DangNhapQL();
+
+        HttpResponseMessage r = await ql.Client.GetAsync("/NhacNo/XuatExcel?mon=" + Uri.EscapeDataString(mon));
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        using var wb = new XLWorkbook(new MemoryStream(await r.Content.ReadAsByteArrayAsync()));
+        var ws = wb.Worksheet(1);
+        int dong = ws.RowsUsed().First(x => x.CellsUsed().Any(c => c.GetString() == hv.HoTen)).RowNumber();
+        Assert.Equal("Chưa đóng lần nào", ws.Cell(dong, 8).GetString());
+        Assert.Equal(40, ws.Cell(dong, 9).GetValue<int>());
     }
 }

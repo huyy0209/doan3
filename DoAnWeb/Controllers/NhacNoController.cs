@@ -33,12 +33,15 @@ namespace DoAnWeb.Controllers
             return View(TaoModel(conNoToiThieu, quaNgay, mon, trang, soDong, sapXep, chieu));
         }
 
-        /// <summary>Xuất Excel danh sách đang lọc theo đúng số liệu công nợ của trang Học phí.</summary>
+        /// <summary>
+        /// Xuất Excel danh sách đang lọc: dùng hàm riêng <see cref="XuatExcelService.NhacNo"/>
+        /// để có thêm cột "Lần đóng gần nhất" và "Số ngày chưa đóng".
+        /// </summary>
         [HttpGet]
         public IActionResult XuatExcel(decimal? conNoToiThieu, int? quaNgay, string mon)
         {
             var ds = LocTheoBoLoc(conNoToiThieu, quaNgay, mon);
-            return File(_excel.CongNo(ds.Select(c => c.CongNo)),
+            return File(_excel.NhacNo(ds),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"NhacNo_{DateTime.Now:yyyyMMdd}.xlsx");
         }
