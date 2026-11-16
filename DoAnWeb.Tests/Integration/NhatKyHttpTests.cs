@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -114,6 +114,42 @@ public sealed class NhatKyHttpTests : HttpTestBase
     }
 
     [Fact]
+    public async Task Nhat_ky_mac_dinh_chi_hien_30_ngay_gan_nhat()
+    {
+        var homNay = DateTime.Today;
+        Db.NhatKys.AddRange(
+            new NhatKy
+            {
+                ThoiGian = homNay.AddDays(-31),
+                MaTK = QL.MaTK,
+                TenDangNhap = QL.TenDangNhap,
+                HanhDong = "Sua",
+                Bang = "KhoangNgayTest",
+                KhoaChinh = "CU_31_NGAY"
+            },
+            new NhatKy
+            {
+                ThoiGian = homNay,
+                MaTK = QL.MaTK,
+                TenDangNhap = QL.TenDangNhap,
+                HanhDong = "Sua",
+                Bang = "KhoangNgayTest",
+                KhoaChinh = "TRONG_30_NGAY"
+            });
+        Db.SaveChanges();
+
+        var ql = await DangNhapQL();
+        var trang = await ql.Get("/NhatKy?bang=KhoangNgayTest");
+
+        Assert.Equal(HttpStatusCode.OK, trang.Status);
+        Assert.Contains("TRONG_30_NGAY", trang.Chu);
+        Assert.DoesNotContain("CU_31_NGAY", trang.Chu);
+        var vm = new NhatKyService(Db, new HttpContextAccessor()).TaoTrang(null, null, null, null, "KhoangNgayTest", 1, 20);
+        Assert.Equal(homNay.AddDays(-29), vm.TuNgay);
+        Assert.Equal(homNay, vm.DenNgay);
+    }
+
+    [Fact]
     public async Task Dang_nhap_thanh_cong_that_bai_va_xuat_ban_duoc_ghi()
     {
         string sai = TenItg();
@@ -128,4 +164,3 @@ public sealed class NhatKyHttpTests : HttpTestBase
         Assert.Contains(db.NhatKys, n => n.HanhDong == "DangXuat" && n.MaTK == QL.MaTK);
     }
 }
-
