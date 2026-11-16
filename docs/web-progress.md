@@ -110,3 +110,8 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - OpenCode hết hạn mức miễn phí (~13h) giữa G12 → commit WIP 4fc518d, Codex tiếp quản (G12b). Đang làm: G12b (codex), G18 báo cáo tháng (copilot).
 - G18 báo cáo tháng (copilot), G19 chỉ mục + đo hiệu năng (copilot, chỉ QuanLyGiaSu_Web), G12/G12b a11y + sửa CSP LOI-01 (opencode→codex) – đã merge.
   Test 496/496, E2E 11/11 (quét mọi trang menu không lỗi JS/CSP). Đợt G xong: G1–G19.
+
+## Đợt H (2026-11-16)
+- H1 giao diện điện thoại mọi trang (codex), H2 thông báo chuông – bảng ThongBao chỉ ở QuanLyGiaSu_Web (copilot), H3 review vòng 3 – không có mục Cao/TB (codex),
+  H4 Tailscale HTTPS cho điện thoại – script `scripts/mo-truy-cap-tu-xa.ps1`, menu `QuanLyGiaSu.bat tu-xa`, forwarded headers (copilot). Test 502 (+1 skip hiệu năng), E2E 11–12.
+- Test hiệu năng G19 chỉ chạy khi CHAY_HIEU_NANG=1. Tailscale máy này chưa đăng nhập (NoState).
