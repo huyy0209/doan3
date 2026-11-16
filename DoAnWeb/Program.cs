@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Net;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +60,15 @@ builder.Services.AddControllersWithViews(o =>
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+    o.KnownProxies.Add(IPAddress.Loopback);
+    o.KnownProxies.Add(IPAddress.IPv6Loopback);
+    o.ForwardLimit = 1;
+});
 builder.Services.AddResponseCompression(o =>
 {
     o.EnableForHttps = true;
@@ -103,6 +114,8 @@ builder.Services.AddHostedService<NhatKyDonDepNen>();
 builder.Services.AddHostedService<ThongBaoNen>();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Endpoint cho Docker và bộ giám sát; chỉ công khai trạng thái, không trả chi tiết lỗi kết nối.
 app.MapHealthChecks("/suc-khoe", new HealthCheckOptions

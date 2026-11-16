@@ -1,5 +1,8 @@
 using System;
 using System.Net.Http;
+using System.Net;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using DoAnWeb.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -41,7 +44,11 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
         // Máy test chạy runtime .NET 10 còn TestServer là bản 8.0: System.Text.Json 10 đòi PipeWriter.UnflushedBytes
         // mà PipeWriter của TestServer không có → mọi action trả Json() bị 500 (chỉ trong test, không phải lỗi app).
         // Đệm body vào MemoryStream (StreamPipeWriter có UnflushedBytes) ở middleware ngoài cùng.
-        builder.ConfigureServices(s => s.AddTransient<IStartupFilter, DemBodyStartupFilter>());
+        builder.ConfigureServices(s =>
+        {
+            s.AddTransient<IStartupFilter, DemBodyStartupFilter>();
+            s.AddTransient<IStartupFilter, KiemTraForwardedStartupFilter>();
+        });
     }
 
     private sealed class DemBodyStartupFilter : IStartupFilter
@@ -61,6 +68,28 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
                     await dem.CopyToAsync(goc);
                 }
                 finally { ctx.Response.Body = goc; }
+            });
+            next(app);
+        };
+    }
+
+    private sealed class KiemTraForwardedStartupFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+        {
+            app.Use(async (ctx, nextMiddleware) =>
+            {
+                bool laTestForwarded = ctx.Request.Path == "/__test/forwarded-https";
+                bool laTestProxyKhongTin = ctx.Request.Path == "/__test/forwarded-https-untrusted";
+                if (laTestForwarded)
+                    ctx.Connection.RemoteIpAddress = IPAddress.Loopback;
+                else if (laTestProxyKhongTin)
+                    ctx.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.10");
+
+                await nextMiddleware(ctx);
+
+                if (laTestForwarded || laTestProxyKhongTin)
+                    ctx.Response.Headers["X-Test-Request-IsHttps"] = ctx.Request.IsHttps ? "true" : "false";
             });
             next(app);
         };

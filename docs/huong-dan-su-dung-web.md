@@ -192,3 +192,5 @@ Nhấn nút **Giao diện: ...** ở góc trên để chuyển lần lượt gi�
 3. Mở biểu tượng **Quản lý gia sư** trên màn hình chính và đăng nhập như bình thường.
 
 PWA mở giao diện gọn như ứng dụng và có thể hiện trang ngoại tuyến khi mất mạng. Dữ liệu học viên, lớp và thao tác ghi vẫn cần kết nối web; không nhập liệu khi thiết bị đang ngoại tuyến.
+
+Khi truy cập từ xa, hãy kết nối điện thoại và máy chủ vào cùng tailnet Tailscale, rồi mở địa chỉ HTTPS do `QuanLyGiaSu.bat tu-xa` in ra; trên điện thoại chọn **Thêm vào màn hình chính** để cài PWA. Nếu dùng HTTPS, quản lý cần bật `BaoMat:BatBuocHttps` trong cấu hình Production sau khi kiểm tra HTTPS hoạt động, đồng thời đổi mật khẩu mặc định `admin` / `admin123` ngay lần đăng nhập đầu tiên.

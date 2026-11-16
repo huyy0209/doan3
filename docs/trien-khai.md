@@ -45,12 +45,12 @@ CSDL. Có thể xem log khi khởi động lỗi bằng `docker compose logs -f 
 |---|---|
 | Windows 10/11 hoặc Windows Server | Dịch vụ Windows chỉ có trên Windows |
 | .NET SDK 8 trở lên (để `dotnet publish`) | `dotnet --version`. Máy chỉ có runtime ASP.NET Core mới hơn vẫn **chạy** được nhờ `RollForward=Major`, nhưng cài đặt cần SDK |
-| SQL Server (2016+) có CSDL `QuanLyGiaSu` | Chưa có thì chạy `QuanLyGiaSu.bat cai-csdl` trước |
+| SQL Server (2016+) có CSDL `QuanLyGiaSu_Web` | Chưa có thì chạy `QuanLyGiaSu.bat cai-csdl` trước. CSDL này riêng với app WinForms `QuanLyGiaSu`. |
 | Quyền **Administrator** | Cài/gỡ dịch vụ và mở tường lửa đều cần |
 | Tài khoản đăng nhập SQL Server phù hợp | Xem mục 7 |
 
-Cài dịch vụ **không** đổi CSDL, không tạo bảng mới. Dữ liệu vẫn là CSDL `QuanLyGiaSu`
-dùng chung với bản app WinForms.
+Cài dịch vụ **không** đổi CSDL, không tạo bảng mới. Bản web dùng CSDL riêng
+`QuanLyGiaSu_Web`; không dùng CSDL `QuanLyGiaSu` của app WinForms.
 
 ## 2. Cài dịch vụ web
 
@@ -146,6 +146,24 @@ Lưu ý:
 - Một số mạng wifi có tính năng "AP isolation" chặn máy ↔ máy; khi đó dùng cáp LAN
   hoặc mạng nội bộ khác.
 - Kiểm tra nhanh từ máy khác: `Test-NetConnection 192.168.2.4 -Port 5080`.
+
+### Dùng trên điện thoại
+
+**Cách 1 — cùng mạng Wi-Fi:** cài/chạy dịch vụ web trên máy chủ như mục 2, mở cổng LAN bằng
+`QuanLyGiaSu.bat dich-vu -MoTuongLua`, rồi kết nối điện thoại vào cùng Wi-Fi. Trên điện thoại,
+mở `http://<IP-máy-chủ>:5080` (ví dụ `http://192.168.2.4:5080`). Cách này dùng HTTP; chỉ sử dụng
+trên mạng riêng đáng tin cậy, hoặc cấu hình HTTPS ở mục 5 trước khi nhập thông tin đăng nhập.
+
+**Cách 2 — Tailscale HTTPS:** cài Tailscale trên máy chạy web và điện thoại, đăng nhập cả hai vào
+cùng tailnet, rồi đảm bảo bản web đang chạy trên cổng 5080. Chạy `QuanLyGiaSu.bat tu-xa` trên máy
+chạy web; script kiểm tra đăng nhập Tailscale và cổng web, sau đó in địa chỉ HTTPS dạng
+`https://<máy>.<tailnet>.ts.net`. Mở địa chỉ đó trên điện thoại khi Tailscale đang kết nối; trong
+menu trình duyệt chọn **Thêm vào màn hình chính** để cài PWA. Tắt truy cập từ xa bằng
+`QuanLyGiaSu.bat tu-xa -Tat`. Không dùng `tailscale funnel` vì Funnel công khai web ra Internet.
+
+Khi dùng HTTPS, đặt `BaoMat:BatBuocHttps` thành `true` trong cấu hình Production để cookie đăng
+nhập luôn được bảo vệ bằng HTTPS; chỉ bật sau khi đã xác nhận HTTPS hoạt động. Đổi ngay mật khẩu
+mặc định `admin` / `admin123` sau lần đăng nhập đầu tiên.
 
 ## 5. HTTPS cho mạng LAN
 
