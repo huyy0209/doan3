@@ -103,3 +103,5 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - Thêm thành viên Codex (ChatGPT, `--agent codex`), cần `codex login` bằng tài khoản ChatGPT.
 - G1 Nhật ký thao tác (copilot, babc09a) – merge ae553da; bảng NhatKy chỉ ở QuanLyGiaSu_Web. G3 bảo mật/nén/cache (codex gpt-6-luna, 3c3c530) – merge; CSP script/style 'self'. Test 425/425, E2E 5/5.
 - Đang làm: G2 biểu đồ Tổng quan (opencode DeepSeek free), G4 phiếu thu in (codex), G5 giao diện tối + PWA (copilot).
+- G2 biểu đồ (opencode, 73c0eec), G4 phiếu thu in (codex, ced7afd), G5 giao diện tối + PWA (copilot, 5557709) đã merge; sửa service worker clone. Test 440/440, E2E 5/5.
+- Đang làm: G6 nhắc nợ (opencode), G7 review đợt G (codex, chỉ docs), G8 thời khóa biểu tuần (copilot).
