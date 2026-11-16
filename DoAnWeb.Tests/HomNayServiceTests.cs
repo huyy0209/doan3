@@ -11,6 +11,26 @@ namespace DoAnWeb.Tests;
 public class HomNayServiceTests : DbTestBase
 {
     [Fact]
+    public void GetLopTrongKhoangNgay_tra_lich_cua_tat_ca_cac_ngay_trong_mot_lan()
+    {
+        var gs = TaoGiaSu(TenTest(), SdtTest());
+        var homNay = DateTime.Today;
+        var homQua = homNay.AddDays(-1);
+        var lopHomQua = TaoLop(gs, TaoHocVien(TenTest(), SdtTest()), batDau: homNay.AddDays(-10),
+            ketThuc: homNay.AddDays(10), thuHoc: Constants.ThuHoc.Cua(homQua).ToString());
+        var lopHomNay = TaoLop(gs, TaoHocVien(TenTest(), SdtTest()), batDau: homNay.AddDays(-10),
+            ketThuc: homNay.AddDays(10), thuHoc: Constants.ThuHoc.Cua(homNay).ToString());
+
+        var lich = new HocTapService(Db, GiaSu(7002, gs.MaGS))
+            .GetLopTrongKhoangNgay(homNay.AddDays(-6), homNay, gs.MaGS);
+
+        Assert.Equal(7, lich.Count);
+        Assert.Contains(lich[homQua], b => b.MaLop == lopHomQua.MaLop);
+        Assert.Contains(lich[homNay], b => b.MaLop == lopHomNay.MaLop);
+        Assert.DoesNotContain(lich[homQua], b => b.MaLop == lopHomNay.MaLop);
+    }
+
+    [Fact]
     public void QuanLy_ChiHienThiBuoiDaQuaGioVaNoQua30Ngay()
     {
         var gs = TaoGiaSu(TenTest(), SdtTest());
