@@ -105,3 +105,6 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - Đang làm: G2 biểu đồ Tổng quan (opencode DeepSeek free), G4 phiếu thu in (codex), G5 giao diện tối + PWA (copilot).
 - G2 biểu đồ (opencode, 73c0eec), G4 phiếu thu in (codex, ced7afd), G5 giao diện tối + PWA (copilot, 5557709) đã merge; sửa service worker clone. Test 440/440, E2E 5/5.
 - Đang làm: G6 nhắc nợ (opencode), G7 review đợt G (codex, chỉ docs), G8 thời khóa biểu tuần (copilot).
+- G6 nhắc nợ, G8 TKB, G9 tìm kiếm, G10 Hôm nay, G11 nhập Excel, G13 E2E, G14 review vòng 2 (+sửa), G15 hướng dẫn, G16 Docker (+CI), G17 dọn cảnh báo – đã merge. Test 491/491.
+- CI: sửa sed Permission denied (lỗi từ khi tách CSDL). E2E: nới giới hạn đăng nhập.
+- OpenCode hết hạn mức miễn phí (~13h) giữa G12 → commit WIP 4fc518d, Codex tiếp quản (G12b). Đang làm: G12b (codex), G18 báo cáo tháng (copilot).
