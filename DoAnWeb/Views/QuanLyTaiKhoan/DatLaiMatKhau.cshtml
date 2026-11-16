@@ -10,7 +10,7 @@
     <form asp-action="DatLaiMatKhau" asp-route-id="@Model.MaTK" method="post">
         @Html.AntiForgeryToken()
         <input asp-for="MaTK" type="hidden" />
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
         <div class="mb-3">
             <label asp-for="MatKhauMoi" class="form-label"></label>
             <input asp-for="MatKhauMoi" class="form-control" autocomplete="new-password" />

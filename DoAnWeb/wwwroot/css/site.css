@@ -70,26 +70,26 @@
   /* Phấn vàng + bút đỏ */
   --vo-chalk: #F3C44F;
   --vo-chalk-soft: #FCF3D9;
-  --vo-margin: #C4403C;
+  --vo-margin: #B23834;
   --vo-margin-soft: #FBE9E8;
   --vo-danger-action: var(--vo-margin);
   --vo-danger: var(--vo-margin);
   --vo-danger-soft: var(--vo-margin-soft);
 
   /* Trạng thái */
-  --vo-info: #2B6FD6;
+  --vo-info: #1F5BB5;
   --vo-info-soft: #E4EEFB;
-  --vo-success: #23825B;
+  --vo-success: #1B6B4A;
   --vo-success-soft: #E2F3EA;
-  --vo-warning: #B4730F;
+  --vo-warning: #8A5606;
   --vo-warning-soft: #FBF1DC;
-  --vo-neutral: #7F8E88;
+  --vo-neutral: #5D6B65;
   --vo-neutral-soft: #ECF0EE;
 
   /* Chữ */
   --vo-text: #1B2A26;
   --vo-text-muted: #5C6C66;
-  --vo-text-faint: #93A19B;
+  --vo-text-faint: #63726C;
 
   /* Dòng đang chọn trong bảng */
   --vo-row-select: #D8E8FB;
@@ -850,9 +850,33 @@ table.vo-table .vo-cell-actions .btn {
 .form-control:focus,
 .form-select:focus,
 .form-check-input:focus {
-  outline: 0;
   box-shadow: 0 0 0 3px rgba(27, 122, 94, .18);
   border-color: var(--vo-ink);
+}
+
+/* Vòng focus rõ ràng cho bàn phím, tương phản tốt ở cả hai giao diện */
+:focus-visible {
+  outline: 2px solid var(--vo-ink);
+  outline-offset: 2px;
+}
+
+/* Nền sidebar tối nên dùng màu phấn để đủ tương phản */
+.vo-brand:focus-visible,
+.vo-nav-link:focus-visible,
+.vo-user-toggle:focus-visible,
+.vo-foot-link:focus-visible,
+.vo-sidebar .btn-close:focus-visible {
+  outline-color: var(--vo-chalk);
+  outline-offset: 2px;
+}
+
+/* Nút nằm trên nền đậm (nút chính, tab đang chọn) dùng vòng sáng */
+.btn-primary:focus-visible,
+.vo-pager a[aria-current="page"]:focus-visible,
+.ca-o.is-selected:focus-visible,
+.thu-o.is-selected:focus-visible {
+  outline-color: var(--vo-chalk);
+  outline-offset: 2px;
 }
 
 /* Nút chính = xanh mực */
@@ -1500,7 +1524,7 @@ html[data-bs-theme="dark"] .w6-month-cell.is-today .w6-month-date {
   align-items: center;
   justify-content: center;
   padding: 4px 8px;
-  border: 1px solid var(--vo-border);
+  border: 1px solid var(--vo-rule);
   border-radius: 6px;
   color: var(--vo-ink);
   text-decoration: none;

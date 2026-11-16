@@ -101,7 +101,7 @@ else
                 {
                     <div class="table-responsive mt-3">
                         <table class="table vo-table align-middle ht-session-table">
-                            <thead><tr><th>Ngày</th><th>Ca</th><th>Gia sư</th><th>Điểm danh</th><th>Điểm</th><th>Nhận xét</th><th>Học bù / ghi chú</th><th>Thao tác</th></tr></thead>
+                            <thead><tr><th scope="col">Ngày</th><th scope="col">Ca</th><th scope="col">Gia sư</th><th scope="col">Điểm danh</th><th scope="col">Điểm</th><th scope="col">Nhận xét</th><th scope="col">Học bù / ghi chú</th><th scope="col">Thao tác</th></tr></thead>
                             <tbody>
                             @foreach (var session in sessions)
                             {
@@ -128,7 +128,8 @@ else
                                         }
                                         else
                                         {
-                                            <select name="buoi[@i].DiemDanh" class="form-select form-select-sm">
+                                            <select name="buoi[@i].DiemDanh" class="form-select form-select-sm"
+                                                    aria-label="Điểm danh buổi @(b.NgayHoc.ToString("dd/MM/yyyy"))">
                                                 @foreach (var status in Constants.DiemDanh.TatCa)
                                                 {
                                                     <option value="@status" selected="@(session.DiemDanh == status)">@status</option>
@@ -144,7 +145,9 @@ else
                                         }
                                         else
                                         {
-                                            <input name="buoi[@i].DiemText" value="@session.DiemText" inputmode="decimal" class="form-control form-control-sm ht-score-input" />
+                                            <input name="buoi[@i].DiemText" value="@session.DiemText" inputmode="decimal"
+                                                   class="form-control form-control-sm ht-score-input"
+                                                   aria-label="Điểm test buổi @(b.NgayHoc.ToString("dd/MM/yyyy"))" />
                                         }
                                     </td>
                                     <td>
@@ -155,7 +158,9 @@ else
                                         }
                                         else
                                         {
-                                            <input name="buoi[@i].NhanXet" value="@session.NhanXet" maxlength="300" class="form-control form-control-sm ht-comment-input" />
+                                            <input name="buoi[@i].NhanXet" value="@session.NhanXet" maxlength="300"
+                                                   class="form-control form-control-sm ht-comment-input"
+                                                   aria-label="Nhận xét buổi @(b.NgayHoc.ToString("dd/MM/yyyy"))" />
                                         }
                                     </td>
                                     <td class="small">@ghiChu</td>
@@ -166,7 +171,7 @@ else
                                         }
                                         else if (session.LaNangKhieu)
                                         {
-                                            @Html.CheckBox($"buoi[{i}].ThiLenCap", session.ThiLenCap, new { @class = "form-check-input", title = "Thi lên cấp" })
+                                            @Html.CheckBox($"buoi[{i}].ThiLenCap", session.ThiLenCap, new { @class = "form-check-input", title = "Thi lên cấp", aria_label = "Thi lên cấp buổi " + b.NgayHoc.ToString("dd/MM/yyyy") })
                                             <span class="small">Thi lên cấp</span>
                                         }
                                         else

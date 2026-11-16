@@ -23,7 +23,7 @@
         <p>Ngày lập: @DateTime.Today.ToString("dd/MM/yyyy")</p>
     </header>
     <table class="table bang-ke-bang">
-        <thead><tr><th>STT</th><th>Ngày đóng</th><th>Số phiếu</th><th>Hình thức</th><th class="text-end">Số tiền</th></tr></thead>
+        <thead><tr><th scope="col">STT</th><th scope="col">Ngày đóng</th><th scope="col">Số phiếu</th><th scope="col">Hình thức</th><th scope="col" class="text-end">Số tiền</th></tr></thead>
         <tbody>
         @for (int i = 0; i < lichSu.Count; i++)
         {

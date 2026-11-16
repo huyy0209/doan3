@@ -28,7 +28,7 @@
 
     @if (batBuoc)
     {
-        <div class="alert alert-warning">
+        <div class="alert alert-warning" role="alert">
             Tài khoản @(string.IsNullOrWhiteSpace(tenDangNhap) ? "" : tenDangNhap + " ")
             đang dùng mật khẩu mặc định mà ai cũng biết.
             Đặt mật khẩu riêng để tiếp tục sử dụng ứng dụng.
@@ -43,7 +43,7 @@
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="BatBuoc" />
 
-        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2" role="alert"></div>
 
         @if (!batBuoc)
         {

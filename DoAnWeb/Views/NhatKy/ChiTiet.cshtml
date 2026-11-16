@@ -15,11 +15,11 @@
     {
         <div class="table-responsive">
             <table class="table table-bordered">
-                <thead><tr><th>Cột</th><th>Giá trị cũ</th><th>Giá trị mới</th></tr></thead>
+                <thead><tr><th scope="col">Cột</th><th scope="col">Giá trị cũ</th><th scope="col">Giá trị mới</th></tr></thead>
                 <tbody>
                 @foreach (var truong in Model.CacTruong)
                 {
-                    <tr><th>@truong.Ten</th><td>@(truong.Cu ?? "—")</td><td>@(truong.Moi ?? "—")</td></tr>
+                    <tr><th scope="row">@truong.Ten</th><td>@(truong.Cu ?? "—")</td><td>@(truong.Moi ?? "—")</td></tr>
                 }
                 </tbody>
             </table>

@@ -73,12 +73,12 @@
 }
 
 .hn-status.is-done {
-    color: #15803d;
+    color: var(--vo-success);
 }
 
 .hn-status.is-pending,
 .hn-debt {
-    color: #b91c1c;
+    color: var(--vo-margin);
 }
 
 .hn-tutor-summary {
