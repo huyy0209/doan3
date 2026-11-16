@@ -49,6 +49,8 @@ public sealed class MayChuWeb : IDisposable
         psi.Environment["ASPNETCORE_URLS"] = diaChi;
         psi.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
         psi.Environment["ConnectionStrings__QuanLyGiaSu"] = chuoiKetNoi;
+        // Kịch bản E2E đăng nhập nhiều lần liên tiếp: nới giới hạn đăng nhập sai (G3) để không bị 429 giữa chừng
+        psi.Environment["BaoMat__GioiHanDangNhap__SoLan"] = "1000";
 
         var tienTrinh = Process.Start(psi)!;
         var may = new MayChuWeb(tienTrinh, diaChi);
