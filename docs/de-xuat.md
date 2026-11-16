@@ -17,7 +17,7 @@
 | 3 | Đã làm | Giao diện điện thoại, sidebar thu gọn và điểm danh dạng thẻ | D1 |
 | 4 | Đã làm | Xuất Excel cho công nợ, lớp học, kết quả học tập | D2 |
 | 5 | Đã làm | Log hệ thống và trang lỗi tiếng Việt | C2 |
-| 6 | Đã làm một phần | Sao lưu CSDL web theo yêu cầu và tự động; khôi phục phải làm ngoài web | E6 |
+| 6 | Đã làm | Sao lưu CSDL web theo yêu cầu, tự động và khôi phục ngay trong web | E6 |
 | 7 | Đã làm một phần | Dịch vụ Windows và hướng dẫn LAN/HTTPS; IIS chưa có hướng dẫn | E7 |
 | 8 | Đã làm | Bộ kiểm thử giao diện Playwright | E8 |
 | 9 | Đã làm | CI GitHub Actions cho build, test và E2E | C1 |

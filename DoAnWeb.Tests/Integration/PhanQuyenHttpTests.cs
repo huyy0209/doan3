@@ -140,12 +140,13 @@ public class PhanQuyenHttpTests : HttpTestBase
     {
         var gs = await DangNhapGS();
         Assert.True((await gs.Get("/SaoLuu")).BiChan);
+        Assert.True((await gs.Get("/SaoLuu/KhoiPhuc?tenTep=QuanLyGiaSu_20261115_230000.bak")).BiChan);
 
         var ql = await DangNhapQL();
         var trang = await ql.Get("/SaoLuu");
         Assert.Equal(HttpStatusCode.OK, trang.Status);
         Assert.Contains("Sao lưu ngay", trang.Chu);
-        Assert.Contains("Không khôi phục từ trang web", trang.Chu);
+        Assert.Contains("Các file sao lưu", trang.Chu);
     }
 
     [Fact]
