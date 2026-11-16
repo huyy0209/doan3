@@ -1,0 +1,75 @@
+@model DoAnWeb.ViewModels.NhapExcelVM.NhapExcelVM
+@{
+    ViewData["Title"] = "Nhập học viên / gia sư từ Excel";
+    ViewData["PageSub"] = "Xem trước và kiểm tra dữ liệu trước khi nhập";
+}
+
+<div class="card p-3 mb-3">
+    <h2 class="h5">Tải tệp Excel lên</h2>
+    <p class="text-muted">Chỉ nhận .xlsx, tối đa 2 MB và 1000 dòng. Tải mẫu để xem đúng tên cột.</p>
+    <form asp-action="XemTruoc" method="post" enctype="multipart/form-data" class="row g-3">
+        @Html.AntiForgeryToken()
+        @{
+            var loiForm = ViewData.ModelState.Values.SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage).Where(e => !string.IsNullOrWhiteSpace(e)).ToList();
+        }
+        @if (loiForm.Count > 0)
+        {
+            <ul class="text-danger" role="alert">
+                @foreach (var loi in loiForm) { <li>@loi</li> }
+            </ul>
+        }
+        <div class="col-md-4">
+            <label for="loaiHoSo" class="form-label">Loại hồ sơ</label>
+            <select id="loaiHoSo" name="loaiHoSo" class="form-select">
+                <option value="HocVien" selected="@(Model.LoaiHoSo == "HocVien")">Học viên</option>
+                <option value="GiaSu" selected="@(Model.LoaiHoSo == "GiaSu")">Gia sư</option>
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label for="tep" class="form-label">Tệp .xlsx</label>
+            <input id="tep" name="tep" type="file" accept=".xlsx" class="form-control" required />
+        </div>
+        <div class="col-md-3 d-flex align-items-end gap-2">
+            <button class="btn btn-primary" type="submit">Xem trước</button>
+            <a id="tai-mau" class="btn btn-outline-secondary" asp-action="TaiMau" asp-route-loai="@Model.LoaiHoSo">Tải mẫu</a>
+        </div>
+    </form>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.MaPhien))
+{
+    <section class="card p-3" aria-labelledby="ket-qua-xem-truoc">
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+            <div>
+                <h2 id="ket-qua-xem-truoc" class="h5 mb-1">Kết quả xem trước</h2>
+                <span>@Model.SoHopLe / @Model.TongSo dòng hợp lệ</span>
+            </div>
+            <form asp-action="Nhap" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="maPhien" value="@Model.MaPhien" />
+                <button class="btn btn-success" type="submit" disabled="@(Model.SoHopLe == 0)">Nhập các dòng hợp lệ</button>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+                <thead><tr><th>Dòng</th><th>Dữ liệu chính</th><th>Trạng thái</th><th>Lý do</th></tr></thead>
+                <tbody>
+                @foreach (var dong in Model.Dong)
+                {
+                    <tr>
+                        <td>@dong.SoDong</td>
+                        <td>@dong.TomTat</td>
+                        <td><span class="badge @(dong.HopLe ? "text-bg-success" : "text-bg-danger")">@(dong.HopLe ? "Hợp lệ" : "Lỗi")</span></td>
+                        <td>@(dong.HopLe ? "—" : string.Join(" ", dong.Loi))</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script src="~/js/nhap-excel.js" asp-append-version="true"></script>
+}
