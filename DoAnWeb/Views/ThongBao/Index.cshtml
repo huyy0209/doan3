@@ -1,0 +1,44 @@
+@model DoAnWeb.Services.ThongBaoDanhSachViewModel
+@using DoAnWeb.Infrastructure
+@{
+    ViewData["Title"] = "Thông báo";
+    var trang = Model.KetQua;
+}
+
+<section class="vo-card thong-bao-trang">
+    <div class="thong-bao-trang-dau">
+        <div>
+            <h2>Thông báo</h2>
+            <p>@Model.ChuaDoc thông báo chưa đọc</p>
+        </div>
+        @if (Model.ChuaDoc > 0)
+        {
+            <form method="post" action="/ThongBao/DanhDauTatCaDaDoc">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary">Đánh dấu tất cả đã đọc</button>
+            </form>
+        }
+    </div>
+
+    @if (trang.Items.Count == 0)
+    {
+        <p class="thong-bao-rong">Chưa có thông báo.</p>
+    }
+    else
+    {
+        <div class="thong-bao-danh-sach">
+            @foreach (var item in trang.Items)
+            {
+                <form method="post" action="/ThongBao/Doc/@item.MaTB" class="thong-bao-dong">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="thong-bao-noi-dung @(item.DaDoc ? "da-doc" : "chua-doc")">
+                        <span class="thong-bao-tieu-de">@item.TieuDe</span>
+                        <span class="thong-bao-tom-tat">@item.NoiDung</span>
+                        <time datetime="@item.ThoiGian.ToString("O")">@item.ThoiGian.ToString("dd/MM/yyyy HH:mm")</time>
+                    </button>
+                </form>
+            }
+        </div>
+        <partial name="_PhanTrang" model="(IThongTinTrang)trang" />
+    }
+</section>

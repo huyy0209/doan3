@@ -59,6 +59,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/g3.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/tim-kiem.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/thong-bao.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="vo-body">
@@ -174,7 +175,10 @@
                         aria-label="Đổi giao diện" title="Đổi giao diện">
                     Giao diện: Tự động
                 </button>
-                @* W6 gắn badge thông báo lớp sắp bắt đầu vào đây *@
+                @if (daDangNhap)
+                {
+                    @await Component.InvokeAsync("ThongBao")
+                }
                 <span id="vo-badge-thongbao"></span>
             </div>
         </header>

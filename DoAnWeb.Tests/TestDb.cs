@@ -133,6 +133,19 @@ public static class TestDb
                     cmd.CommandTimeout = 300;
                     cmd.ExecuteNonQuery();
                 }
+
+                using (var cmd = new SqlCommand(
+                           $"USE [{TenCsdl}]; " +
+                           "IF OBJECT_ID(N'dbo.ThongBao', N'U') IS NULL " +
+                           "BEGIN " +
+                           "CREATE TABLE dbo.ThongBao (MaTB int IDENTITY(1,1) NOT NULL CONSTRAINT PK_ThongBao PRIMARY KEY, " +
+                           "MaTK int NOT NULL, TieuDe nvarchar(200) NOT NULL, NoiDung nvarchar(1000) NOT NULL, " +
+                           "DuongDan nvarchar(300) NULL, DaDoc bit NOT NULL CONSTRAINT DF_ThongBao_DaDoc DEFAULT (0), " +
+                           "ThoiGian datetime2 NOT NULL CONSTRAINT DF_ThongBao_ThoiGian DEFAULT (SYSDATETIME()), " +
+                           "CONSTRAINT FK_ThongBao_TaiKhoan FOREIGN KEY (MaTK) REFERENCES dbo.TaiKhoan(MaTK)); " +
+                           "CREATE INDEX IX_ThongBao_MaTK_DaDoc_ThoiGian ON dbo.ThongBao(MaTK, DaDoc, ThoiGian DESC); " +
+                           "END; USE [master];", conn))
+                    cmd.ExecuteNonQuery();
             }
             finally
             {
@@ -217,6 +230,7 @@ public static class TestDb
     public static void DonDep(QuanLyGiaSuContext db)
     {
         db.Database.ExecuteSqlRaw(
+            "DELETE FROM ThongBao WHERE MaTK IN (SELECT MaTK FROM TaiKhoan WHERE TenDangNhap LIKE 'TEST_%');" +
             "DELETE FROM BuoiHoc WHERE MaLop IN (SELECT MaLop FROM LopHoc WHERE MonHoc LIKE 'TEST_%' OR TenLop LIKE 'TEST_%');" +
             "DELETE FROM ThanhToan WHERE MaLop IN (SELECT MaLop FROM LopHoc WHERE MonHoc LIKE 'TEST_%' OR TenLop LIKE 'TEST_%');" +
             "DELETE FROM LopHoc WHERE MonHoc LIKE 'TEST_%' OR TenLop LIKE 'TEST_%';" +

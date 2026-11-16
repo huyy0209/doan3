@@ -31,7 +31,7 @@ if errorlevel 1 (
 echo Server: %SERVER%   CSDL: %CSDL%
 echo.
 echo [1/2] Tao CSDL va nang cap cau truc...
-for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8 09_NhatKy 10_ChiMuc_Web) do (
+for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8 09_NhatKy 10_ChiMuc_Web 11_ThongBao) do (
     echo     - %%f.sql
     call :chay "%%f"
     if errorlevel 1 goto loi

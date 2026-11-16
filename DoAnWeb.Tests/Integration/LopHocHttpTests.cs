@@ -62,6 +62,8 @@ public class LopHocHttpTests : HttpTestBase
         Assert.Equal(1500000m, lop.HocPhi);
         Assert.Equal(Constants.CaHoc.Sang, lop.CaHoc);
         Assert.Equal(Constants.LopHocStatus.ChuaBatDau, lop.TrangThai);
+        var thongBao = db.ThongBaos.Single(n => n.MaTK == TKGS.MaTK && n.DuongDan == $"/LopHoc/Details/{lop.MaLop}");
+        Assert.Contains("ghép", thongBao.NoiDung, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(DateTime.Today.AddDays(1).AddHours(7), lop.ThoiGianBatDau);   // LH-09: giờ đầu ca
         Assert.Equal(DateTime.Today.AddDays(8).AddHours(9), lop.ThoiGianKetThuc);   // LH-09: giờ cuối ca
         Assert.False(string.IsNullOrWhiteSpace(lop.TenLop));                         // LH-07: tự gợi ý tên
@@ -142,6 +144,7 @@ public class LopHocHttpTests : HttpTestBase
         Assert.Equal(DateTime.Today.AddDays(15).AddHours(9), lop.ThoiGianKetThuc);                    // giữ giờ cuối ca
         Assert.Equal(Constants.GiaSuStatus.Ban, db.GiaSus.Single(g => g.MaGS == GSKhac.MaGS).TrangThai);  // LH-21: đồng bộ GS mới
         Assert.Equal(Constants.GiaSuStatus.Ranh, db.GiaSus.Single(g => g.MaGS == GS.MaGS).TrangThai);     // và GS cũ
+        Assert.Contains(db.ThongBaos, n => n.MaTK == TKGS.MaTK && n.TieuDe == "Lịch lớp học đã thay đổi");
     }
 
     [Fact]
@@ -178,6 +181,7 @@ public class LopHocHttpTests : HttpTestBase
         {
             Assert.Equal(Constants.LopHocStatus.DaHuy, db.LopHocs.Single(l => l.MaLop == maLop).TrangThai);
             Assert.Equal(Constants.GiaSuStatus.Ranh, db.GiaSus.Single(g => g.MaGS == GS.MaGS).TrangThai);
+            Assert.Contains(db.ThongBaos, n => n.MaTK == TKGS.MaTK && n.TieuDe == "Lớp học đã bị hủy");
         }
 
         // Hủy lần hai: bị chặn, hiện lỗi

@@ -25,11 +25,13 @@ namespace DoAnWeb.Services
     {
         private readonly QuanLyGiaSuContext _db;
         private readonly INguoiDungHienTai _nguoiDung;
+        private readonly ThongBaoService _thongBao;
 
-        public LopHocService(QuanLyGiaSuContext db, INguoiDungHienTai nguoiDung)
+        public LopHocService(QuanLyGiaSuContext db, INguoiDungHienTai nguoiDung, ThongBaoService thongBao = null)
         {
             _db = db;
             _nguoiDung = nguoiDung;
+            _thongBao = thongBao;
         }
 
         /// <summary>Lớp kèm gia sư + học viên trong một truy vấn (LopHocRepository.cs:22-25)</summary>
@@ -200,6 +202,9 @@ namespace DoAnWeb.Services
 
                     // 6. Đồng bộ trạng thái gia sư
                     GiaSuService.DongBoTrangThai(_db, y.MaGS);
+                    _thongBao?.TaoChoGiaSu(y.MaGS, "Được ghép lớp mới",
+                        $"Bạn đã được ghép vào lớp {lopHoc.TenHienThi}.",
+                        $"/LopHoc/Details/{lopHoc.MaLop}");
                     _db.SaveChanges();
 
                     tx.Commit();
@@ -210,6 +215,7 @@ namespace DoAnWeb.Services
                     throw;
                 }
             }
+            _thongBao?.LamMoiMenuGiaSu(y.MaGS);
 
             return lopHoc;
         }
@@ -341,6 +347,17 @@ namespace DoAnWeb.Services
 
                     foreach (int ma in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
                         GiaSuService.DongBoTrangThai(_db, ma);
+                    if (doiLich)
+                    {
+                        foreach (int maGS in new[] { gsCu, (int?)y.MaGS }.Where(x => x.HasValue).Select(x => x.Value).Distinct())
+                        {
+                            string noiDung = maGS == y.MaGS
+                                ? $"Lịch lớp {lop.TenHienThi} đã được quản lý cập nhật."
+                                : $"Lịch lớp {lop.TenHienThi} đã thay đổi gia sư hoặc lịch dạy.";
+                            _thongBao?.TaoChoGiaSu(maGS, "Lịch lớp học đã thay đổi", noiDung,
+                                $"/LopHoc/Details/{lop.MaLop}");
+                        }
+                    }
                     _db.SaveChanges();
 
                     tx.Commit();
@@ -350,6 +367,12 @@ namespace DoAnWeb.Services
                     tx.Rollback();
                     throw;
                 }
+            }
+            if (doiLich)
+            {
+                _thongBao?.LamMoiMenuGiaSu(gsCu);
+                if (y.MaGS != gsCu)
+                    _thongBao?.LamMoiMenuGiaSu(y.MaGS);
             }
             return lop;
         }
@@ -583,6 +606,9 @@ namespace DoAnWeb.Services
                     if (lopHoc.MaGS.HasValue)
                     {
                         GiaSuService.DongBoTrangThai(_db, lopHoc.MaGS.Value);
+                        _thongBao?.TaoChoGiaSu(lopHoc.MaGS, "Lớp học đã bị hủy",
+                            $"Lớp {lopHoc.TenHienThi} đã bị quản lý hủy.",
+                            $"/LopHoc/Details/{lopHoc.MaLop}");
                         _db.SaveChanges();
                     }
 
@@ -594,6 +620,7 @@ namespace DoAnWeb.Services
                     throw;
                 }
             }
+            _thongBao?.LamMoiMenuGiaSu(lopHoc.MaGS);
         }
 
         /// <summary>

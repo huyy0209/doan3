@@ -100,6 +100,7 @@ builder.Services.AddScoped<NhacNoService>();
 builder.Services.AddHostedService<CapNhatTrangThaiNen>();
 builder.Services.AddHostedService<TuSaoLuuNen>();
 builder.Services.AddHostedService<NhatKyDonDepNen>();
+builder.Services.AddHostedService<ThongBaoNen>();
 
 var app = builder.Build();
 

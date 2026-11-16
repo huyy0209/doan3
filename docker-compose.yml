@@ -45,8 +45,9 @@ services:
         };
         for tep in /Database/0*.sql; do ten=$$(basename "$$tep" .sql); echo "Chạy $$ten.sql"; chay_sql "$$ten"; done;
         echo "Chạy 10_ChiMuc_Web.sql"; chay_sql 10_ChiMuc_Web;
+        echo "Chạy 11_ThongBao.sql"; chay_sql 11_ThongBao;
         if [ "$${NAP_DU_LIEU_MAU,,}" = "true" ]; then
-          for tep in /Database/1[1-6]_*.sql; do ten=$$(basename "$$tep" .sql); echo "Nạp dữ liệu mẫu $$ten.sql"; chay_sql "$$ten"; done;
+          for tep in /Database/11_DuLieuMau_*.sql /Database/1[2-6]_*.sql; do ten=$$(basename "$$tep" .sql); echo "Nạp dữ liệu mẫu $$ten.sql"; chay_sql "$$ten"; done;
         fi;
         echo "Đã khởi tạo QuanLyGiaSu_Web."
     restart: "no"
