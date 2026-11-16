@@ -44,6 +44,7 @@ services:
           "$$SQLCMD" -S sql -U sa -P "$$MSSQL_SA_PASSWORD" -C -I -b -f 65001 -i "/tmp/doanweb-sql/$$1.sql";
         };
         for tep in /Database/0*.sql; do ten=$$(basename "$$tep" .sql); echo "Chạy $$ten.sql"; chay_sql "$$ten"; done;
+        echo "Chạy 10_ChiMuc_Web.sql"; chay_sql 10_ChiMuc_Web;
         if [ "$${NAP_DU_LIEU_MAU,,}" = "true" ]; then
           for tep in /Database/1[1-6]_*.sql; do ten=$$(basename "$$tep" .sql); echo "Nạp dữ liệu mẫu $$ten.sql"; chay_sql "$$ten"; done;
         fi;

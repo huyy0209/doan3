@@ -147,7 +147,7 @@ public class DangNhapTests : DbTestBase
     public void DamBaoTaiKhoanMacDinh_BangRong_TaoAdmin()
     {
         using var tx = Db.Database.BeginTransaction();
-        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        Db.Database.ExecuteSqlRaw("DELETE FROM NhatKy; DELETE FROM TaiKhoan;");
 
         var dv = TaoDichVu();
         Assert.True(dv.DamBaoTaiKhoanMacDinh());
@@ -172,7 +172,7 @@ public class DangNhapTests : DbTestBase
     public void DangNhap_AdminMacDinhDuyNhat_HienGoiY()
     {
         using var tx = Db.Database.BeginTransaction();
-        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        Db.Database.ExecuteSqlRaw("DELETE FROM NhatKy; DELETE FROM TaiKhoan;");
         TaoTaiKhoan(TaiKhoanService.AdminMacDinh, TaiKhoanService.MatKhauMacDinh);
 
         Assert.True(((DangNhapVM)TaoController().Model).LanDau);
@@ -185,7 +185,7 @@ public class DangNhapTests : DbTestBase
     public void DangNhap_NhieuTaiKhoan_KhongHienGoiY()
     {
         using var tx = Db.Database.BeginTransaction();
-        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        Db.Database.ExecuteSqlRaw("DELETE FROM NhatKy; DELETE FROM TaiKhoan;");
         TaoTaiKhoan(TaiKhoanService.AdminMacDinh, TaiKhoanService.MatKhauMacDinh);
         TaoTaiKhoan("other", Mk);
 
@@ -199,7 +199,7 @@ public class DangNhapTests : DbTestBase
     public void DangNhap_AdminDaDoiMatKhau_KhongHienGoiY()
     {
         using var tx = Db.Database.BeginTransaction();
-        Db.Database.ExecuteSqlRaw("DELETE FROM TaiKhoan");
+        Db.Database.ExecuteSqlRaw("DELETE FROM NhatKy; DELETE FROM TaiKhoan;");
         TaoTaiKhoan(TaiKhoanService.AdminMacDinh, Mk);
 
         Assert.False(((DangNhapVM)TaoController().Model).LanDau);
