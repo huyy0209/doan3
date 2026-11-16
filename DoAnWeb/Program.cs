@@ -14,8 +14,12 @@ builder.Host.UseWindowsService();
 DoAnWeb.Infrastructure.CauHinhLog.ThemCauHinhLog(builder);
 
 // ---------- CSDL: dùng nguyên CSDL QuanLyGiaSu của bản WinForms (không migration) ----------
-builder.Services.AddDbContext<QuanLyGiaSuContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu")));
+builder.Services.AddScoped<NhatKySaveChangesInterceptor>();
+builder.Services.AddDbContext<QuanLyGiaSuContext>((services, o) =>
+{
+    o.UseSqlServer(builder.Configuration.GetConnectionString("QuanLyGiaSu"));
+    o.AddInterceptors(services.GetRequiredService<NhatKySaveChangesInterceptor>());
+});
 
 // ---------- Đăng nhập bằng cookie, đọc bảng TaiKhoan ----------
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -51,6 +55,8 @@ builder.Services.AddHttpContextAccessor();
 
 // ---------- Service nghiệp vụ (scoped: mỗi request một DbContext) ----------
 builder.Services.AddScoped<INguoiDungHienTai, NguoiDungHttp>();
+builder.Services.AddScoped<NhatKyService>();
+builder.Services.AddScoped<NhatKyExcelService>();
 builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
@@ -60,6 +66,7 @@ builder.Services.AddScoped<SaoLuuService>();
 builder.Services.AddDichVuPhu();
 builder.Services.AddHostedService<CapNhatTrangThaiNen>();
 builder.Services.AddHostedService<TuSaoLuuNen>();
+builder.Services.AddHostedService<NhatKyDonDepNen>();
 
 var app = builder.Build();
 

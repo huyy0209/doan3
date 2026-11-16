@@ -56,6 +56,7 @@ public abstract class HttpTestBase : IDisposable
     public static void DonDepItg(QuanLyGiaSuContext db)
     {
         db.Database.ExecuteSqlRaw(
+            "DELETE FROM NhatKy WHERE MaTK IN (SELECT MaTK FROM TaiKhoan WHERE TenDangNhap LIKE 'itg[_]%') OR TenDangNhap LIKE 'itg[_]%';" +
             "DELETE FROM BuoiHoc WHERE MaLop IN (SELECT MaLop FROM LopHoc WHERE MonHoc LIKE 'ITG[_]%' OR TenLop LIKE 'ITG[_]%' OR MaGS IN (SELECT MaGS FROM GiaSu WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %') OR MaHV IN (SELECT MaHV FROM HocVien WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %'));" +
             "DELETE FROM ThanhToan WHERE MaLop IN (SELECT MaLop FROM LopHoc WHERE MonHoc LIKE 'ITG[_]%' OR TenLop LIKE 'ITG[_]%' OR MaGS IN (SELECT MaGS FROM GiaSu WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %') OR MaHV IN (SELECT MaHV FROM HocVien WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %'));" +
             "DELETE FROM LopHoc WHERE MonHoc LIKE 'ITG[_]%' OR TenLop LIKE 'ITG[_]%' OR MaGS IN (SELECT MaGS FROM GiaSu WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %') OR MaHV IN (SELECT MaHV FROM HocVien WHERE HoTen LIKE 'ITG[_]%' OR HoTen LIKE 'Itg %');" +

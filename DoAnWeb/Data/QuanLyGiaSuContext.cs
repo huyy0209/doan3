@@ -24,6 +24,8 @@ public partial class QuanLyGiaSuContext : DbContext
 
     public virtual DbSet<MonHocDanhMuc> MonHocs { get; set; }
 
+    public virtual DbSet<NhatKy> NhatKys { get; set; }
+
     public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
 
     public virtual DbSet<ThanhToan> ThanhToans { get; set; }
@@ -169,6 +171,23 @@ public partial class QuanLyGiaSuContext : DbContext
             entity.Property(e => e.TenMon)
                 .IsRequired()
                 .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<NhatKy>(entity =>
+        {
+            entity.ToTable("NhatKy");
+            entity.HasKey(e => e.MaNK);
+            entity.Property(e => e.ThoiGian).HasDefaultValueSql("(sysdatetime())").HasColumnType("datetime2");
+            entity.Property(e => e.TenDangNhap).HasMaxLength(50);
+            entity.Property(e => e.HanhDong).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Bang).HasMaxLength(50);
+            entity.Property(e => e.KhoaChinh).HasMaxLength(100);
+            entity.Property(e => e.ChiTiet).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.DiaChiIP).HasMaxLength(45);
+            entity.HasIndex(e => e.ThoiGian).HasDatabaseName("IX_NhatKy_ThoiGian");
+            entity.HasIndex(e => new { e.Bang, e.KhoaChinh }).HasDatabaseName("IX_NhatKy_Bang_KhoaChinh");
+            entity.HasOne(e => e.TaiKhoan).WithMany()
+                .HasForeignKey(e => e.MaTK).HasConstraintName("FK_NhatKy_TaiKhoan");
         });
 
         modelBuilder.Entity<TaiKhoan>(entity =>
