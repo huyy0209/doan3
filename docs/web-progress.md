@@ -115,3 +115,10 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - H1 giao diện điện thoại mọi trang (codex), H2 thông báo chuông – bảng ThongBao chỉ ở QuanLyGiaSu_Web (copilot), H3 review vòng 3 – không có mục Cao/TB (codex),
   H4 Tailscale HTTPS cho điện thoại – script `scripts/mo-truy-cap-tu-xa.ps1`, menu `QuanLyGiaSu.bat tu-xa`, forwarded headers (copilot). Test 502 (+1 skip hiệu năng), E2E 11–12.
 - Test hiệu năng G19 chỉ chạy khi CHAY_HIEU_NANG=1. Tailscale máy này chưa đăng nhập (NoState).
+
+## Đợt I (2026-11-16)
+- Phiên coordinator mới chạy ở worktree `phiên-3` trên nhánh `web` (`ban-web` để detached cùng commit). Run Orca: `run_330549674d5a`.
+- Kiểm token: copilot, codex, claude dùng được; opencode không phản hồi; zai, gemini, antigravity (mở lại ~21-22/11), muse hết/lỗi; dsh, qwen thiếu key.
+- Bỏ ý sửa doanh thu (code-review MED-03): web đã tính theo `ThanhToans`.
+- Đang làm: I1 khôi phục CSDL từ web (codex, ctx_8e5d20138fb6, web-i1), I2 hướng dẫn + script IIS (copilot, ctx_77d8925f0c92, web-i2).
+- Sau khi I1, I2 merge: I3 review vòng 4 (codex) cho I1.
