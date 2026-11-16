@@ -1,0 +1,127 @@
+@model DoAnWeb.ViewModels.NhacNo.NhacNoIndexViewModel
+@using System.Globalization
+@using DoAnWeb.Infrastructure
+@using DoAnWeb.Services
+@{
+    ViewData["Title"] = "Nhắc nợ";
+    ViewData["PageSub"] = "Học viên còn nợ học phí, kèm lần đóng gần nhất để nhắc phụ huynh.";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    var phanTrang = (IThongTinTrang)ViewBag.PhanTrang;
+    string SortUrl(string key) => Url.Action("Index", PhanTrang.TaoThamSoSapXep(phanTrang, key));
+    string SortIndicator(string key) => PhanTrang.BieuTuongSapXep(phanTrang, key);
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+    if (string.IsNullOrWhiteSpace(tenTrungTam)) { tenTrungTam = "Quản lý gia sư"; }
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+}
+
+<div class="w6-dashboard">
+    <section class="w6-stat-grid w6-stat-grid-3">
+        <div class="vo-stat w6-stat-card"><span>Số lớp còn nợ</span><strong>@Model.TongSoLop lớp</strong></div>
+        <div class="vo-stat w6-stat-card"><span>Tổng còn nợ</span><strong>@Model.TongConNo.ToString("N0", vi) đ</strong></div>
+        <div class="vo-stat w6-stat-card"><span>Đang hiển thị</span><strong>@phanTrang.TuDong–@phanTrang.DenDong</strong></div>
+    </section>
+
+    <section class="vo-card w6-panel">
+        <div class="w6-panel-heading">
+            <div><h2>Danh sách nhắc nợ</h2><span>@phanTrang.TongSo lớp phù hợp</span></div>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-outline-ink"
+                   asp-action="XuatExcel"
+                   asp-route-conNoToiThieu="@Model.ConNoToiThieu"
+                   asp-route-quaNgay="@Model.QuaNgay"
+                   asp-route-mon="@Model.Mon">
+                    <partial name="_Icon" model='"download"' /> Xuất Excel
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="vo-toolbar w6-filter-form">
+            <input type="number" name="conNoToiThieu" value="@(Model.ConNoToiThieu?.ToString("0"))"
+                   class="form-control" min="0" step="1000" inputmode="numeric"
+                   placeholder="Còn nợ tối thiểu (đ)" aria-label="Còn nợ tối thiểu" />
+            <input type="number" name="quaNgay" value="@Model.QuaNgay"
+                   class="form-control" min="0" step="1" inputmode="numeric"
+                   placeholder="Quá N ngày chưa đóng" aria-label="Quá N ngày chưa đóng" />
+            <select name="mon" class="form-select" aria-label="Lọc môn học">
+                <option value="">Tất cả môn</option>
+                @foreach (var m in Model.DanhSachMon)
+                {
+                    <option value="@m" selected="@(string.Equals(Model.Mon, m, StringComparison.OrdinalIgnoreCase))">@m</option>
+                }
+            </select>
+            <button class="btn btn-primary" type="submit"><partial name="_Icon" model='"search"' /> Lọc</button>
+            <a class="btn btn-ghost" asp-action="Index">Xóa lọc</a>
+        </form>
+
+        @if (Model.DanhSach.Count == 0)
+        {
+            <div class="vo-empty">Không có học viên nào còn nợ theo bộ lọc hiện tại.</div>
+        }
+        else
+        {
+            <div class="table-responsive w6-table-scroll">
+                <table class="table vo-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Học viên</th>
+                            <th>SĐT phụ huynh / học viên</th>
+                            <th>Lớp</th>
+                            <th class="text-end">Tổng phải đóng</th>
+                            <th class="text-end">Đã đóng</th>
+                            <th class="text-end"><a href="@SortUrl(NhacNoService.SapXepConNo)">Còn nợ @SortIndicator(NhacNoService.SapXepConNo)</a></th>
+                            <th>Lần đóng gần nhất</th>
+                            <th class="text-end"><a href="@SortUrl(NhacNoService.SapXepSoNgay)">Số ngày @SortIndicator(NhacNoService.SapXepSoNgay)</a></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in Model.DanhSach)
+                    {
+                        <tr>
+                            <td>
+                                <span class="fw-semibold">@row.HocVien</span>
+                                <small class="d-block text-muted">@row.MonHoc</small>
+                            </td>
+                            <td>@row.SDTLienHe</td>
+                            <td>@row.TenLop</td>
+                            <td class="text-end text-nowrap">@row.PhaiDong.ToString("N0", vi) đ</td>
+                            <td class="text-end text-nowrap">@row.DaDong.ToString("N0", vi) đ</td>
+                            <td class="text-end text-nowrap fw-semibold">@row.ConNo.ToString("N0", vi) đ</td>
+                            <td class="text-nowrap">
+                                @if (row.LanDongGanNhat.HasValue)
+                                {
+                                    <span>@row.LanDongGanNhat.Value.ToString("dd/MM/yyyy")</span>
+                                    <small class="d-block text-muted">@row.SoLanDong lần đóng</small>
+                                }
+                                else
+                                {
+                                    <span class="vo-tag vo-tag-danger">Chưa đóng lần nào</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">@row.SoNgayChuaDong ngày</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-ink js-nhac-no-copy"
+                                        data-ten-trung-tam="@tenTrungTam"
+                                        data-hoc-vien="@row.HocVien"
+                                        data-mon="@row.MonHoc"
+                                        data-so-tien="@row.ConNo.ToString("N0", vi)"
+                                        aria-label="Sao chép tin nhắn nhắc nợ cho @row.HocVien">
+                                    <partial name="_Icon" model='"bell"' />
+                                    <span class="js-nhac-no-copy-text">Sao chép tin nhắn</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <partial name="_PhanTrang" model="phanTrang" />
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/nhac-no.js" asp-append-version="true"></script>
+}
