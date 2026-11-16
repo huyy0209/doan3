@@ -8,8 +8,8 @@ using Xunit;
 namespace DoAnWeb.Tests;
 
 /// <summary>
-/// CSDL dùng để test: bản sao RIÊNG CHO TỪNG TIẾN TRÌNH test (QuanLyGiaSu_Test_p{pid}), tạo bằng RESTORE
-/// từ bản BACKUP của QuanLyGiaSu (không ghi gì vào CSDL thật) và tự xóa khi tiến trình kết thúc.
+/// CSDL dùng để test: bản sao RIÊNG CHO TỪNG TIẾN TRÌNH test (QuanLyGiaSu_Web_Test_p{pid}), tạo bằng RESTORE
+/// từ bản BACKUP của QuanLyGiaSu_Web (không ghi gì vào CSDL web thật hay CSDL của app) và tự xóa khi tiến trình kết thúc.
 /// Lý do: trước đây mọi tiến trình dùng chung MỘT CSDL QuanLyGiaSu_Test, nên hai lần chạy cùng lúc
 /// (hai worker, test + E2E, IDE + CLI…) xóa dữ liệu của nhau theo tiền tố, test lúc đỏ lúc xanh (F1).
 /// Mọi dữ liệu test vẫn đặt tiền tố "TEST_"/"ITG_"/"E2E_" để dọn trong CÙNG tiến trình.
@@ -44,17 +44,20 @@ public static class TestDb
         return builder.ConnectionString;
     }
 
-    /// <summary>Tiền tố tên mọi CSDL test; "QuanLyGiaSu" thật KHÔNG bao giờ khớp (xem <see cref="LaCsdlTest"/>).</summary>
-    public const string TienToCsdlTest = "QuanLyGiaSu_Test";
+    /// <summary>Tiền tố tên mọi CSDL test; "QuanLyGiaSu" (app) và "QuanLyGiaSu_Web" (web thật) KHÔNG bao giờ khớp (xem <see cref="LaCsdlTest"/>).</summary>
+    public const string TienToCsdlTest = "QuanLyGiaSu_Web_Test";
 
-    /// <summary>Tên CSDL test riêng của tiến trình này, ví dụ QuanLyGiaSu_Test_p1234.</summary>
+    /// <summary>CSDL web thật dùng làm nguồn sao chép (bản app WinForms có CSDL riêng "QuanLyGiaSu", test web không đụng tới).</summary>
+    public const string NguonCsdl = "QuanLyGiaSu_Web";
+
+    /// <summary>Tên CSDL test riêng của tiến trình này, ví dụ QuanLyGiaSu_Web_Test_p1234.</summary>
     public static readonly string TenCsdl = $"{TienToCsdlTest}_p{Environment.ProcessId}";
 
-    /// <summary>Chốt an toàn: chỉ chấp nhận CSDL bắt đầu bằng QuanLyGiaSu_Test (không bao giờ là QuanLyGiaSu thật).</summary>
+    /// <summary>Chốt an toàn: chỉ chấp nhận CSDL bắt đầu bằng QuanLyGiaSu_Web_Test (không bao giờ là QuanLyGiaSu của app hay QuanLyGiaSu_Web thật).</summary>
     public static bool LaCsdlTest(string ten) =>
         ten != null && ten.StartsWith(TienToCsdlTest, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Chuỗi kết nối tới CSDL test riêng của tiến trình (không phải QuanLyGiaSu thật).</summary>
+    /// <summary>Chuỗi kết nối tới CSDL test riêng của tiến trình (không phải CSDL web thật).</summary>
     public static string ConnStr => VoiDatabase(TenCsdl);
 
     private static string MasterConnStr => VoiDatabase("master");
@@ -68,7 +71,7 @@ public static class TestDb
 
     /// <summary>
     /// Đảm bảo CSDL test riêng của tiến trình tồn tại: RESTORE từ file backup chung (tạo bằng BACKUP COPY_ONLY
-    /// từ QuanLyGiaSu nếu chưa có), dọn các CSDL test của tiến trình đã chết, và hẹn xóa CSDL khi thoát.
+    /// từ QuanLyGiaSu_Web nếu chưa có), dọn các CSDL test của tiến trình đã chết, và hẹn xóa CSDL khi thoát.
     /// </summary>
     public static void DamBaoDaTao()
     {
@@ -94,21 +97,35 @@ public static class TestDb
             try
             {
                 string dataDir = LayThuMucDuLieuMacDinh(conn);
-                string bak = Path.Combine(dataDir, "QuanLyGiaSu_W3Test.bak");
+                string bak = Path.Combine(dataDir, "QuanLyGiaSu_Web_Test.bak");
                 string mdf = Path.Combine(dataDir, TenCsdl + ".mdf");
                 string ldf = Path.Combine(dataDir, TenCsdl + "_log.ldf");
 
                 if (!TonTaiBackup(conn, bak))
                 {
-                    using var cmd = new SqlCommand("BACKUP DATABASE QuanLyGiaSu TO DISK = @bak WITH COPY_ONLY, INIT", conn);
+                    using var cmd = new SqlCommand($"BACKUP DATABASE [{NguonCsdl}] TO DISK = @bak WITH COPY_ONLY, INIT", conn);
                     cmd.Parameters.AddWithValue("@bak", bak);
                     cmd.CommandTimeout = 300;
                     cmd.ExecuteNonQuery();
                 }
 
+                // Tên logic của file dữ liệu/log lấy từ chính file backup (CSDL tạo bằng script có thể đặt tên khác nhau).
+                string logicDuLieu = null, logicLog = null;
+                using (var cmd = new SqlCommand("RESTORE FILELISTONLY FROM DISK = @bak", conn))
+                {
+                    cmd.Parameters.AddWithValue("@bak", bak);
+                    using var rd = cmd.ExecuteReader();
+                    while (rd.Read())
+                    {
+                        string loai = rd["Type"].ToString();
+                        if (loai == "D" && logicDuLieu == null) logicDuLieu = rd["LogicalName"].ToString();
+                        else if (loai == "L" && logicLog == null) logicLog = rd["LogicalName"].ToString();
+                    }
+                }
+
                 using (var cmd = new SqlCommand(
                            $"RESTORE DATABASE [{TenCsdl}] FROM DISK = @bak " +
-                           "WITH MOVE 'QuanLyGiaSu' TO @mdf, MOVE 'QuanLyGiaSu_log' TO @ldf, REPLACE", conn))
+                           $"WITH MOVE N'{logicDuLieu.Replace("'", "''")}' TO @mdf, MOVE N'{logicLog.Replace("'", "''")}' TO @ldf, REPLACE", conn))
                 {
                     cmd.Parameters.AddWithValue("@bak", bak);
                     cmd.Parameters.AddWithValue("@mdf", mdf);
@@ -192,7 +209,7 @@ public static class TestDb
 
         // SQL Server cũ không trả về InstanceDefaultDataPath: lấy thư mục chứa file .mdf của CSDL gốc.
         using (var cmd = new SqlCommand(
-                   "SELECT physical_name FROM sys.master_files WHERE database_id = DB_ID('QuanLyGiaSu') AND type = 0", conn))
+                   "SELECT physical_name FROM sys.master_files WHERE database_id = DB_ID('QuanLyGiaSu_Web') AND type = 0", conn))
             return Path.GetDirectoryName((string)cmd.ExecuteScalar());
     }
 

@@ -22,8 +22,8 @@ if errorlevel 1 (
 
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmm"') do set "MOC=%%i"
 set "TEN=QuanLyGiaSu_%MOC%.bak"
-echo Dang sao luu CSDL QuanLyGiaSu tren server %SERVER% ...
-sqlcmd -S "%SERVER%" -E -C -b -Q "BACKUP DATABASE QuanLyGiaSu TO DISK = N'%TEN%' WITH INIT, NAME = N'QuanLyGiaSu %MOC%'; SELECT TOP 1 N'File: ' + physical_device_name FROM msdb.dbo.backupmediafamily ORDER BY media_set_id DESC;"
+echo Dang sao luu CSDL QuanLyGiaSu_Web tren server %SERVER% ...
+sqlcmd -S "%SERVER%" -E -C -b -Q "BACKUP DATABASE QuanLyGiaSu_Web TO DISK = N'%TEN%' WITH INIT, NAME = N'QuanLyGiaSu %MOC%'; SELECT TOP 1 N'File: ' + physical_device_name FROM msdb.dbo.backupmediafamily ORDER BY media_set_id DESC;"
 if errorlevel 1 (
     echo.
     echo [X] Sao luu that bai. Kiem tra SQL Server da bat chua va tai khoan Windows co quyen sao luu.

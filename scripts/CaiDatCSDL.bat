@@ -15,6 +15,9 @@ cd /d "%ROOT%"
 
 set "SERVER=%~1"
 if "%SERVER%"=="" set "SERVER=."
+set "CSDL=%~2"
+if "%CSDL%"=="" set "CSDL=QuanLyGiaSu_Web"
+set "TMPSQL=%TEMP%\caidat_csdl_web.sql"
 
 where sqlcmd >nul 2>nul
 if errorlevel 1 (
@@ -25,12 +28,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Server: %SERVER%
+echo Server: %SERVER%   CSDL: %CSDL%
 echo.
 echo [1/2] Tao CSDL va nang cap cau truc...
 for %%f in (01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8) do (
     echo     - %%f.sql
-    sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
+    call :chay "%%f"
     if errorlevel 1 goto loi
 )
 
@@ -39,7 +42,7 @@ choice /c CK /n /m "[2/2] Them du lieu mau de chay thu? (C = co, K = khong): "
 if errorlevel 2 goto xong
 for %%f in (11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3 14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6) do (
     echo     - %%f.sql
-    sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "Database\%%f.sql" >nul
+    call :chay "%%f"
     if errorlevel 1 goto loi
 )
 
@@ -56,3 +59,10 @@ echo [X] Loi khi chay script tren. Kiem tra SQL Server da bat chua va ten server
 echo     Chay lai lenh sqlcmd o tren (bo "^>nul") de xem chi tiet loi.
 pause
 exit /b 1
+
+:chay
+rem  Doi ten CSDL trong script (CREATE DATABASE / DB_ID / USE) sang %CSDL% roi chay bang sqlcmd.
+powershell -NoProfile -Command "$t = [IO.File]::ReadAllText('Database\%~1.sql'); $t = $t -replace \"DB_ID\(N'QuanLyGiaSu'\)\", \"DB_ID(N'$env:CSDL')\" -replace 'CREATE DATABASE QuanLyGiaSu;', \"CREATE DATABASE $env:CSDL;\" -replace '(?m)^USE QuanLyGiaSu;', \"USE $env:CSDL;\"; [IO.File]::WriteAllText($env:TMPSQL, $t, (New-Object Text.UTF8Encoding($true)))"
+if errorlevel 1 exit /b 1
+sqlcmd -S "%SERVER%" -E -C -I -b -f 65001 -i "%TMPSQL%" >nul
+exit /b %errorlevel%
