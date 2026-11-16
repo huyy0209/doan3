@@ -94,6 +94,83 @@ public sealed class SaoLuuService
         }
     }
 
+    public static void KiemTraTenTepCongKhai(string tenTep) => KiemTraTenTep(tenTep);
+
+    public async Task<string> KhoiPhucAsync(string tenTep, CancellationToken cancellationToken = default)
+    {
+        KiemTraTenTep(tenTep);
+        var cs = _cauHinh.GetConnectionString("QuanLyGiaSu");
+        if (string.IsNullOrWhiteSpace(cs)) throw new InvalidOperationException("Chưa cấu hình chuỗi kết nối.");
+        var builder = new SqlConnectionStringBuilder(cs);
+        string database = builder.InitialCatalog;
+        if (!TenCsdlHopLe.IsMatch(database) || string.Equals(database, "QuanLyGiaSu", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("CSDL đích không được phép khôi phục.");
+        var dir = await LayThuMucAsync(cancellationToken);
+        string source = LayDuongDanAnToan(dir, tenTep);
+        if (!File.Exists(source)) throw new FileNotFoundException("Không tìm thấy file sao lưu.", tenTep);
+        await KhoaSaoLuu.WaitAsync(cancellationToken);
+        try
+        {
+            string before = await SaoLuuDuoiKhoaAsync(cs, database, dir, cancellationToken);
+            var master = new SqlConnectionStringBuilder(cs) { InitialCatalog = "master" };
+            await using var conn = new SqlConnection(master.ConnectionString);
+            await conn.OpenAsync(cancellationToken);
+            bool singleUser = false;
+            try
+            {
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE";
+                    await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    singleUser = true;
+                }
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"RESTORE DATABASE [{database}] FROM DISK = @duongDan WITH REPLACE, CHECKSUM";
+                    cmd.CommandTimeout = 0;
+                    cmd.Parameters.Add("@duongDan", System.Data.SqlDbType.NVarChar, 4000).Value = source;
+                    await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (singleUser)
+                    {
+                        await using var cmd = conn.CreateCommand();
+                        cmd.CommandText = $"ALTER DATABASE [{database}] SET MULTI_USER";
+                        await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    }
+                }
+                finally { SqlConnection.ClearAllPools(); }
+            }
+            _logger.LogInformation("Khôi phục CSDL {TenCsdl} từ {Tep}; bản hiện tại trước khôi phục được lưu tại {BanTruoc}", database, source, before);
+            return Path.GetFileName(before);
+        }
+        finally { KhoaSaoLuu.Release(); }
+    }
+
+    private static async Task<string> SaoLuuDuoiKhoaAsync(string cs, string database, string dir, CancellationToken ct)
+    {
+        var time = DateTime.Now;
+        string name, path;
+        do
+        {
+            name = "QuanLyGiaSu_" + time.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".bak";
+            path = LayDuongDanAnToan(dir, name);
+            time = time.AddSeconds(1);
+        } while (File.Exists(path));
+        await using var conn = new SqlConnection(cs);
+        await conn.OpenAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"BACKUP DATABASE [{database}] TO DISK = @duongDan WITH COPY_ONLY, INIT, CHECKSUM";
+        cmd.CommandTimeout = 0;
+        cmd.Parameters.Add("@duongDan", System.Data.SqlDbType.NVarChar, 4000).Value = path;
+        await cmd.ExecuteNonQueryAsync(ct);
+        return path;
+    }
+
     public async Task<FileStream> MoTepAsync(string tenTep, CancellationToken cancellationToken = default)
     {
         KiemTraTenTep(tenTep);

@@ -1,0 +1,13 @@
+@model DoAnWeb.ViewModels.SaoLuuVM.KhoiPhucSaoLuuVM
+@{ ViewData["Title"] = "Xác nhận khôi phục"; }
+<section class="vo-card p-4">
+    <h2 class="h5">Xác nhận khôi phục CSDL</h2>
+    <p>Bản sao lưu: <strong>@Model.TenTep</strong>. Trước khi khôi phục, hệ thống sẽ tạo một bản sao lưu hiện tại để có thể quay lại.</p>
+    <form asp-action="KhoiPhuc" method="post">
+        <input type="hidden" asp-for="TenTep" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="mb-3"><label asp-for="XacNhanTenTep">Gõ đúng tên tệp để xác nhận</label><input asp-for="XacNhanTenTep" class="form-control" autocomplete="off" /><span asp-validation-for="XacNhanTenTep" class="text-danger"></span></div>
+        <div class="mb-3"><label asp-for="MatKhauHienTai">Mật khẩu hiện tại</label><input asp-for="MatKhauHienTai" class="form-control" autocomplete="current-password" /><span asp-validation-for="MatKhauHienTai" class="text-danger"></span></div>
+        <button class="btn btn-danger" type="submit">Khôi phục CSDL</button> <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+    </form>
+</section>

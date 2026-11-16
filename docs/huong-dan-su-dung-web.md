@@ -145,7 +145,7 @@ Chọn loại **Môn chính** để đánh giá theo điểm trung bình, hoặc
 
 **Dùng để:** tạo và tải xuống bản sao lưu của CSDL mà web đang kết nối.
 
-**Cách dùng:** vào **Sao lưu CSDL**, chọn **Sao lưu ngay** hoặc chờ lịch tự sao lưu hằng ngày; trong danh sách chọn **Tải về** để giữ bản `.bak`. Có thể xóa bản sao cũ không cần thiết.
+**Cách dùng:** vào **Sao lưu CSDL**, chọn **Sao lưu ngay** hoặc chờ lịch tự sao lưu hằng ngày; trong danh sách chọn **Tải về** để giữ bản `.bak`. Để khôi phục, chọn **Khôi phục**, gõ chính xác tên tệp và mật khẩu hiện tại. Hệ thống tự tạo bản sao lưu hiện tại trước khi phục hồi; tên bản này được thông báo để quay lại nếu cần. Sau khi khôi phục, bạn sẽ được đăng xuất và cần đăng nhập lại. Có thể xóa bản sao cũ không cần thiết.
 
 **Lưu ý:** chỉ quản lý sử dụng được. SQL Server cần quyền ghi vào thư mục sao lưu. Trang web không khôi phục CSDL; khôi phục cần thực hiện ngoài web và phải chọn đúng CSDL đích. Web dùng `QuanLyGiaSu_Web`, không phải CSDL riêng `QuanLyGiaSu` của WinForms.
 
