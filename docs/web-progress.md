@@ -121,6 +121,6 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - Kiểm token: copilot, codex, claude dùng được; opencode không phản hồi; zai, gemini, antigravity (mở lại ~21-22/11), muse hết/lỗi; dsh, qwen thiếu key.
 - Bỏ ý sửa doanh thu (code-review MED-03): web đã tính theo `ThanhToans`.
 - I1 khôi phục CSDL từ web (codex, 6d29cd9 + sửa 356070c: chống hủy giữa RESTORE, ClearAllPools) đã merge 8dedf76. Test 505 pass + 1 skip.
-- Đang làm: I3 review vòng 4 cho I1 (codex).
+- I3 review vòng 4 (codex: rate limit trang khôi phục d3ec5b3, docs 39abfd8). Người dùng bảo dừng codex để tiết kiệm token → coordinator hoàn tất mục 5 từ mã dở của codex (b1b0e2c): thu hồi mọi phiên sau khôi phục (mốc ở logs/restore-state.json), bản sao lưu thiếu bảng web thì quay về bản trước. Merge 2ec360c, test 508 pass + 1 skip. Đợt I xong: I1–I3.
 - I2 hướng dẫn + script IIS (copilot, 565ae37) đã merge; -WhatIf trên máy này báo thiếu IIS như dự kiến.
 - Sau khi I1, I2 merge: I3 review vòng 4 (codex) cho I1.
