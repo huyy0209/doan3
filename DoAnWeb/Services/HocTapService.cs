@@ -182,6 +182,134 @@ namespace DoAnWeb.Services
                 .ToList();
         }
 
+        /// <summary>Lấy lịch điểm danh cho nhiều ngày bằng một lượt đọc lớp trong khoảng ngày.</summary>
+        public Dictionary<DateTime, List<DiemDanhRow>> GetLopTrongKhoangNgay(DateTime tuNgay, DateTime denNgay,
+            int? maGS = null)
+        {
+            var batDau = tuNgay.Date;
+            var ngayCuoi = denNgay.Date;
+            if (ngayCuoi < batDau) throw new ArgumentException("Khoảng ngày không hợp lệ.");
+
+            var cacNgay = Enumerable.Range(0, (ngayCuoi - batDau).Days + 1)
+                .Select(i => batDau.AddDays(i)).ToList();
+            var ketThuc = ngayCuoi.AddDays(1);
+            var huy = Constants.LopHocStatus.DaHuy;
+            var qLop = _db.LopHocs.AsNoTracking()
+                .Include(l => l.GiaSu)
+                .Include(l => l.HocVien)
+                .Where(l => l.TrangThai != huy && l.ThoiGianBatDau < ketThuc && l.ThoiGianKetThuc >= batDau);
+            if (maGS.HasValue) qLop = qLop.Where(l => l.MaGS == maGS.Value);
+            var lops = qLop.ToList();
+            var maLops = lops.Select(l => l.MaLop).ToArray();
+
+            var buoiThuong = _db.BuoiHocs.AsNoTracking()
+                .Where(b => b.NgayHoc >= batDau && b.NgayHoc < ketThuc && b.MaBuoiGoc == null && maLops.Contains(b.MaLop))
+                .ToList()
+                .GroupBy(b => b.NgayHoc.Date)
+                .ToDictionary(g => g.Key, g => g.ToDictionary(b => b.MaLop));
+
+            var maBuoiGoc = buoiThuong.Values.SelectMany(x => x.Values).Select(b => b.MaBuoi).ToArray();
+            var buDaXep = maBuoiGoc.Length == 0
+                ? new Dictionary<int, BuoiHoc>()
+                : _db.BuoiHocs.AsNoTracking().Where(b => b.MaBuoiGoc != null && maBuoiGoc.Contains(b.MaBuoiGoc.Value))
+                    .ToList().ToDictionary(b => b.MaBuoiGoc.Value);
+
+            var qBu = _db.BuoiHocs.AsNoTracking()
+                .Where(b => b.NgayHoc >= batDau && b.NgayHoc < ketThuc && b.MaBuoiGoc != null);
+            if (maGS.HasValue) qBu = qBu.Where(b => b.MaGSDay == maGS.Value);
+            var buoiBu = qBu.ToList().GroupBy(b => b.NgayHoc.Date)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var maLopBu = buoiBu.Values.SelectMany(x => x).Select(b => b.MaLop).Distinct().ToArray();
+            var lopBu = maLopBu.Length == 0
+                ? new Dictionary<int, LopHoc>()
+                : _db.LopHocs.AsNoTracking().Include(l => l.HocVien).Where(l => maLopBu.Contains(l.MaLop))
+                    .ToList().ToDictionary(l => l.MaLop);
+            var maGsBu = buoiBu.Values.SelectMany(x => x).Where(b => b.MaGSDay.HasValue)
+                .Select(b => b.MaGSDay.Value).Distinct().ToArray();
+            var tenGsBu = maGsBu.Length == 0
+                ? new Dictionary<int, string>()
+                : _db.GiaSus.AsNoTracking().Where(g => maGsBu.Contains(g.MaGS))
+                    .ToList().ToDictionary(g => g.MaGS, g => g.HoTen);
+            var maBuoiGocBu = buoiBu.Values.SelectMany(x => x).Where(b => b.MaBuoiGoc.HasValue)
+                .Select(b => b.MaBuoiGoc.Value).Distinct().ToArray();
+            var ngayBuoiGoc = maBuoiGocBu.Length == 0
+                ? new Dictionary<int, DateTime>()
+                : _db.BuoiHocs.AsNoTracking().Where(b => maBuoiGocBu.Contains(b.MaBuoi))
+                    .ToList().ToDictionary(b => b.MaBuoi, b => b.NgayHoc);
+            var nangKhieu = MonNangKhieu(_db);
+            var ketQua = cacNgay.ToDictionary(d => d, _ => new List<DiemDanhRow>());
+
+            foreach (var ngay in cacNgay)
+            {
+                var dsLop = lops.Where(l => Constants.ThuHoc.CoHoc(l.ThuHoc, ngay));
+                buoiThuong.TryGetValue(ngay, out var buoiTheoLop);
+                foreach (var lop in dsLop)
+                {
+                    BuoiHoc b = null;
+                    buoiTheoLop?.TryGetValue(lop.MaLop, out b);
+                    BuoiHoc bu = null;
+                    if (b != null) buDaXep.TryGetValue(b.MaBuoi, out bu);
+                    ketQua[ngay].Add(new DiemDanhRow
+                    {
+                        MaLop = lop.MaLop,
+                        TenLop = lop.TenHienThi,
+                        LaNangKhieu = lop.MonHoc != null && nangKhieu.Contains(lop.MonHoc.Trim()),
+                        ThiLenCap = b?.ThiLenCap ?? false,
+                        CapDoThi = b?.CapDoThi,
+                        MaBuoi = b?.MaBuoi,
+                        MaHV = lop.MaHV ?? 0,
+                        HocVien = lop.HocVien?.HoTen,
+                        MonHoc = lop.MonHoc,
+                        GiaSu = lop.GiaSu?.HoTen,
+                        CaHoc = lop.CaHoc,
+                        DiemDanh = b?.DiemDanh ?? Constants.DiemDanh.CoMat,
+                        Diem = b?.Diem,
+                        NhanXet = b?.NhanXet,
+                        DaLuu = b != null,
+                        DaXepBu = bu != null,
+                        GhiChu = bu == null ? null : $"Đã xếp bù {bu.NgayHoc:dd/MM}, {Constants.CaHoc.TenNgan(bu.CaHoc)}"
+                    });
+                }
+
+                if (!buoiBu.TryGetValue(ngay, out var dsBu)) continue;
+                foreach (var b in dsBu)
+                {
+                    if (!lopBu.TryGetValue(b.MaLop, out var lop) || lop.TrangThai == huy) continue;
+                    tenGsBu.TryGetValue(b.MaGSDay ?? 0, out var tenGs);
+                    string ngayGocText = ngayBuoiGoc.TryGetValue(b.MaBuoiGoc.Value, out var ngayGoc)
+                        ? ngayGoc.ToString("dd/MM") : "không rõ";
+                    ketQua[ngay].Add(new DiemDanhRow
+                    {
+                        MaLop = b.MaLop,
+                        TenLop = lop.TenHienThi,
+                        LaNangKhieu = lop.MonHoc != null && nangKhieu.Contains(lop.MonHoc.Trim()),
+                        ThiLenCap = b.ThiLenCap,
+                        CapDoThi = b.CapDoThi,
+                        MaBuoi = b.MaBuoi,
+                        MaHV = lop.MaHV ?? 0,
+                        HocVien = lop.HocVien?.HoTen,
+                        MonHoc = lop.MonHoc,
+                        GiaSu = tenGs,
+                        CaHoc = b.CaHoc,
+                        DiemDanh = b.DiemDanh,
+                        Diem = b.Diem,
+                        NhanXet = b.NhanXet,
+                        DaLuu = true,
+                        LaHocBu = true,
+                        GhiChu = $"Học bù buổi {ngayGocText}"
+                    });
+                }
+            }
+
+            foreach (var ngay in cacNgay)
+                ketQua[ngay] = ketQua[ngay]
+                    .OrderBy(r => Array.IndexOf(Constants.CaHoc.TatCaCaHoc, r.CaHoc))
+                    .ThenBy(r => r.LaHocBu)
+                    .ThenBy(r => r.HocVien)
+                    .ToList();
+            return ketQua;
+        }
+
         private static HashSet<string> MonNangKhieu(QuanLyGiaSuContext db)
         {
             var nk = Constants.LoaiMon.NangKhieu;
