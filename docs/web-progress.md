@@ -108,3 +108,5 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - G6 nhắc nợ, G8 TKB, G9 tìm kiếm, G10 Hôm nay, G11 nhập Excel, G13 E2E, G14 review vòng 2 (+sửa), G15 hướng dẫn, G16 Docker (+CI), G17 dọn cảnh báo – đã merge. Test 491/491.
 - CI: sửa sed Permission denied (lỗi từ khi tách CSDL). E2E: nới giới hạn đăng nhập.
 - OpenCode hết hạn mức miễn phí (~13h) giữa G12 → commit WIP 4fc518d, Codex tiếp quản (G12b). Đang làm: G12b (codex), G18 báo cáo tháng (copilot).
+- G18 báo cáo tháng (copilot), G19 chỉ mục + đo hiệu năng (copilot, chỉ QuanLyGiaSu_Web), G12/G12b a11y + sửa CSP LOI-01 (opencode→codex) – đã merge.
+  Test 496/496, E2E 11/11 (quét mọi trang menu không lỗi JS/CSP). Đợt G xong: G1–G19.
