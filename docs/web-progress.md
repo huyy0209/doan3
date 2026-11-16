@@ -120,5 +120,6 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - Phiên coordinator mới chạy ở worktree `phiên-3` trên nhánh `web` (`ban-web` để detached cùng commit). Run Orca: `run_330549674d5a`.
 - Kiểm token: copilot, codex, claude dùng được; opencode không phản hồi; zai, gemini, antigravity (mở lại ~21-22/11), muse hết/lỗi; dsh, qwen thiếu key.
 - Bỏ ý sửa doanh thu (code-review MED-03): web đã tính theo `ThanhToans`.
-- Đang làm: I1 khôi phục CSDL từ web (codex, ctx_8e5d20138fb6, web-i1), I2 hướng dẫn + script IIS (copilot, ctx_77d8925f0c92, web-i2).
+- Đang làm: I1 khôi phục CSDL từ web (codex, ctx_8e5d20138fb6, web-i1).
+- I2 hướng dẫn + script IIS (copilot, 565ae37) đã merge; -WhatIf trên máy này báo thiếu IIS như dự kiến.
 - Sau khi I1, I2 merge: I3 review vòng 4 (codex) cho I1.
