@@ -15,6 +15,7 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/chartjs/tong-quan.css" asp-append-version="true" />
 }
 
 <div class="w6-dashboard">
@@ -147,6 +148,45 @@
         </section>
     </div>
 
+    <section class="vo-card w6-panel tq-charts">
+        <div class="w6-panel-heading">
+            <div>
+                <h2>Biểu đồ hoạt động</h2>
+                <span>Doanh thu, lớp học, học viên mới và chuyên cần</span>
+            </div>
+            <span class="w6-muted">12 tháng gần nhất</span>
+        </div>
+        <div class="tq-chart-grid">
+            <div class="tq-chart-box">
+                <h3>Doanh thu học phí 12 tháng gần nhất</h3>
+                <div class="tq-canvas">
+                    <canvas id="tq-doanh-thu" role="img" aria-label="Biểu đồ doanh thu học phí 12 tháng gần nhất"></canvas>
+                </div>
+            </div>
+            <div class="tq-chart-box">
+                <h3>Số lớp đang học theo môn</h3>
+                <div class="tq-canvas">
+                    <canvas id="tq-lop-mon" role="img" aria-label="Biểu đồ số lớp đang học theo môn"></canvas>
+                </div>
+            </div>
+            <div class="tq-chart-box">
+                <h3>Học viên mới theo tháng</h3>
+                <div class="tq-canvas">
+                    <canvas id="tq-hoc-vien-moi" role="img" aria-label="Biểu đồ học viên mới theo tháng"></canvas>
+                </div>
+            </div>
+            <div class="tq-chart-box tq-chuyen-can">
+                <h3>Tỉ lệ chuyên cần tháng này</h3>
+                <div class="tq-cc-number"><span id="tq-cc-ty-le">–</span></div>
+                <div class="tq-cc-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Tỉ lệ chuyên cần tháng này">
+                    <span class="tq-cc-fill" id="tq-cc-fill"></span>
+                </div>
+                <p class="w6-muted" id="tq-cc-chi-tiet">Đang tải số liệu…</p>
+            </div>
+        </div>
+        <p class="w6-muted tq-chart-note" id="tq-chart-note" hidden></p>
+    </section>
+
     <section class="vo-card w6-panel">
         <div class="w6-panel-heading">
             <div><h2>Lớp sắp kết thúc</h2><span>Trong @TongQuanService.SoNgayBaoTruoc ngày tới</span></div>
@@ -176,3 +216,8 @@
         }
     </section>
 </div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/tong-quan.js" asp-append-version="true"></script>
+}

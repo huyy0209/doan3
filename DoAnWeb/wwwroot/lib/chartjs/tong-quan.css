@@ -1,0 +1,73 @@
+/* Biểu đồ trang Tổng quan (Chart.js) – tách khỏi view để hợp CSP: style-src 'self' */
+.tq-chart-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tq-chart-box {
+    border: 1px solid var(--vo-rule);
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: var(--vo-surface);
+    min-width: 0;
+}
+
+.tq-chart-box h3 {
+    font-size: .98rem;
+    margin: 0 0 10px;
+    color: var(--vo-ink-dark);
+}
+
+.tq-canvas {
+    position: relative;
+    height: 240px;
+}
+
+.tq-canvas canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.tq-chuyen-can {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tq-cc-number {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--vo-ink);
+    line-height: 1.1;
+}
+
+.tq-cc-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: var(--vo-ink-soft);
+    overflow: hidden;
+    margin: 10px 0 8px;
+}
+
+.tq-cc-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--vo-ink);
+    transition: width .4s ease;
+}
+
+.tq-chart-note {
+    margin: 12px 0 0;
+}
+
+@media (max-width: 767.98px) {
+    .tq-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tq-canvas {
+        height: 220px;
+    }
+}
