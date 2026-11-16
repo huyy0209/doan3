@@ -101,3 +101,5 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - Chủ repo chọn **tách CSDL**: web dùng `QuanLyGiaSu_Web`, app giữ `QuanLyGiaSu` (merge e1fc92d, 2e18474 từ web-f1). Test 417/417 x2.
 - Chủ repo đồng ý đề xuất #2: thêm bảng `NhatKy` (chỉ trong `QuanLyGiaSu_Web`, script nâng cấp riêng cho web) — chờ giao worker.
 - Thêm thành viên Codex (ChatGPT, `--agent codex`), cần `codex login` bằng tài khoản ChatGPT.
+- G1 Nhật ký thao tác (copilot, babc09a) – merge ae553da; bảng NhatKy chỉ ở QuanLyGiaSu_Web. G3 bảo mật/nén/cache (codex gpt-6-luna, 3c3c530) – merge; CSP script/style 'self'. Test 425/425, E2E 5/5.
+- Đang làm: G2 biểu đồ Tổng quan (opencode DeepSeek free), G4 phiếu thu in (codex), G5 giao diện tối + PWA (copilot).
