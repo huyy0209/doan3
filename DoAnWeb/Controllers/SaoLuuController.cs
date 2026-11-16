@@ -68,6 +68,11 @@ public class SaoLuuController : Controller
             return RedirectToAction(nameof(Index));
         }
         catch (ArgumentException) { return NotFound(); }
+        catch (SaoLuuKhongTuongThichException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(vm);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Khôi phục CSDL từ {TenTep} thất bại.", vm.TenTep);

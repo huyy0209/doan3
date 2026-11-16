@@ -54,18 +54,21 @@ namespace DoAnWeb.Controllers
                 bool phaiDoi = vm.MatKhau == TaiKhoanService.MatKhauMacDinh;
                 await _nhatKy.GhiSuKienAsync("DangNhap", tk.TenDangNhap, tk.MaTK);
 
+                var phatHanhUtc = DateTimeOffset.UtcNow;
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, tk.TenDangNhap),
                     new Claim(ClaimTypes.Role, tk.VaiTro),
                     new Claim(LoaiClaim.MaTK, tk.MaTK.ToString()),
-                    new Claim(LoaiClaim.PhaiDoiMatKhau, phaiDoi ? "1" : "0")
+                    new Claim(LoaiClaim.PhaiDoiMatKhau, phaiDoi ? "1" : "0"),
+                    new Claim(LoaiClaim.PhatHanhPhienUtc, phatHanhUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture))
                 };
                 if (tk.MaGS.HasValue) claims.Add(new Claim(LoaiClaim.MaGS, tk.MaGS.Value.ToString()));
                 if (tk.GiaSu?.HoTen != null) claims.Add(new Claim(LoaiClaim.TenGiaSu, tk.GiaSu.HoTen));
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
+                    new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
+                    new AuthenticationProperties { IssuedUtc = phatHanhUtc });
 
                 if (phaiDoi) return RedirectToAction(nameof(DoiMatKhau));
                 if (!string.IsNullOrEmpty(vm.ReturnUrl) && Url.IsLocalUrl(vm.ReturnUrl)) return LocalRedirect(vm.ReturnUrl);

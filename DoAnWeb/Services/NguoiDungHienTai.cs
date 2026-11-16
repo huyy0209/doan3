@@ -33,6 +33,7 @@ namespace DoAnWeb.Services
         public const string TenGiaSu = "TenGiaSu";
         /// <summary>"1" khi đăng nhập bằng mật khẩu mặc định: bắt đổi mật khẩu trước khi dùng (TK-11)</summary>
         public const string PhaiDoiMatKhau = "PhaiDoiMatKhau";
+        public const string PhatHanhPhienUtc = "PhatHanhPhienUtc";
     }
 
     /// <summary>Phần dùng chung cho mọi cách cài đặt</summary>

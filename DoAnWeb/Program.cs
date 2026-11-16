@@ -59,6 +59,7 @@ builder.Services.AddControllersWithViews(o =>
     o.Filters.Add<DoAnWeb.Infrastructure.TenTrungTamFilter>();
 });
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<DoAnWeb.Infrastructure.MocKhoiPhucPhien>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
 {

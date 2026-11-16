@@ -3,6 +3,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using DoAnWeb.Infrastructure;
+using DoAnWeb.Services;
+using System;
 
 namespace DoAnWeb.Tests.Integration;
 
@@ -12,6 +16,34 @@ namespace DoAnWeb.Tests.Integration;
 /// </summary>
 public class PhanQuyenHttpTests : HttpTestBase
 {
+    [Fact]
+    public async Task Moc_khoi_phuc_thu_hoi_cookie_cua_phien_khac()
+    {
+        var phien1 = await DangNhapQL();
+        var phien2 = await DangNhapQL();
+        Assert.Equal(HttpStatusCode.OK, (await phien2.Get("/GiaSu")).Status);
+        var backupFolder = TestDb.ThuMucBackupTest;
+        var backupsBefore = new System.Collections.Generic.HashSet<string>(System.IO.Directory.EnumerateFiles(backupFolder, "QuanLyGiaSu_*.bak"), StringComparer.OrdinalIgnoreCase);
+        using var scope = Factory.Services.CreateScope();
+        var saoLuu = scope.ServiceProvider.GetRequiredService<SaoLuuService>();
+        var tenTep = await saoLuu.SaoLuuAsync();
+        try
+        {
+            var trangXacNhan = await phien1.Get("/SaoLuu/KhoiPhuc?tenTep=" + Uri.EscapeDataString(tenTep));
+            Assert.Equal(HttpStatusCode.OK, trangXacNhan.Status);
+            var form = trangXacNhan.Form("form[action$='/SaoLuu/KhoiPhuc']")
+                .Dat("XacNhanTenTep", tenTep)
+                .Dat("MatKhauHienTai", MatKhauTest);
+            Assert.True((await phien1.Gui(form)).RedirectToi("/SaoLuu"));
+        }
+        finally
+        {
+            foreach (var file in System.IO.Directory.EnumerateFiles(backupFolder, "QuanLyGiaSu_*.bak").Where(file => !backupsBefore.Contains(file)))
+                System.IO.File.Delete(file);
+        }
+        Assert.True((await phien2.Get("/GiaSu")).VeDangNhap);
+    }
+
     public static IEnumerable<object[]> TrangChiQuanLy => new[]
     {
         "/GiaSu", "/GiaSu/Create", "/LopHoc", "/LopHoc/GhepLop", "/MonHoc", "/HocPhi", "/HocPhi/XuatCsv",

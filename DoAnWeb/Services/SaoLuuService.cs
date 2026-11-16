@@ -1,9 +1,15 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
+using DoAnWeb.Infrastructure;
 using DoAnWeb.ViewModels.SaoLuuVM;
 
 namespace DoAnWeb.Services;
+
+public sealed class SaoLuuKhongTuongThichException : InvalidOperationException
+{
+    public SaoLuuKhongTuongThichException() : base("Bản sao lưu quá cũ, không tương thích; đã quay về dữ liệu trước khi khôi phục") { }
+}
 
 public sealed class SaoLuuService
 {
@@ -19,11 +25,13 @@ public sealed class SaoLuuService
 
     private readonly IConfiguration _cauHinh;
     private readonly ILogger<SaoLuuService> _logger;
+    private readonly MocKhoiPhucPhien _mocKhoiPhuc;
 
-    public SaoLuuService(IConfiguration cauHinh, ILogger<SaoLuuService> logger)
+    public SaoLuuService(IConfiguration cauHinh, ILogger<SaoLuuService> logger, MocKhoiPhucPhien mocKhoiPhuc = null)
     {
         _cauHinh = cauHinh;
         _logger = logger;
+        _mocKhoiPhuc = mocKhoiPhuc;
     }
 
     public async Task<IReadOnlyList<SaoLuuFileVM>> LayDanhSachAsync(CancellationToken cancellationToken = default)
@@ -131,6 +139,20 @@ public sealed class SaoLuuService
                     cmd.Parameters.Add("@duongDan", System.Data.SqlDbType.NVarChar, 4000).Value = source;
                     await cmd.ExecuteNonQueryAsync(CancellationToken.None);
                 }
+
+                if (!await CoSchemaWebCanThietAsync(conn, database))
+                {
+                    await RestoreBackupAsync(conn, database, before);
+                    throw new SaoLuuKhongTuongThichException();
+                }
+
+                // Ghi mốc bền vững ngoài DB ngay sau restore tương thích; nếu ghi thất bại thì rollback.
+                try { _mocKhoiPhuc?.GhiMoc(DateTimeOffset.UtcNow); }
+                catch
+                {
+                    await RestoreBackupAsync(conn, database, before);
+                    throw new InvalidOperationException("Không lưu được mốc thu hồi phiên; đã quay về dữ liệu trước khi khôi phục");
+                }
             }
             finally
             {
@@ -149,6 +171,37 @@ public sealed class SaoLuuService
             return Path.GetFileName(before);
         }
         finally { KhoaSaoLuu.Release(); }
+    }
+
+    private static async Task RestoreBackupAsync(SqlConnection conn, string database, string backupPath)
+    {
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"RESTORE DATABASE [{database}] FROM DISK = @duongDan WITH REPLACE, CHECKSUM";
+        cmd.CommandTimeout = 0;
+        cmd.Parameters.Add("@duongDan", System.Data.SqlDbType.NVarChar, 4000).Value = backupPath;
+        await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+    }
+
+    private static async Task<bool> CoSchemaWebCanThietAsync(SqlConnection conn, string database)
+    {
+        // Từ chối và rollback thay vì tự chạy scripts cũ: các file Database/* dùng USE QuanLyGiaSu,
+        // có thể vô tình nâng cấp CSDL WinForms. Các cột/index v7/v8 cũng phải tồn tại đầy đủ.
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $@"
+SELECT CASE WHEN
+    OBJECT_ID(N'[{database}].dbo.NhatKy', N'U') IS NOT NULL AND
+    OBJECT_ID(N'[{database}].dbo.ThongBao', N'U') IS NOT NULL AND
+    COL_LENGTH(N'[{database}].dbo.LopHoc', N'MaMon') IS NOT NULL AND
+    COL_LENGTH(N'[{database}].dbo.TaiKhoan', N'MaGS') IS NOT NULL AND
+    EXISTS (SELECT 1 FROM [{database}].sys.indexes WHERE object_id = OBJECT_ID(N'[{database}].dbo.TaiKhoan') AND name = N'UX_TaiKhoan_MaGS') AND
+    NOT EXISTS (
+        SELECT 1 FROM (VALUES
+            (N'NhatKy', N'MaNK'), (N'NhatKy', N'ThoiGian'), (N'NhatKy', N'MaTK'), (N'NhatKy', N'TenDangNhap'), (N'NhatKy', N'HanhDong'), (N'NhatKy', N'Bang'), (N'NhatKy', N'KhoaChinh'), (N'NhatKy', N'ChiTiet'), (N'NhatKy', N'DiaChiIP'),
+            (N'ThongBao', N'MaTB'), (N'ThongBao', N'MaTK'), (N'ThongBao', N'TieuDe'), (N'ThongBao', N'NoiDung'), (N'ThongBao', N'DuongDan'), (N'ThongBao', N'DaDoc'), (N'ThongBao', N'ThoiGian')
+        ) required(TableName, ColumnName)
+        WHERE COL_LENGTH(N'[{database}].dbo.' + required.TableName, required.ColumnName) IS NULL
+    ) THEN 1 ELSE 0 END";
+        return Convert.ToInt32(await cmd.ExecuteScalarAsync()) == 1;
     }
 
     private static async Task<string> SaoLuuDuoiKhoaAsync(string cs, string database, string dir, CancellationToken ct)
