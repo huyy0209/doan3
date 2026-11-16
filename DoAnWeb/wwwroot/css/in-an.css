@@ -1,0 +1,35 @@
+.giay-in {
+    box-sizing: border-box;
+    width: 148mm;
+    min-height: 190mm;
+    margin: 0 auto;
+    padding: 12mm;
+    background: #fff;
+    color: #171717;
+    border: 1px solid #ddd;
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+}
+.phieu-dau { text-align: center; margin-bottom: 9mm; }
+.phieu-trung-tam { font-size: 15pt; font-weight: 700; text-transform: uppercase; }
+.phieu-dia-chi { margin-top: 8mm; font-size: 17pt; font-weight: 700; }
+.phieu-so, .phieu-ngay { margin-top: 2mm; }
+.phieu-noi-dung p { margin: 0 0 5mm; }
+.phieu-bang-chu { line-height: 1.5; }
+.phieu-ky { display: flex; justify-content: space-between; gap: 12mm; margin-top: 13mm; text-align: center; font-weight: 700; }
+.phieu-ky > div { flex: 1; min-height: 28mm; }
+.phieu-ky span { display: inline-block; margin-top: 2mm; font-weight: 400; font-style: italic; }
+.bang-ke-bang { color: #171717; }
+.bang-ke-bang th, .bang-ke-bang td { border: 1px solid #777; padding: 2mm; }
+.bang-ke-bang thead, .bang-ke-bang tfoot { background: #eee; }
+@media print {
+    @page { size: A5 portrait; margin: 8mm; }
+    html, body { width: 148mm; min-height: 210mm; background: #fff !important; }
+    body, body * { visibility: hidden !important; }
+    .giay-in, .giay-in * { visibility: visible !important; }
+    .giay-in { position: absolute; inset: 0 auto auto 0; width: 100%; min-height: 0; margin: 0; padding: 0; border: 0; }
+    .print-actions, .vo-sidebar, .vo-topbar, .vo-toasts { display: none !important; }
+    .vo-app, .vo-main, .vo-content { display: block !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
+    .bang-ke-bang { font-size: 9pt; }
+    .bang-ke-bang tr { break-inside: avoid; }
+}

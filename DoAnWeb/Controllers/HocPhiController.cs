@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DoAnWeb.Common;
+using DoAnWeb.Data;
 using DoAnWeb.Data.Entities;
 using DoAnWeb.Infrastructure;
 using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
 using DoAnWeb.ViewModels.HocPhi;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoAnWeb.Controllers
@@ -19,12 +21,14 @@ namespace DoAnWeb.Controllers
         private readonly HocPhiService _hocPhi;
         private readonly BaoCaoService _baoCao;
         private readonly XuatExcelService _excel;
+        private readonly QuanLyGiaSuContext _db;
 
-        public HocPhiController(HocPhiService hocPhi, BaoCaoService baoCao, XuatExcelService excel)
+        public HocPhiController(HocPhiService hocPhi, BaoCaoService baoCao, XuatExcelService excel, QuanLyGiaSuContext db)
         {
             _hocPhi = hocPhi;
             _baoCao = baoCao;
             _excel = excel;
+            _db = db;
         }
 
         [HttpGet]
@@ -108,6 +112,35 @@ namespace DoAnWeb.Controllers
             return File(_excel.CongNo(ds),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"CongNo_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
+        [HttpGet]
+        public IActionResult PhieuThu(int id)
+        {
+            var thanhToan = _db.ThanhToans.AsNoTracking()
+                .Include(t => t.LopHoc).ThenInclude(l => l.HocVien)
+                .Include(t => t.LopHoc).ThenInclude(l => l.GiaSu)
+                .FirstOrDefault(t => t.MaTT == id);
+            if (thanhToan?.LopHoc == null) return NotFound();
+
+            var lichSu = _hocPhi.GetLichSu(thanhToan.MaLop)
+                .OrderBy(t => t.NgayDong).ThenBy(t => t.MaTT).ToList();
+            ViewBag.DaDongLuyKe = lichSu.TakeWhile(t => t.MaTT != id).Sum(t => t.SoTien) + thanhToan.SoTien;
+            ViewBag.ConNo = Math.Max(0, (thanhToan.LopHoc.HocPhi ?? 0) - (decimal)ViewBag.DaDongLuyKe);
+            ViewBag.NguoiThu = User.Identity?.Name ?? "Quản lý";
+            return View("PhieuThu", thanhToan);
+        }
+
+        [HttpGet]
+        public IActionResult BangKe(int maLop)
+        {
+            var lop = _db.LopHocs.AsNoTracking().Include(l => l.HocVien).Include(l => l.GiaSu)
+                .FirstOrDefault(l => l.MaLop == maLop);
+            if (lop == null) return NotFound();
+            ViewBag.LichSu = _hocPhi.GetLichSu(maLop).OrderBy(t => t.NgayDong).ThenBy(t => t.MaTT).ToList();
+            ViewBag.TongDaDong = ((List<ThanhToan>)ViewBag.LichSu).Sum(t => t.SoTien);
+            ViewBag.NguoiLap = User.Identity?.Name ?? "Quản lý";
+            return View("BangKe", lop);
         }
 
         private HocPhiIndexViewModel TaoModel(int? maLop, string tuKhoa, string tinhTrang, HocPhiThanhToanViewModel input,

@@ -1,0 +1,38 @@
+@model DoAnWeb.Data.Entities.ThanhToan
+@using DoAnWeb.Common
+@{
+    ViewData["Title"] = "Phiếu thu học phí";
+    ViewData["PageSub"] = $"Phiếu thu số {Model.MaTT}";
+    var lop = Model.LopHoc;
+    var tenTrungTam = ViewData["TenTrungTam"] as string;
+}
+@section Styles { <link rel="stylesheet" href="~/css/in-an.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/in-an.js" asp-append-version="true"></script> }
+
+<div class="print-actions d-flex gap-2 mb-3">
+    <button type="button" class="btn btn-primary" data-in-an>In</button>
+    <a class="btn btn-outline-secondary" asp-action="Index" asp-route-maLop="@Model.MaLop">Quay lại học phí</a>
+</div>
+<article class="giay-in phieu-thu">
+    <header class="phieu-dau">
+        <div class="phieu-trung-tam">@(string.IsNullOrWhiteSpace(tenTrungTam) ? "Quản lý gia sư" : tenTrungTam)</div>
+        <div class="phieu-dia-chi">PHIẾU THU HỌC PHÍ</div>
+        <div class="phieu-so">Số phiếu: <strong>@Model.MaTT</strong></div>
+        <div class="phieu-ngay">Ngày @Model.NgayDong.ToString("dd") tháng @Model.NgayDong.ToString("MM") năm @Model.NgayDong.ToString("yyyy")</div>
+    </header>
+    <section class="phieu-noi-dung">
+        <p>Họ tên học viên: <strong>@lop.HocVien?.HoTen</strong></p>
+        <p>Lớp / môn học: <strong>@(lop.TenLop ?? "Lớp học") / @lop.MonHoc</strong></p>
+        <p>Số tiền: <strong>@SoTien.Dinh(Model.SoTien) đồng</strong></p>
+        <p class="phieu-bang-chu">Bằng chữ: <em>@SoTien.DocBangChu(Model.SoTien)</em></p>
+        <p>Đã đóng lũy kế: <strong>@SoTien.Dinh((decimal)ViewBag.DaDongLuyKe) đồng</strong></p>
+        <p>Còn nợ: <strong>@SoTien.Dinh((decimal)ViewBag.ConNo) đồng</strong></p>
+        <p>Hình thức: @(!string.IsNullOrWhiteSpace(Model.HinhThuc) ? Model.HinhThuc : "—")</p>
+        @if (!string.IsNullOrWhiteSpace(Model.GhiChu)) { <p>Ghi chú: @Model.GhiChu</p> }
+        <p>Người thu: <strong>@ViewBag.NguoiThu</strong></p>
+    </section>
+    <footer class="phieu-ky">
+        <div>Người nộp tiền<br /><span>(Ký, ghi rõ họ tên)</span></div>
+        <div>Người thu tiền<br /><span>(Ký, ghi rõ họ tên)</span></div>
+    </footer>
+</article>
