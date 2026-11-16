@@ -46,9 +46,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@tieuDeTrang - @tenTrungTam</title>
+    <link rel="manifest" href="~/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="~/img/logo.svg" />
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="apple-touch-icon" href="~/img/logo-180.png" />
+    <script src="~/js/giao-dien.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/g3.css" asp-append-version="true" />
@@ -144,6 +146,10 @@
                 }
             </div>
             <div class="vo-topbar-right">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-theme-toggle
+                        aria-label="Đổi giao diện" title="Đổi giao diện">
+                    Giao diện: Tự động
+                </button>
                 @* W6 gắn badge thông báo lớp sắp bắt đầu vào đây *@
                 <span id="vo-badge-thongbao"></span>
             </div>
