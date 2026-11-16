@@ -63,7 +63,7 @@
      data-goiyten-url="@Url.Action("GoiYTen")">
     <form method="post" asp-action="GhepLop" id="form-ghep-lop">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="vo-alert vo-alert-danger mb-3"></div>
+        <div asp-validation-summary="ModelOnly" class="vo-alert vo-alert-danger mb-3" role="alert"></div>
 
         <div class="row g-3">
             @* ================= 1. HỌC VIÊN ================= *@
@@ -73,6 +73,7 @@
                     <div class="vo-search mb-2">
                         <partial name="_Icon" model='"search"' />
                         <input type="text" id="tim-hv" class="form-control" autocomplete="off"
+                               aria-label="Tìm học viên theo tên, SĐT, phụ huynh, trường"
                                placeholder="Tìm tên, SĐT, phụ huynh, trường…" />
                     </div>
                     <div class="ghep-list" id="ds-hv">
@@ -115,7 +116,7 @@
 
                     <div class="row g-2 mb-2">
                         <div class="col-7">
-                            <label class="form-label">Môn học</label>
+                            <label class="form-label" for="cbo-mon">Môn học</label>
                             <select class="form-select" id="cbo-mon" name="MonHoc">
                                 <option value="">Chọn môn học…</option>
                                 @foreach (var mon in Model.MonHocs)
@@ -128,7 +129,7 @@
                             </select>
                         </div>
                         <div class="col-5" id="khung-cap" hidden>
-                            <label class="form-label">Cấp độ đầu vào</label>
+                            <label class="form-label" for="cbo-cap">Cấp độ đầu vào</label>
                             <select class="form-select" id="cbo-cap" name="CapDoDauVao"></select>
                         </div>
                     </div>
@@ -164,10 +165,12 @@
                     <div class="row g-2">
                         <div class="col-6">
                             <input type="date" class="form-control" name="BatDau" id="ngay-bat-dau"
+                                   aria-label="Từ ngày"
                                    value="@Model.BatDau?.ToString("yyyy-MM-dd")" />
                         </div>
                         <div class="col-6">
                             <input type="date" class="form-control" name="KetThuc" id="ngay-ket-thuc"
+                                   aria-label="Đến ngày"
                                    value="@Model.KetThuc?.ToString("yyyy-MM-dd")" />
                         </div>
                     </div>
@@ -177,7 +180,7 @@
                         <button type="button" class="btn btn-sm btn-ghost" data-thang="3">3 tháng</button>
                     </div>
 
-                    <label class="form-label mt-3">Học phí cả khóa (đ)</label>
+                    <label class="form-label mt-3" for="hoc-phi">Học phí cả khóa (đ)</label>
                     <input type="text" class="form-control vo-input-tien" name="HocPhi" id="hoc-phi"
                            value="@Model.HocPhi" placeholder="Ví dụ: 1.500.000" inputmode="numeric" />
                     <span asp-validation-for="HocPhi" class="text-danger small"></span>
@@ -193,6 +196,7 @@
                     <div class="vo-search mb-2">
                         <partial name="_Icon" model='"search"' />
                         <input type="text" id="tim-gs" class="form-control" autocomplete="off"
+                               aria-label="Tìm gia sư theo tên, SĐT"
                                placeholder="Tìm tên, SĐT gia sư…" />
                     </div>
                     <label class="ghep-check">
@@ -236,7 +240,7 @@
         @* ================= CHÂN: TÊN LỚP + TÓM TẮT ================= *@
         <div class="vo-section ghep-chan">
             <div class="ghep-ten">
-                <label class="form-label mb-0">Tên lớp</label>
+                <label class="form-label mb-0" for="ten-lop">Tên lớp</label>
                 <input type="text" class="form-control" name="TenLop" id="ten-lop" maxlength="150"
                        value="@Model.TenLop" placeholder="Tên lớp, ví dụ: Cờ vua - Bảo Ngọc - Tối" />
                 <button type="button" class="btn btn-ghost" id="goi-y-ten">

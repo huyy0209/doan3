@@ -37,7 +37,9 @@
                 </div>
             </div>
             <form method="get" class="vo-toolbar w6-filter-form">
-                <input type="search" name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm lớp, học viên, SĐT, môn, gia sư..." />
+                <input type="search" name="tuKhoa" value="@Model.TuKhoa" class="form-control"
+                       aria-label="Tìm lớp, học viên, SĐT, môn, gia sư"
+                       placeholder="Tìm lớp, học viên, SĐT, môn, gia sư..." />
                 <select name="tinhTrang" class="form-select" aria-label="Lọc tình trạng">
                     <option value="Cần thu (còn nợ + chưa đóng)" selected="@(Model.TinhTrang == "Cần thu (còn nợ + chưa đóng)")">Cần thu</option>
                     <option value="Tất cả" selected="@(Model.TinhTrang == "Tất cả")">Tất cả</option>
@@ -60,13 +62,13 @@
                     <table class="table vo-table align-middle">
                         <thead>
                             <tr>
-                                <th><a href="@SortUrl("tenLop")">Lớp @SortIndicator("tenLop")</a></th>
-                                <th><a href="@SortUrl("sdt")">Liên hệ @SortIndicator("sdt")</a></th>
-                                <th><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
-                                <th class="text-end"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
-                                <th class="text-end"><a href="@SortUrl("daDong")">Đã đóng @SortIndicator("daDong")</a></th>
-                                <th class="text-end"><a href="@SortUrl("conNo")">Còn nợ @SortIndicator("conNo")</a></th>
-                                <th><a href="@SortUrl("tinhTrang")">Tình trạng @SortIndicator("tinhTrang")</a></th>
+                                <th scope="col"><a href="@SortUrl("tenLop")">Lớp @SortIndicator("tenLop")</a></th>
+                                <th scope="col"><a href="@SortUrl("sdt")">Liên hệ @SortIndicator("sdt")</a></th>
+                                <th scope="col"><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
+                                <th scope="col" class="text-end"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
+                                <th scope="col" class="text-end"><a href="@SortUrl("daDong")">Đã đóng @SortIndicator("daDong")</a></th>
+                                <th scope="col" class="text-end"><a href="@SortUrl("conNo")">Còn nợ @SortIndicator("conNo")</a></th>
+                                <th scope="col"><a href="@SortUrl("tinhTrang")">Tình trạng @SortIndicator("tinhTrang")</a></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,7 +120,7 @@
                     <input type="hidden" name="soDong" value="@phanTrang.SoDong" />
                     <input type="hidden" name="sapXep" value="@phanTrang.SapXep" />
                     <input type="hidden" name="chieu" value="@phanTrang.Chieu" />
-                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
                     <div>
                         <label asp-for="ThanhToan.SoTien" class="form-label">Số tiền (đ)</label>
                         <input asp-for="ThanhToan.SoTien" class="form-control" inputmode="numeric" placeholder="Ví dụ: 1.500.000" />
@@ -158,7 +160,7 @@
                 {
                     <div class="table-responsive w6-history-scroll">
                         <table class="table vo-table align-middle">
-                            <thead><tr><th>Ngày</th><th>Số tiền</th><th>Hình thức</th><th>Ghi chú</th><th></th></tr></thead>
+                            <thead><tr><th scope="col">Ngày</th><th scope="col">Số tiền</th><th scope="col">Hình thức</th><th scope="col">Ghi chú</th><th scope="col"></th></tr></thead>
                             <tbody>
                             @foreach (var payment in Model.LichSu)
                             {
@@ -189,7 +191,7 @@
 
 @if (Model.LopChon != null && Model.LichSu.Count > 0)
 {
-    <div class="modal fade" id="w6-xoa-thanh-toan" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="w6-xoa-thanh-toan" tabindex="-1" aria-labelledby="w6-xoa-thanh-toan-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form asp-action="XoaThanhToan" method="post">
@@ -202,7 +204,7 @@
                     <input type="hidden" name="soDong" value="@phanTrang.SoDong" />
                     <input type="hidden" name="sapXep" value="@phanTrang.SapXep" />
                     <input type="hidden" name="chieu" value="@phanTrang.Chieu" />
-                    <div class="modal-header"><h2 class="modal-title fs-5">Xóa lần đóng học phí?</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                    <div class="modal-header"><h2 class="modal-title fs-5" id="w6-xoa-thanh-toan-title">Xóa lần đóng học phí?</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
                     <div class="modal-body">Xóa khoản <strong id="w6-xoa-thanh-toan-text"></strong>? Thao tác này không thể hoàn tác.</div>
                     <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-danger">Xóa lần đóng</button></div>
                 </form>

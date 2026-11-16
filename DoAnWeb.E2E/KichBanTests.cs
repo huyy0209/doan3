@@ -190,7 +190,7 @@ public class KichBanTests : GiaoDienTestBase
     }, DienThoai);
 
     // ---------------------------------------------------------------- 6
-    [Fact(Skip = "LOI-01: trang /QuanLyTaiKhoan va /CaiDat ap dung inline style bi CSP style-src 'self' chan; xem docs/progress/G13.md.")]
+    [Fact]
     public async Task K6_MenuQuanLyVaGiaSu_KhongLoiConsoleHoacCsp()
     {
         await KiemTraMenuVaiTro(Du.QuanLy.TenDangNhap, laQuanLy: true);
@@ -282,10 +282,15 @@ public class KichBanTests : GiaoDienTestBase
     {
         await Chay($"Menu-{tenDangNhap}", async trang =>
         {
-            await DangNhap(trang, tenDangNhap);
+            await trang.GotoAsync(Url("/TaiKhoan/DangNhap"));
+            await trang.FillAsync("#TenDangNhap", tenDangNhap);
+            await trang.FillAsync("#MatKhau", DuLieuE2E.MatKhau);
+            await trang.ClickAsync("form button[type=submit]", new() { NoWaitAfter = true });
+            await Expect(trang).ToHaveURLAsync(new Regex(laQuanLy ? "/TongQuan" : "/DiemDanh"));
             await trang.AddInitScriptAsync(
                 "window.__e2eCsp = []; document.addEventListener('securitypolicyviolation', " +
-                "event => window.__e2eCsp.push(event.violatedDirective + ': ' + event.blockedURI));");
+                "event => window.__e2eCsp.push([event.violatedDirective, event.blockedURI, " +
+                "event.sourceFile, event.lineNumber, event.sample].join(': ')));");
 
             var loiConsole = new List<string>();
             trang.Console += (_, thongBao) =>
@@ -296,23 +301,23 @@ public class KichBanTests : GiaoDienTestBase
 
             string[] duongDan = await trang.Locator("nav.vo-nav a.vo-nav-link")
                 .EvaluateAllAsync<string[]>("links => links.map(link => link.getAttribute('href'))");
-            Assert.Equal(laQuanLy ? 11 : 3, duongDan.Length);
+            Assert.Equal(laQuanLy ? 12 : 3, duongDan.Length);
             if (laQuanLy) duongDan = duongDan.Append("/CaiDat").ToArray();
 
             var loiCsp = new List<string>();
             foreach (string muc in duongDan)
             {
-                await trang.GotoAsync(Url(muc));
+                await trang.GotoAsync(Url(muc), new() { WaitUntil = WaitUntilState.DOMContentLoaded });
                 string[] viPham = await trang.EvaluateAsync<string[]>(
                     "() => window.__e2eCsp || []");
                 loiCsp.AddRange(viPham.Select(v => $"{muc}: {v}"));
                 await trang.EvaluateAsync("() => { window.__e2eCsp = []; }");
             }
 
-            Assert.True(loiConsole.Count == 0,
-                "Lỗi JavaScript trong menu: " + string.Join(" | ", loiConsole));
             Assert.True(loiCsp.Count == 0,
                 "Vi phạm CSP trong menu: " + string.Join(" | ", loiCsp));
+            Assert.True(loiConsole.Count == 0,
+                "Lỗi JavaScript trong menu: " + string.Join(" | ", loiConsole));
         });
     }
 }

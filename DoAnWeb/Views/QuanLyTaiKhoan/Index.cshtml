@@ -30,12 +30,12 @@
                     <table class="table vo-table align-middle">
                         <thead>
                             <tr>
-                                <th>Tên đăng nhập</th>
-                                <th>Vai trò</th>
-                                <th>Gia sư</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày tạo</th>
-                                <th class="text-end">Thao tác</th>
+                                <th scope="col">Tên đăng nhập</th>
+                                <th scope="col">Vai trò</th>
+                                <th scope="col">Gia sư</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Ngày tạo</th>
+                                <th scope="col" class="text-end">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,7 +76,16 @@
             <p class="text-secondary">Gia sư chỉ xem lịch và học viên của mình. Quản lý có quyền truy cập toàn hệ thống.</p>
             <form asp-action="Index" method="post">
                 @Html.AntiForgeryToken()
-                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    var loiModel = ViewData.ModelState.Values.SelectMany(giaTri => giaTri.Errors)
+                        .Select(loi => loi.ErrorMessage).Where(thongDiep => !string.IsNullOrWhiteSpace(thongDiep)).Distinct();
+                    <div class="text-danger mb-3" role="alert">
+                        <ul class="mb-0">
+                            @foreach (var loi in loiModel) { <li>@loi</li> }
+                        </ul>
+                    </div>
+                }
                 <div class="mb-3">
                     <label asp-for="TaoMoi.VaiTro" class="form-label"></label>
                     <select asp-for="TaoMoi.VaiTro" class="form-select" data-w1-role>

@@ -21,6 +21,7 @@
     <div class="vo-section">Danh sách gia sư</div>
     <form method="get" class="vo-toolbar w1-filter-row">
         <input class="form-control" type="search" name="tuKhoa" value="@Model.TuKhoa"
+               aria-label="Tìm gia sư theo tên, SĐT, môn, trạng thái"
                placeholder="Tìm tên, SĐT, môn, trạng thái... (không cần dấu)" />
         <select class="form-select" name="mon" aria-label="Lọc môn">
             <option value="">Mọi môn</option>
@@ -60,13 +61,13 @@
             <table class="table vo-table align-middle">
                 <thead>
                     <tr>
-                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen"))">Họ tên @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen")</a></th>
-                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt"))">Số ĐT @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt")</a></th>
-                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon"))">Chuyên môn @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon")</a></th>
-                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca"))">Ca nhận dạy @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca")</a></th>
-                        <th class="text-center"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop"))">Số lớp @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop")</a></th>
-                        <th><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai"))">Trạng thái @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai")</a></th>
-                        <th class="text-end">Thao tác</th>
+                        <th scope="col"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen"))">Họ tên @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "hoTen")</a></th>
+                        <th scope="col"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt"))">Số ĐT @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "sdt")</a></th>
+                        <th scope="col"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon"))">Chuyên môn @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "chuyenMon")</a></th>
+                        <th scope="col"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca"))">Ca nhận dạy @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "ca")</a></th>
+                        <th scope="col" class="text-center"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop"))">Số lớp @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "soLop")</a></th>
+                        <th scope="col"><a href="@Url.Action("Index", PhanTrang.TaoThamSoSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai"))">Trạng thái @PhanTrang.BieuTuongSapXep((IThongTinTrang)ViewBag.PhanTrang, "trangThai")</a></th>
+                        <th scope="col" class="text-end">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>

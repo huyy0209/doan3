@@ -114,16 +114,16 @@
                 <table class="table vo-table dd-table align-middle">
                     <thead>
                         <tr>
-                            <th>Học viên</th>
-                            <th>Lớp / môn</th>
-                            @if (Model.LaQuanLy) { <th>Gia sư</th> }
-                            <th>Ca</th>
-                            <th>Điểm danh</th>
-                            <th>Điểm test</th>
-                            <th>Nhận xét</th>
-                            <th class="text-center">Thi lên cấp</th>
-                            <th>Ghi chú</th>
-                            <th>Trạng thái</th>
+                            <th scope="col">Học viên</th>
+                            <th scope="col">Lớp / môn</th>
+                            @if (Model.LaQuanLy) { <th scope="col">Gia sư</th> }
+                            <th scope="col">Ca</th>
+                            <th scope="col">Điểm danh</th>
+                            <th scope="col">Điểm test</th>
+                            <th scope="col">Nhận xét</th>
+                            <th scope="col" class="text-center">Thi lên cấp</th>
+                            <th scope="col">Ghi chú</th>
+                            <th scope="col">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,7 +171,7 @@
                                        aria-label="Nhận xét @row.HocVien" />
                             </td>
                             <td class="dd-promote text-center">
-                                @Html.CheckBoxFor(m => m.Rows[i].ThiLenCap, new { @class = "form-check-input", disabled = !row.LaNangKhieu })
+                                @Html.CheckBoxFor(m => m.Rows[i].ThiLenCap, new { @class = "form-check-input", disabled = !row.LaNangKhieu, aria_label = "Thi lên cấp cho " + row.HocVien })
                             </td>
                             <td class="dd-note small">@row.GhiChu</td>
                             <td class="dd-state small">

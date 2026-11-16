@@ -29,6 +29,7 @@
         <div class="vo-search">
             <partial name="_Icon" model='"search"' />
             <input type="text" class="form-control" name="q" value="@Model.TuKhoa"
+                   aria-label="Tìm lớp theo tên lớp, học viên, gia sư, môn"
                    placeholder="Tìm tên lớp, học viên, gia sư, môn… (không cần dấu)" />
         </div>
 
@@ -109,24 +110,24 @@
                 <table class="vo-table">
                     <thead>
                         <tr>
-                            <th><a href="@SortUrl("tenLop")">Tên lớp @SortIndicator("tenLop")</a></th>
-                            <th><a href="@SortUrl("hocVien")">Học viên @SortIndicator("hocVien")</a></th>
-                            <th><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
-                            <th><a href="@SortUrl("monHoc")">Môn @SortIndicator("monHoc")</a></th>
-                            <th><a href="@SortUrl("loaiMon")">Loại môn @SortIndicator("loaiMon")</a></th>
-                            <th><a href="@SortUrl("caHoc")">Ca @SortIndicator("caHoc")</a></th>
-                            <th><a href="@SortUrl("thuHoc")">Thứ học @SortIndicator("thuHoc")</a></th>
-                            <th class="vo-cell-number"><a href="@SortUrl("soBuoi")">Số buổi @SortIndicator("soBuoi")</a></th>
-                            <th><a href="@SortUrl("batDau")">Bắt đầu @SortIndicator("batDau")</a></th>
-                            <th><a href="@SortUrl("ketThuc")">Kết thúc @SortIndicator("ketThuc")</a></th>
-                            <th><a href="@SortUrl("trangThaiLop")">Trạng thái @SortIndicator("trangThaiLop")</a></th>
-                            <th class="vo-cell-number"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
-                            <th>
+                            <th scope="col"><a href="@SortUrl("tenLop")">Tên lớp @SortIndicator("tenLop")</a></th>
+                            <th scope="col"><a href="@SortUrl("hocVien")">Học viên @SortIndicator("hocVien")</a></th>
+                            <th scope="col"><a href="@SortUrl("giaSu")">Gia sư @SortIndicator("giaSu")</a></th>
+                            <th scope="col"><a href="@SortUrl("monHoc")">Môn @SortIndicator("monHoc")</a></th>
+                            <th scope="col"><a href="@SortUrl("loaiMon")">Loại môn @SortIndicator("loaiMon")</a></th>
+                            <th scope="col"><a href="@SortUrl("caHoc")">Ca @SortIndicator("caHoc")</a></th>
+                            <th scope="col"><a href="@SortUrl("thuHoc")">Thứ học @SortIndicator("thuHoc")</a></th>
+                            <th scope="col" class="vo-cell-number"><a href="@SortUrl("soBuoi")">Số buổi @SortIndicator("soBuoi")</a></th>
+                            <th scope="col"><a href="@SortUrl("batDau")">Bắt đầu @SortIndicator("batDau")</a></th>
+                            <th scope="col"><a href="@SortUrl("ketThuc")">Kết thúc @SortIndicator("ketThuc")</a></th>
+                            <th scope="col"><a href="@SortUrl("trangThaiLop")">Trạng thái @SortIndicator("trangThaiLop")</a></th>
+                            <th scope="col" class="vo-cell-number"><a href="@SortUrl("hocPhi")">Học phí @SortIndicator("hocPhi")</a></th>
+                            <th scope="col">
                                 <a href="@SortUrl("danhGia")">Đánh giá @SortIndicator("danhGia")</a>
                                 <span>/</span>
                                 <a href="@SortUrl("diemTB")">TB @SortIndicator("diemTB")</a>
                             </th>
-                            <th class="vo-cell-actions">Thao tác</th>
+                            <th scope="col" class="vo-cell-actions">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>

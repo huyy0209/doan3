@@ -6,7 +6,8 @@
 <section class="vo-section vo-card">
     <form method="get" class="vo-toolbar mb-3">
         <div class="input-group">
-            <input name="tuKhoa" value="@Model.TuKhoa" class="form-control" placeholder="Tìm học viên..." />
+            <input name="tuKhoa" value="@Model.TuKhoa" class="form-control"
+                   aria-label="Tìm học viên" placeholder="Tìm học viên..." />
             <button type="submit" class="btn btn-primary">Tìm</button>
             @if (!string.IsNullOrWhiteSpace(Model.TuKhoa))
             {
@@ -22,7 +23,7 @@
     {
         <div class="table-responsive">
             <table class="table vo-table align-middle">
-                <thead><tr><th>Học viên</th><th>Trường / lớp</th><th>Liên hệ</th><th>Trạng thái</th><th></th></tr></thead>
+                <thead><tr><th scope="col">Học viên</th><th scope="col">Trường / lớp</th><th scope="col">Liên hệ</th><th scope="col">Trạng thái</th><th scope="col"></th></tr></thead>
                 <tbody>
                 @foreach (var hv in Model.HocViens)
                 {
