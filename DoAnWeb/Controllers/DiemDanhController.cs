@@ -15,12 +15,14 @@ namespace DoAnWeb.Controllers
     public class DiemDanhController : Controller
     {
         private readonly HocTapService _hocTap;
+        private readonly HomNayService _homNay;
         private readonly GiaSuService _giaSu;
         private readonly INguoiDungHienTai _nguoiDung;
 
-        public DiemDanhController(HocTapService hocTap, GiaSuService giaSu, INguoiDungHienTai nguoiDung)
+        public DiemDanhController(HocTapService hocTap, HomNayService homNay, GiaSuService giaSu, INguoiDungHienTai nguoiDung)
         {
             _hocTap = hocTap;
+            _homNay = homNay;
             _giaSu = giaSu;
             _nguoiDung = nguoiDung;
         }
@@ -133,6 +135,7 @@ namespace DoAnWeb.Controllers
                 Ca = caHopLe ? ca : null,
                 MaGS = laQuanLy ? maGS : null,
                 LaQuanLy = laQuanLy,
+                HomNay = laQuanLy ? null : _homNay.LayChoGiaSu(),
                 Rows = duLieu,
                 Loi = loi?.ToList() ?? new List<string>(),
                 CacCa = new[] { new SelectListItem("Mọi ca", "") }

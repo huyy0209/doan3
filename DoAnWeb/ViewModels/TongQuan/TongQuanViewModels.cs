@@ -6,6 +6,7 @@ namespace DoAnWeb.ViewModels.TongQuan
     public class TongQuanIndexViewModel
     {
         public TongQuanDuLieu DuLieu { get; set; }
+        public HomNayDuLieu HomNay { get; set; }
         public Dictionary<string, int> SoLopTheoCa { get; set; }
         public string TenQuanLy { get; set; }
         public string CaHienTai { get; set; }
