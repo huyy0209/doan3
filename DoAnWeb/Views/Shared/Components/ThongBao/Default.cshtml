@@ -1,0 +1,38 @@
+@model DoAnWeb.Services.ThongBaoMenuViewModel
+<div class="dropdown thong-bao-menu">
+    <button class="thong-bao-toggle" type="button" data-bs-toggle="dropdown"
+            aria-expanded="false" aria-label="Thông báo, @Model.ChuaDoc chưa đọc" title="Thông báo">
+        <partial name="_Icon" model='"bell"' />
+        @if (Model.ChuaDoc > 0)
+        {
+            <span class="thong-bao-so-luong">@((Model.ChuaDoc > 99) ? "99+" : Model.ChuaDoc.ToString())</span>
+        }
+    </button>
+    <div class="dropdown-menu dropdown-menu-end thong-bao-dropdown">
+        <div class="thong-bao-dau">
+            <strong>Thông báo</strong>
+            <span>@Model.ChuaDoc chưa đọc</span>
+        </div>
+        @if (Model.ThongBao.Count == 0)
+        {
+            <p class="thong-bao-rong">Chưa có thông báo.</p>
+        }
+        else
+        {
+            <div class="thong-bao-moi">
+                @foreach (var item in Model.ThongBao)
+                {
+                    <form method="post" action="/ThongBao/Doc/@item.MaTB" class="thong-bao-muc">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="thong-bao-noi-dung @(item.DaDoc ? "da-doc" : "chua-doc")">
+                            <span class="thong-bao-tieu-de">@item.TieuDe</span>
+                            <span class="thong-bao-tom-tat">@item.NoiDung</span>
+                            <time datetime="@item.ThoiGian.ToString("O")">@item.ThoiGian.ToString("dd/MM/yyyy HH:mm")</time>
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+        <a class="dropdown-item thong-bao-xem-tat-ca" href="/ThongBao">Xem tất cả thông báo</a>
+    </div>
+</div>

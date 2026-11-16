@@ -52,6 +52,16 @@ public sealed class TuSaoLuuNen : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Tự sao lưu CSDL thất bại.");
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var thongBao = scope.ServiceProvider.GetRequiredService<ThongBaoService>();
+                    await thongBao.TaoThongBaoSaoLuuThatBaiAsync(stoppingToken);
+                }
+                catch (Exception loiThongBao)
+                {
+                    _logger.LogError(loiThongBao, "Không thể gửi thông báo về lần sao lưu tự động thất bại.");
+                }
             }
         }
     }

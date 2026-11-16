@@ -95,7 +95,7 @@ jobs:
           # Cấu trúc: đúng thứ tự trong scripts/CaiDatCSDL.bat
           for f in 01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4 \
                    05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8 09_NhatKy \
-                   10_ChiMuc_Web; do
+                   10_ChiMuc_Web 11_ThongBao; do
             echo "::group::$f.sql"
             chay_sql "$f"
             echo "::endgroup::"
@@ -195,7 +195,7 @@ jobs:
             docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD"               -C -I -b -f 65001 -i "/tmp/Database/$1.sql"
           }
 
-          for f in 01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4                    05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8 09_NhatKy 10_ChiMuc_Web; do
+          for f in 01_QuanLyGiaSu 02_NangCap_v2 03_NangCap_v3 04_NangCap_v4                    05_NangCap_v5 06_NangCap_v6 07_NangCap_v7 08_NangCap_v8 09_NhatKy 10_ChiMuc_Web 11_ThongBao; do
             chay_sql "$f"
           done
           for f in 11_DuLieuMau_ThemNhieu 12_DuLieuMau_DiemDanh_HocPhi 13_DuLieuMau_v3                    14_DuLieuMau_HocBu 15_DuLieuMau_CapDo 16_DuLieuMau_v6; do

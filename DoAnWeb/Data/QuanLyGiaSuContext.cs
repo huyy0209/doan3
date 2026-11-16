@@ -28,6 +28,8 @@ public partial class QuanLyGiaSuContext : DbContext
 
     public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
 
+    public virtual DbSet<ThongBao> ThongBaos { get; set; }
+
     public virtual DbSet<ThanhToan> ThanhToans { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -221,6 +223,23 @@ public partial class QuanLyGiaSuContext : DbContext
             entity.HasOne(d => d.GiaSu).WithOne(p => p.TaiKhoan)
                 .HasForeignKey<TaiKhoan>(d => d.MaGS)
                 .HasConstraintName("FK_TaiKhoan_GiaSu");
+        });
+
+        modelBuilder.Entity<ThongBao>(entity =>
+        {
+            entity.ToTable("ThongBao");
+            entity.HasKey(e => e.MaTB);
+            entity.Property(e => e.TieuDe).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.NoiDung).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.DuongDan).HasMaxLength(300);
+            entity.Property(e => e.DaDoc).HasDefaultValue(false);
+            entity.Property(e => e.ThoiGian).HasColumnType("datetime2").HasDefaultValueSql("(sysdatetime())");
+            entity.HasIndex(e => new { e.MaTK, e.DaDoc, e.ThoiGian })
+                .HasDatabaseName("IX_ThongBao_MaTK_DaDoc_ThoiGian")
+                .IsDescending(false, false, true);
+            entity.HasOne(e => e.TaiKhoan).WithMany()
+                .HasForeignKey(e => e.MaTK)
+                .HasConstraintName("FK_ThongBao_TaiKhoan");
         });
 
         modelBuilder.Entity<ThanhToan>(entity =>
