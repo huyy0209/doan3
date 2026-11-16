@@ -1,0 +1,28 @@
+@model DoAnWeb.ViewModels.LichDayVM.LichDayChiTietViewModel
+@{
+    ViewData["Title"] = "Chi tiết lớp học";
+    ViewData["PageSub"] = "Thông tin lớp trong thời khóa biểu.";
+    var lop = Model.LopHoc;
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/lich-day.css" asp-append-version="true" />
+}
+
+<section class="vo-card ld-detail">
+    <h2>@lop.TenHienThi</h2>
+    <dl>
+        <dt>Môn học</dt><dd>@lop.MonHoc</dd>
+        <dt>Gia sư</dt><dd>@lop.GiaSu?.HoTen</dd>
+        <dt>Học viên</dt><dd>@lop.HocVien?.HoTen</dd>
+        <dt>Ca học</dt><dd>@lop.CaHoc</dd>
+        <dt>Thứ học</dt><dd>@Constants.ThuHoc.MoTa(lop.ThuHoc)</dd>
+        <dt>Thời gian</dt>
+        <dd>
+            @(lop.ThoiGianBatDau?.ToString("dd/MM/yyyy") ?? "Chưa xác định")
+            –
+            @(lop.ThoiGianKetThuc?.ToString("dd/MM/yyyy") ?? "Chưa xác định")
+        </dd>
+        <dt>Trạng thái</dt><dd>@lop.TrangThaiTheoThoiGian</dd>
+    </dl>
+    <a class="btn btn-outline-ink" href="@Url.Action("Index", new { ngay = (lop.ThoiGianBatDau ?? DateTime.Today).ToString("yyyy-MM-dd") })">Quay lại thời khóa biểu</a>
+</section>

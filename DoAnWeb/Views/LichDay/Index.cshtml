@@ -1,0 +1,131 @@
+@model DoAnWeb.ViewModels.LichDayVM.LichDayIndexViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Thời khóa biểu";
+    ViewData["PageSub"] = "Lịch các lớp theo tuần.";
+    var tuanTruoc = Model.TuanTruoc.ToString("yyyy-MM-dd");
+    var tuanSau = Model.TuanSau.ToString("yyyy-MM-dd");
+    var dauTuan = Model.BatDauTuan.ToString("yyyy-MM-dd");
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/lich-day.css" asp-append-version="true" />
+}
+
+<section class="vo-card ld-calendar">
+    <div class="ld-toolbar">
+        <div class="ld-week-nav">
+            <a class="btn btn-outline-ink" href="@Url.Action("Index", new { ngay = tuanTruoc, maGS = Model.MaGS, monHoc = Model.MonHoc })" aria-label="Tuần trước">‹</a>
+            <h2>Tuần @Model.BatDauTuan.ToString("dd/MM") – @Model.KetThucTuan.ToString("dd/MM/yyyy")</h2>
+            <a class="btn btn-outline-ink" href="@Url.Action("Index", new { ngay = tuanSau, maGS = Model.MaGS, monHoc = Model.MonHoc })" aria-label="Tuần sau">›</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", new { maGS = Model.MaGS, monHoc = Model.MonHoc })">Tuần này</a>
+            <button type="button" class="btn btn-outline-ink" id="ld-print">In</button>
+        </div>
+        <form method="get" class="ld-filters">
+            <input type="hidden" name="ngay" value="@dauTuan" />
+            @if (Model.LaQuanLy)
+            {
+                <label for="maGS" class="form-label">Gia sư</label>
+                <select id="maGS" name="maGS" class="form-select">
+                    <option value="">Tất cả gia sư</option>
+                    @foreach (var gs in Model.GiaSus)
+                    {
+                        <option value="@gs.MaGS" selected="@(Model.MaGS == gs.MaGS)">@gs.HoTen</option>
+                    }
+                </select>
+            }
+            <label for="monHoc" class="form-label">Môn học</label>
+            <select id="monHoc" name="monHoc" class="form-select">
+                <option value="">Tất cả môn</option>
+                @foreach (var mon in Model.CacMon)
+                {
+                    <option value="@mon" selected="@(string.Equals(Model.MonHoc, mon, StringComparison.OrdinalIgnoreCase))">@mon</option>
+                }
+            </select>
+            <button type="submit" class="btn btn-primary">Lọc</button>
+        </form>
+    </div>
+
+    <p class="ld-summary">@Model.SoLop lớp trong tuần</p>
+    @if (Model.SoLop == 0)
+    {
+        <div class="vo-empty">Tuần này chưa có lớp học.</div>
+    }
+    else
+    {
+        <div class="ld-desktop-grid">
+            <table class="ld-week-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Ca học</th>
+                        @foreach (var ngay in Model.CacNgay)
+                        {
+                            <th scope="col" class="@(ngay.HomNay ? "is-today" : "")">
+                                <span>@ngay.Ngay.ToString("dddd", vi)</span>
+                                <strong>@ngay.Ngay.ToString("dd/MM")</strong>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ca in Model.CacNgay[0].CacCa)
+                    {
+                        <tr>
+                            <th scope="row">@ca.Ten</th>
+                            @foreach (var ngay in Model.CacNgay)
+                            {
+                                var lopTrongCa = ngay.CacCa.First(c => c.Ten == ca.Ten).LopHoc;
+                                <td class="@(ngay.HomNay ? "is-today" : "")">
+                                    @foreach (var lop in lopTrongCa)
+                                    {
+                                        <a class="ld-class-card" href="/LichDay/Details/@lop.MaLop">
+                                            <strong>@lop.MonHoc</strong>
+                                            <span>Gia sư: @lop.GiaSu?.HoTen</span>
+                                            <span>Học viên: @lop.HocVien?.HoTen</span>
+                                            <span>@lop.CaHoc</span>
+                                        </a>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ld-mobile-days">
+            @foreach (var ngay in Model.CacNgay)
+            {
+                <section class="ld-day-card @(ngay.HomNay ? "is-today" : "")">
+                    <h3>@ngay.Ngay.ToString("dddd, dd/MM/yyyy", vi) @if (ngay.HomNay) { <span>Hôm nay</span> }</h3>
+                    @if (ngay.CacCa.All(c => c.LopHoc.Count == 0))
+                    {
+                        <p class="ld-day-empty">Không có lớp học.</p>
+                    }
+                    else
+                    {
+                        @foreach (var ca in ngay.CacCa.Where(c => c.LopHoc.Count > 0))
+                        {
+                            <div class="ld-mobile-shift">
+                                <h4>@ca.Ten</h4>
+                                @foreach (var lop in ca.LopHoc)
+                                {
+                                    <a class="ld-class-card" href="/LichDay/Details/@lop.MaLop">
+                                        <strong>@lop.MonHoc</strong>
+                                        <span>Gia sư: @lop.GiaSu?.HoTen</span>
+                                        <span>Học viên: @lop.HocVien?.HoTen</span>
+                                        <span>@lop.CaHoc</span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    }
+                </section>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/lich-day.js" asp-append-version="true"></script>
+}
