@@ -1,7 +1,7 @@
 @echo off
 rem ==========================================================================
 rem  Quản lý gia sư - BẢN WEB: menu khởi động duy nhất.
-rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|dong-bo|shortcut|dich-vu
+rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|dong-bo|shortcut|tu-xa|dich-vu
 rem  Các script con nằm trong thư mục scripts\
 rem ==========================================================================
 setlocal EnableExtensions
@@ -14,6 +14,7 @@ if /I "%~1"=="cai-csdl" goto cai_csdl
 if /I "%~1"=="sao-luu" goto sao_luu
 if /I "%~1"=="dong-bo" goto dong_bo
 if /I "%~1"=="shortcut" goto tao_shortcut
+if /I "%~1"=="tu-xa" goto tu_xa
 if /I "%~1"=="dich-vu" goto dich_vu
 if /I not "%~1"=="" goto lenh_khong_hop_le
 
@@ -29,13 +30,15 @@ echo  ║  3. Cài / nâng cấp CSDL                                  ║
 echo  ║  4. Sao lưu CSDL                                         ║
 echo  ║  5. Kiểm đồng bộ CSDL app ↔ web                          ║
 echo  ║  6. Tạo shortcut "Quản lý gia sư" ra Desktop             ║
+echo  ║  7. Mở cho điện thoại (Tailscale)                        ║
 echo  ║  9. Cài dịch vụ web (Administrator)                      ║
 echo  ║  0. Thoát                                                ║
 echo  ╚══════════════════════════════════════════════════════════╝
 echo.
-choice /c 12345690 /n /m "Chọn chức năng: "
-if errorlevel 8 goto thoat
-if errorlevel 7 goto menu_dich_vu
+choice /c 123456790 /n /m "Chọn chức năng: "
+if errorlevel 9 goto thoat
+if errorlevel 8 goto menu_dich_vu
+if errorlevel 7 goto menu_tu_xa
 if errorlevel 6 goto menu_shortcut
 if errorlevel 5 goto menu_dong_bo
 if errorlevel 4 goto menu_sao_luu
@@ -70,6 +73,10 @@ goto menu_cho_tiep
 
 :menu_dich_vu
 call :dich_vu
+goto menu_cho_tiep
+
+:menu_tu_xa
+call :tu_xa
 goto menu_cho_tiep
 
 :menu_cho_tiep
@@ -117,6 +124,11 @@ rem   QuanLyGiaSu.bat dich-vu -WhatIf
 powershell -ExecutionPolicy Bypass -File "%~dp0scripts\cai-dich-vu-web.ps1" %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %ERRORLEVEL%
 
+:tu_xa
+rem Mở HTTPS trong tailnet Tailscale; không dùng Funnel vì sẽ công khai web ra Internet.
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\mo-truy-cap-tu-xa.ps1" %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %ERRORLEVEL%
+
 :shortcut
 powershell -NoProfile -Command "$desktop = [Environment]::GetFolderPath('Desktop'); $shell = New-Object -ComObject WScript.Shell; $shortcut = $shell.CreateShortcut((Join-Path $desktop 'Quản lý gia sư.lnk')); $shortcut.TargetPath = '%~f0'; $shortcut.WorkingDirectory = '%~dp0'; $icon = Join-Path '%~dp0' 'assets\QuanLyGiaSu.ico'; if (Test-Path $icon) { $shortcut.IconLocation = $icon }; $shortcut.Save()"
 if errorlevel 1 (
@@ -128,7 +140,7 @@ exit /b 0
 
 :lenh_khong_hop_le
 echo [X] Lệnh không hợp lệ: %~1
-echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|dong-bo^|shortcut^|dich-vu
+echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|dong-bo^|shortcut^|tu-xa^|dich-vu
 exit /b 2
 
 :thoat
