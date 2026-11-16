@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using ClosedXML.Excel;
 using DoAnWeb.Services.Dto;
+using DoAnWeb.ViewModels.BaoCaoVM;
 
 namespace DoAnWeb.Services
 {
@@ -16,6 +17,59 @@ namespace DoAnWeb.Services
     public class XuatExcelService
     {
         private const string DinhDangTien = "#,##0";
+
+        /// <summary>Xuất báo cáo tháng thành các trang tính riêng theo từng phần.</summary>
+        public byte[] BaoCaoThang(BaoCaoThangViewModel baoCao)
+        {
+            using var wb = new XLWorkbook();
+
+            var tong = wb.Worksheets.Add("Tổng hợp");
+            TieuDe(tong, "Chỉ tiêu", "Giá trị");
+            tong.Cell(2, 1).Value = "Tháng";
+            tong.Cell(2, 2).Value = $"{baoCao.Thang:D2}/{baoCao.Nam}";
+            tong.Cell(3, 1).Value = "Học phí thu trong tháng";
+            tong.Cell(3, 2).Value = baoCao.HocPhiThu;
+            tong.Cell(4, 1).Value = "Học viên mới";
+            tong.Cell(4, 2).Value = baoCao.HocVienMoi;
+            tong.Cell(5, 1).Value = "Học viên nghỉ";
+            tong.Cell(5, 2).Value = baoCao.HocVienNghi;
+            tong.Cell(6, 1).Value = "Nợ cuối tháng";
+            tong.Cell(6, 2).Value = baoCao.NoCuoiThang;
+            tong.Range(3, 2, 3, 2).Style.NumberFormat.Format = DinhDangTien;
+            tong.Range(6, 2, 6, 2).Style.NumberFormat.Format = DinhDangTien;
+            HoanThien(tong, 2);
+
+            var giaSu = wb.Worksheets.Add("Theo gia sư");
+            TieuDe(giaSu, "Gia sư", "Lớp đang dạy", "Buổi đã điểm danh", "Buổi vắng/nghỉ", "Chuyên cần (%)");
+            int dong = 2;
+            foreach (var g in baoCao.TheoGiaSu)
+            {
+                giaSu.Cell(dong, 1).Value = Chuoi(g.HoTen);
+                giaSu.Cell(dong, 2).Value = g.SoLopDangDay;
+                giaSu.Cell(dong, 3).Value = g.SoBuoiDaDiemDanh;
+                giaSu.Cell(dong, 4).Value = g.SoBuoiVang;
+                giaSu.Cell(dong, 5).Value = g.TyLeChuyenCan;
+                dong++;
+            }
+            HoanThien(giaSu, 5);
+
+            var mon = wb.Worksheets.Add("Theo môn");
+            TieuDe(mon, "Môn học", "Số lớp", "Số học viên", "Học phí thu trong tháng");
+            dong = 2;
+            foreach (var m in baoCao.TheoMon)
+            {
+                mon.Cell(dong, 1).Value = Chuoi(m.TenMon);
+                mon.Cell(dong, 2).Value = m.SoLop;
+                mon.Cell(dong, 3).Value = m.SoHocVien;
+                mon.Cell(dong, 4).Value = m.HocPhiThu;
+                dong++;
+            }
+            if (baoCao.TheoMon.Count > 0)
+                mon.Range(2, 4, dong - 1, 4).Style.NumberFormat.Format = DinhDangTien;
+            HoanThien(mon, 4);
+
+            return Luu(wb);
+        }
 
         // ===================================================================
         // 1. Công nợ học phí
