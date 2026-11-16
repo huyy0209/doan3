@@ -84,6 +84,7 @@ builder.Services.AddScoped<NhatKyExcelService>();
 builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
+builder.Services.AddScoped<TimKiemNhanhService>();
 builder.Services.AddScoped<LopHocService>();
 builder.Services.AddScoped<LichDayService>();
 builder.Services.AddScoped<SaoLuuService>();

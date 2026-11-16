@@ -1,0 +1,33 @@
+@model DoAnWeb.ViewModels.TimKiemVM.NhomKetQuaVM
+@* Một nhóm kết quả trên trang tìm kiếm: tiêu đề + số lượng + danh sách dòng có link chi tiết. *@
+<section class="vo-card tk-nhom" aria-labelledby="@Model.Ma">
+    <h2 class="tk-nhom-tieu-de" id="@Model.Ma">
+        @Model.TieuDe
+        <span class="tk-nhom-dem">@Model.Tong</span>
+    </h2>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="tk-trong">Không có kết quả.</p>
+    }
+    else
+    {
+        <ul class="tk-danh-sach">
+            @foreach (var item in Model.Items)
+            {
+                <li>
+                    <a class="tk-dong" href="@item.Url">
+                        <span class="tk-dong-chinh">@item.TieuDe</span>
+                        @if (!string.IsNullOrWhiteSpace(item.Phu))
+                        {
+                            <span class="tk-dong-phu">@item.Phu</span>
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+        @if (Model.Tong > Model.Items.Count)
+        {
+            <p class="tk-ghi-chu">Đang hiển thị @Model.Items.Count trên @Model.Tong kết quả. Gõ thêm từ khóa để thu hẹp.</p>
+        }
+    }
+</section>
