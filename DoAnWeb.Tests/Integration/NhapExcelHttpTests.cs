@@ -1,6 +1,9 @@
 using System.Net;
+using System.IO.Compression;
+using System.Text;
 using ClosedXML.Excel;
 using DoAnWeb.Data;
+using DoAnWeb.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -69,6 +72,26 @@ public sealed class NhapExcelHttpTests : HttpTestBase
         var bad = await TaiLen(ql, System.Text.Encoding.UTF8.GetBytes("khong phai excel"), "dulieu.csv");
         Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
         Assert.Contains("Chỉ chấp nhận tệp .xlsx", Text(await bad.Content.ReadAsStringAsync()));
+    }
+
+    [Fact]
+    public async Task NhapExcel_tu_choi_archive_co_dung_luong_giai_nen_qua_lon()
+    {
+        var ql = await DangNhapQL();
+        byte[] zipBomb;
+        using (var stream = new MemoryStream())
+        {
+            using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+            using (var writer = new StreamWriter(zip.CreateEntry("xl/sharedStrings.xml").Open(), Encoding.UTF8))
+                writer.Write(new string('x', NhapExcelService.GioiHanGiaiNenByte + 1));
+            zipBomb = stream.ToArray();
+        }
+
+        Assert.True(zipBomb.Length < NhapExcelService.GioiHanByte);
+        var response = await TaiLen(ql, zipBomb, "qua-lon.xlsx");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("vượt giới hạn dung lượng giải nén", Text(await response.Content.ReadAsStringAsync()));
     }
 
     private static async Task<HttpResponseMessage> TaiLen(TrinhDuyet ql, byte[] noiDung, string tenTep, string loai = "HocVien")
