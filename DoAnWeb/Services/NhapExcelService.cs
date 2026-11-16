@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using ClosedXML.Excel;
 using DoAnWeb.Common;
@@ -13,6 +14,8 @@ namespace DoAnWeb.Services;
 public sealed class NhapExcelService
 {
     public const int GioiHanByte = 2 * 1024 * 1024;
+    public const int GioiHanGiaiNenByte = 16 * 1024 * 1024;
+    private const int GioiHanEntryZip = 64;
     public const int GioiHanDong = 1000;
     private readonly QuanLyGiaSuContext _db;
     private readonly HocVienService _hocVien;
@@ -55,6 +58,7 @@ public sealed class NhapExcelService
     {
         _nguoiDung.YeuCauQuanLy();
         KiemTraLoai(loai);
+        KiemTraDungLuongGiaiNen(tep);
         using var wb = new XLWorkbook(tep);
         var ws = wb.Worksheets.FirstOrDefault() ?? throw new InvalidDataException("Tệp Excel không có trang tính.");
         string[] cotMongDoi = loai == "HocVien"
@@ -67,18 +71,40 @@ public sealed class NhapExcelService
         var dong = new List<DongDuLieu>();
         var vm = new NhapExcelVM { LoaiHoSo = loai };
         var phones = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dbPhones = loai == "HocVien"
-            ? _db.HocViens.AsNoTracking().ToList().SelectMany(h => new[] { h.SDT, h.SDTPhuHuynh }).Where(s => s != null).ToHashSet(StringComparer.OrdinalIgnoreCase)
-            : _db.GiaSus.AsNoTracking().Select(g => g.SDT).Where(s => s != null).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         for (int r = 2; r <= hangCuoi; r++)
         {
             var values = Enumerable.Range(1, loai == "HocVien" ? 8 : 7).Select(c => ws.Cell(r, c).GetFormattedString().Trim()).ToArray();
             if (values.All(string.IsNullOrWhiteSpace)) continue;
-            var row = new DongDuLieu { SoDong = r, GiaTri = values };
+            dong.Add(new DongDuLieu { SoDong = r, GiaTri = values });
+        }
+
+        // Chỉ dò các số điện thoại trong tệp, không tải toàn bộ hồ sơ vào bộ nhớ.
+        int[] cotSdt = loai == "HocVien" ? new[] { 1, 4 } : new[] { 1 };
+        var sdtCanTim = dong.SelectMany(d => cotSdt.Select(i => d.GiaTri[i]))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var dbPhones = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (sdtCanTim.Length > 0 && loai == "HocVien")
+        {
+            var sdtTrongDb = _db.HocViens.AsNoTracking()
+                .Where(h => (h.SDT != null && sdtCanTim.Contains(h.SDT)) ||
+                            (h.SDTPhuHuynh != null && sdtCanTim.Contains(h.SDTPhuHuynh)))
+                .Select(h => new { h.SDT, h.SDTPhuHuynh })
+                .ToList();
+            dbPhones.UnionWith(sdtTrongDb.SelectMany(h => new[] { h.SDT, h.SDTPhuHuynh }).Where(s => s != null));
+        }
+        else if (sdtCanTim.Length > 0)
+        {
+            dbPhones.UnionWith(_db.GiaSus.AsNoTracking().Where(g => sdtCanTim.Contains(g.SDT))
+                .Select(g => g.SDT).ToList());
+        }
+
+        foreach (var row in dong)
+        {
             ValidateRow(loai, row, phones, dbPhones);
-            dong.Add(row);
-            vm.Dong.Add(new DongNhapExcelVM { SoDong = r, TomTat = values[0], Loi = row.Loi.ToList() });
+            vm.Dong.Add(new DongNhapExcelVM { SoDong = row.SoDong, TomTat = row.GiaTri[0], Loi = row.Loi.ToList() });
         }
 
         vm.MaPhien = Guid.NewGuid().ToString("N");
@@ -168,6 +194,22 @@ public sealed class NhapExcelService
     }
 
     private static string RongNull(string s) => string.IsNullOrWhiteSpace(s) ? null : s;
+
+    private static void KiemTraDungLuongGiaiNen(Stream tep)
+    {
+        if (!tep.CanSeek)
+            throw new InvalidDataException("Không đọc được tệp Excel. Hãy dùng tệp mẫu .xlsx.");
+
+        tep.Position = 0;
+        using (var zip = new ZipArchive(tep, ZipArchiveMode.Read, leaveOpen: true))
+        {
+            if (zip.Entries.Count > GioiHanEntryZip ||
+                zip.Entries.Sum(e => e.Length) > GioiHanGiaiNenByte)
+                throw new InvalidDataException("Tệp Excel vượt giới hạn dung lượng giải nén.");
+        }
+        tep.Position = 0;
+    }
+
     private static void KiemTraLoai(string loai)
     {
         if (loai is not ("HocVien" or "GiaSu")) throw new ArgumentException("Loại hồ sơ không hợp lệ.");
