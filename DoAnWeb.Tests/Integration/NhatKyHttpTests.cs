@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -90,6 +90,30 @@ public sealed class NhatKyHttpTests : HttpTestBase
     }
 
     [Fact]
+    public void Chi_tiet_che_du_lieu_ca_nhan_ke_ca_nhat_ky_cu()
+    {
+        var muc = new NhatKy
+        {
+            ThoiGian = DateTime.Now,
+            HanhDong = "Sua",
+            Bang = "HocVien",
+            ChiTiet = "{\"SDT\":{\"cu\":\"0912345678\",\"moi\":\"0987654321\"}," +
+                "\"DiaChi\":{\"cu\":\"123\",\"moi\":\"4567\"}," +
+                "\"HoTen\":{\"cu\":\"Nguyen An\",\"moi\":\"Nguyen Binh\"}}"
+        };
+        Db.NhatKys.Add(muc);
+        Db.SaveChanges();
+
+        var trang = new NhatKyService(Db, new HttpContextAccessor()).ChiTiet(muc.MaNK);
+
+        Assert.Equal("*******678", trang.CacTruong.Single(x => x.Ten == "SDT").Cu);
+        Assert.Equal("*******321", trang.CacTruong.Single(x => x.Ten == "SDT").Moi);
+        Assert.Equal("***", trang.CacTruong.Single(x => x.Ten == "DiaChi").Cu);
+        Assert.Equal("*567", trang.CacTruong.Single(x => x.Ten == "DiaChi").Moi);
+        Assert.Equal("Nguyen An", trang.CacTruong.Single(x => x.Ten == "HoTen").Cu);
+    }
+
+    [Fact]
     public async Task Dang_nhap_thanh_cong_that_bai_va_xuat_ban_duoc_ghi()
     {
         string sai = TenItg();
@@ -104,3 +128,4 @@ public sealed class NhatKyHttpTests : HttpTestBase
         Assert.Contains(db.NhatKys, n => n.HanhDong == "DangXuat" && n.MaTK == QL.MaTK);
     }
 }
+

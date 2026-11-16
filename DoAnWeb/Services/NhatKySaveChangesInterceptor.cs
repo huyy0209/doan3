@@ -133,6 +133,11 @@ public sealed class NhatKySaveChangesInterceptor : SaveChangesInterceptor
 
                 object cu = entry.State == EntityState.Added ? null : p.OriginalValue;
                 object moi = entry.State == EntityState.Deleted ? null : p.CurrentValue;
+                if (NhatKyBaoMat.LaTruongNhayCam(p.Metadata.Name))
+                {
+                    cu = NhatKyBaoMat.Che(cu?.ToString());
+                    moi = NhatKyBaoMat.Che(moi?.ToString());
+                }
                 thayDoi[p.Metadata.Name] = new { cu, moi };
             }
 

@@ -73,6 +73,11 @@ public sealed class NhatKyService
                 {
                     if (truong.Value.TryGetProperty("cu", out var cuValue)) cu = HienThi(cuValue);
                     if (truong.Value.TryGetProperty("moi", out var moiValue)) moi = HienThi(moiValue);
+                    if (NhatKyBaoMat.LaTruongNhayCam(truong.Name))
+                    {
+                        cu = NhatKyBaoMat.Che(cu);
+                        moi = NhatKyBaoMat.Che(moi);
+                    }
                 }
                 vm.CacTruong.Add(new NhatKyTruongVM { Ten = truong.Name, Cu = cu, Moi = moi });
             }
