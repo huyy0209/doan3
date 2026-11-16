@@ -84,7 +84,7 @@ jobs:
           ID="${{ job.services.sqlserver.id }}"
           docker cp Database/. "$ID":/tmp/Database
           # Bản web dùng CSDL riêng QuanLyGiaSu_Web: đổi tên CSDL trong script (giữ nguyên file Database/ để đồng bộ với nhánh app)
-          docker exec "$ID" sh -c 'sed -i -E -e "s/(DB_ID\(N.QuanLyGiaSu)/\1_Web/" -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/" -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/" /tmp/Database/*.sql'
+          docker exec -u 0 "$ID" sh -c 'sed -i -E -e "s/(DB_ID\(N.QuanLyGiaSu)/\1_Web/" -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/" -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/" /tmp/Database/*.sql'
 
           chay_sql() {
             docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD" \
@@ -187,7 +187,7 @@ jobs:
           ID="${{ job.services.sqlserver.id }}"
           docker cp Database/. "$ID":/tmp/Database
           # Bản web dùng CSDL riêng QuanLyGiaSu_Web: đổi tên CSDL trong script (giữ nguyên file Database/ để đồng bộ với nhánh app)
-          docker exec "$ID" sh -c 'sed -i -E -e "s/(DB_ID\(N.QuanLyGiaSu)/\1_Web/" -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/" -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/" /tmp/Database/*.sql'
+          docker exec -u 0 "$ID" sh -c 'sed -i -E -e "s/(DB_ID\(N.QuanLyGiaSu)/\1_Web/" -e "s/CREATE DATABASE QuanLyGiaSu;/CREATE DATABASE QuanLyGiaSu_Web;/" -e "s/^USE QuanLyGiaSu;/USE QuanLyGiaSu_Web;/" /tmp/Database/*.sql'
 
           chay_sql() {
             docker exec "$ID" "$SQLCMD" -S localhost -U sa -P "$SQL_SA_PASSWORD"               -C -I -b -f 65001 -i "/tmp/Database/$1.sql"
