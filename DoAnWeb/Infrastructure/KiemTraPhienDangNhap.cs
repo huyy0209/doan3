@@ -72,7 +72,24 @@ namespace DoAnWeb.Infrastructure
         {
             var dv = context.HttpContext.RequestServices;
             var logger = dv.GetRequiredService<ILoggerFactory>().CreateLogger("KiemTraPhienDangNhap");
-            if (HopLeHoacLoi(context.Principal, dv.GetRequiredService<QuanLyGiaSuContext>(), dv.GetRequiredService<IMemoryCache>(), logger))
+            var cache = dv.GetRequiredService<IMemoryCache>();
+            var moc = dv.GetRequiredService<MocKhoiPhucPhien>().RestoredUtc;
+            var maTKClaim = context.Principal?.FindFirst(LoaiClaim.MaTK)?.Value;
+            var issuedUtc = context.Properties?.IssuedUtc;
+            var issuedPrecisely = context.Principal?.FindFirst(LoaiClaim.PhatHanhPhienUtc)?.Value;
+            // CookieAuthentication serializes IssuedUtc to whole seconds. The signed claim preserves
+            // sub-second order so a login immediately after restore is not mistaken for an old ticket.
+            bool daPhatHanhTruocMoc = !issuedUtc.HasValue ||
+                !DateTimeOffset.TryParse(issuedPrecisely, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var phatHanhUtc) || phatHanhUtc < moc;
+            if (moc.HasValue && daPhatHanhTruocMoc)
+            {
+                if (int.TryParse(maTKClaim, out int maTK)) XoaCache(cache, maTK);
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return;
+            }
+            if (HopLeHoacLoi(context.Principal, dv.GetRequiredService<QuanLyGiaSuContext>(), cache, logger))
                 return;
 
             context.RejectPrincipal();

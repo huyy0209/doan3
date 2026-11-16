@@ -38,7 +38,7 @@ public class SaoLuuServiceTests
             ["ConnectionStrings:QuanLyGiaSu"] = "Server=localhost;Database=QuanLyGiaSu;Integrated Security=true;TrustServerCertificate=true",
             ["SaoLuu:ThuMuc"] = Path.GetTempPath()
         }).Build();
-        var service = new SaoLuuService(cfg, NullLogger<SaoLuuService>.Instance);
+        var service = new SaoLuuService(cfg, NullLogger<SaoLuuService>.Instance, null);
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.KhoiPhucAsync("QuanLyGiaSu_20261115_230000.bak"));
     }
 
@@ -60,7 +60,7 @@ public class SaoLuuServiceTests
             ["SaoLuu:ThuMuc"] = "",
             ["SaoLuu:GiuSoBan"] = "14"
         }).Build();
-        var service = new SaoLuuService(cauHinh, NullLogger<SaoLuuService>.Instance);
+        var service = new SaoLuuService(cauHinh, NullLogger<SaoLuuService>.Instance, null);
         string tenTep = null;
 
         try
@@ -96,7 +96,7 @@ public class SaoLuuServiceTests
             ["SaoLuu:ThuMuc"] = folder,
             ["SaoLuu:GiuSoBan"] = "14"
         }).Build();
-        var service = new SaoLuuService(cfg, NullLogger<SaoLuuService>.Instance);
+        var service = new SaoLuuService(cfg, NullLogger<SaoLuuService>.Instance, null);
         string source = await service.SaoLuuAsync();
         try
         {
@@ -115,4 +115,62 @@ public class SaoLuuServiceTests
             foreach (var f in Directory.EnumerateFiles(folder, "*.bak")) File.Delete(f);
         }
     }
+
+    [Fact]
+    [Trait("Can", "SqlServerWindows")]
+    public async Task Backup_thieu_bang_web_bi_rollback_ve_ban_truoc()
+    {
+        TestDb.DamBaoDaTao();
+        string folder;
+        await using (var cn = new SqlConnection(new SqlConnectionStringBuilder(TestDb.ConnStr) { InitialCatalog = "master" }.ConnectionString))
+        {
+            await cn.OpenAsync();
+            await using var cmd = cn.CreateCommand();
+            cmd.CommandText = "SELECT CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(4000))";
+            folder = (string)await cmd.ExecuteScalarAsync();
+        }
+        var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["ConnectionStrings:QuanLyGiaSu"] = TestDb.ConnStr,
+            ["SaoLuu:ThuMuc"] = folder
+        }).Build();
+        var service = new SaoLuuService(cfg, NullLogger<SaoLuuService>.Instance, null);
+        var backupsBefore = new HashSet<string>(Directory.EnumerateFiles(folder, "QuanLyGiaSu_*.bak"), StringComparer.OrdinalIgnoreCase);
+        var healthy = await service.SaoLuuAsync();
+        string incompatible = null;
+        try
+        {
+            await using (var cn = new SqlConnection(TestDb.ConnStr))
+            {
+                await cn.OpenAsync();
+                await using var cmd = cn.CreateCommand();
+                cmd.CommandText = "DROP TABLE dbo.ThongBao";
+                await cmd.ExecuteNonQueryAsync();
+            }
+            incompatible = await service.SaoLuuAsync();
+            await service.KhoiPhucAsync(healthy);
+
+            var error = await Assert.ThrowsAsync<SaoLuuKhongTuongThichException>(() => service.KhoiPhucAsync(incompatible));
+            Assert.Contains("Bản sao lưu quá cũ, không tương thích; đã quay về dữ liệu trước khi khôi phục", error.Message);
+            await using var verify = new SqlConnection(TestDb.ConnStr);
+            await verify.OpenAsync();
+            await using var check = verify.CreateCommand();
+            check.CommandText = "SELECT OBJECT_ID(N'dbo.ThongBao', N'U')";
+            Assert.NotNull(await check.ExecuteScalarAsync());
+        }
+        finally
+        {
+            foreach (var file in Directory.EnumerateFiles(folder, "QuanLyGiaSu_*.bak").Where(file => !backupsBefore.Contains(file))) File.Delete(file);
+        }
+    }
+
+    [Fact]
+    public void Khoi_phuc_bat_gioi_han_tan_suat_giong_dang_nhap()
+    {
+        var method = typeof(DoAnWeb.Controllers.SaoLuuController).GetMethod(nameof(DoAnWeb.Controllers.SaoLuuController.KhoiPhuc), new[] { typeof(DoAnWeb.ViewModels.SaoLuuVM.KhoiPhucSaoLuuVM), typeof(CancellationToken) });
+        Assert.NotNull(method);
+        var attribute = Assert.Single(method!.GetCustomAttributes(typeof(Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute), false));
+        Assert.Equal("gioi-han-dang-nhap", ((Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute)attribute).PolicyName);
+    }
 }
+

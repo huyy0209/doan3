@@ -60,6 +60,16 @@ public static class TestDb
     /// <summary>Chuỗi kết nối tới CSDL test riêng của tiến trình (không phải CSDL web thật).</summary>
     public static string ConnStr => VoiDatabase(TenCsdl);
 
+    public static string ThuMucBackupTest
+    {
+        get
+        {
+            using var conn = new SqlConnection(MasterConnStr);
+            conn.Open();
+            return LayThuMucDuLieuMacDinh(conn);
+        }
+    }
+
     private static string MasterConnStr => VoiDatabase("master");
 
     private static readonly object Khoa = new object();

@@ -36,7 +36,7 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>
             cfg.AddInMemoryCollection(new[]
             {
                 new System.Collections.Generic.KeyValuePair<string, string>("ConnectionStrings:QuanLyGiaSu", TestDb.ConnStr),
-                new System.Collections.Generic.KeyValuePair<string, string>("SaoLuu:ThuMuc", System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DoAnWeb.Tests.SaoLuu")),
+                new System.Collections.Generic.KeyValuePair<string, string>("SaoLuu:ThuMuc", TestDb.ThuMucBackupTest),
                 new System.Collections.Generic.KeyValuePair<string, string>("SaoLuu:GioTuDong", "Tat"),
                 new System.Collections.Generic.KeyValuePair<string, string>("BaoMat:GioiHanDangNhap:SoLan", _soLanDangNhap.ToString()),
                 new System.Collections.Generic.KeyValuePair<string, string>("BaoMat:GioiHanDangNhap:TrongPhut", "5")
