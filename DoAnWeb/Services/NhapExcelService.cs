@@ -71,18 +71,40 @@ public sealed class NhapExcelService
         var dong = new List<DongDuLieu>();
         var vm = new NhapExcelVM { LoaiHoSo = loai };
         var phones = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dbPhones = loai == "HocVien"
-            ? _db.HocViens.AsNoTracking().ToList().SelectMany(h => new[] { h.SDT, h.SDTPhuHuynh }).Where(s => s != null).ToHashSet(StringComparer.OrdinalIgnoreCase)
-            : _db.GiaSus.AsNoTracking().Select(g => g.SDT).Where(s => s != null).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         for (int r = 2; r <= hangCuoi; r++)
         {
             var values = Enumerable.Range(1, loai == "HocVien" ? 8 : 7).Select(c => ws.Cell(r, c).GetFormattedString().Trim()).ToArray();
             if (values.All(string.IsNullOrWhiteSpace)) continue;
-            var row = new DongDuLieu { SoDong = r, GiaTri = values };
+            dong.Add(new DongDuLieu { SoDong = r, GiaTri = values });
+        }
+
+        // Chỉ dò các số điện thoại trong tệp, không tải toàn bộ hồ sơ vào bộ nhớ.
+        int[] cotSdt = loai == "HocVien" ? new[] { 1, 4 } : new[] { 1 };
+        var sdtCanTim = dong.SelectMany(d => cotSdt.Select(i => d.GiaTri[i]))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var dbPhones = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (sdtCanTim.Length > 0 && loai == "HocVien")
+        {
+            var sdtTrongDb = _db.HocViens.AsNoTracking()
+                .Where(h => (h.SDT != null && sdtCanTim.Contains(h.SDT)) ||
+                            (h.SDTPhuHuynh != null && sdtCanTim.Contains(h.SDTPhuHuynh)))
+                .Select(h => new { h.SDT, h.SDTPhuHuynh })
+                .ToList();
+            dbPhones.UnionWith(sdtTrongDb.SelectMany(h => new[] { h.SDT, h.SDTPhuHuynh }).Where(s => s != null));
+        }
+        else if (sdtCanTim.Length > 0)
+        {
+            dbPhones.UnionWith(_db.GiaSus.AsNoTracking().Where(g => sdtCanTim.Contains(g.SDT))
+                .Select(g => g.SDT).ToList());
+        }
+
+        foreach (var row in dong)
+        {
             ValidateRow(loai, row, phones, dbPhones);
-            dong.Add(row);
-            vm.Dong.Add(new DongNhapExcelVM { SoDong = r, TomTat = values[0], Loi = row.Loi.ToList() });
+            vm.Dong.Add(new DongNhapExcelVM { SoDong = row.SoDong, TomTat = row.GiaTri[0], Loi = row.Loi.ToList() });
         }
 
         vm.MaPhien = Guid.NewGuid().ToString("N");

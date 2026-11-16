@@ -63,6 +63,26 @@ public sealed class NhapExcelHttpTests : HttpTestBase
     }
 
     [Fact]
+    public async Task NhapExcel_tim_trung_so_dien_thoai_hoc_vien_va_phu_huynh_trong_CSDL()
+    {
+        string sdtPhuHuynh = SdtTest();
+        var hocVienDaCo = TaoHocVien(TenItg(), SdtTest());
+        hocVienDaCo.SDTPhuHuynh = sdtPhuHuynh;
+        Db.SaveChanges();
+        var ql = await DangNhapQL();
+        byte[] xlsx = TaoExcel(ws =>
+        {
+            string[] cot = { "HoTen", "SDT", "DiaChi", "TenPhuHuynh", "SDTPhuHuynh", "TruongLop", "TrinhDo", "GhiChu" };
+            for (int i = 0; i < cot.Length; i++) ws.Cell(1, i + 1).Value = cot[i];
+            ws.Cell(2, 1).Value = TenItg(); ws.Cell(2, 2).Value = SdtTest(); ws.Cell(2, 5).Value = sdtPhuHuynh;
+        });
+
+        var xem = await TaiLen(ql, xlsx, "hoc-vien-trung.xlsx");
+
+        Assert.Contains("đã tồn tại trong CSDL", Text(await xem.Content.ReadAsStringAsync()));
+    }
+
+    [Fact]
     public async Task NhapExcel_chan_gia_su_va_tu_choi_tep_khong_phai_xlsx()
     {
         var gs = await DangNhapGS();
