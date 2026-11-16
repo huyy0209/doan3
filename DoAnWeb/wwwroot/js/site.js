@@ -61,6 +61,29 @@
         });
     }
 
+    // 3) Gom các bộ lọc vào phần mở rộng trên điện thoại; desktop vẫn luôn hiển thị.
+    function ganBoLocDienThoai() {
+        var cacForm = document.querySelectorAll(".vo-content form[method='get'], .vo-content form[method='GET']");
+        cacForm.forEach(function (form) {
+            if (form.querySelectorAll("input:not([type='hidden']), select").length === 0) { return; }
+            var khung = document.createElement("details");
+            khung.className = "vo-mobile-filter";
+            khung.open = window.matchMedia("(min-width: 768px)").matches;
+            var nhan = document.createElement("summary");
+            nhan.textContent = "Tìm kiếm và bộ lọc";
+            khung.appendChild(nhan);
+            form.parentNode.insertBefore(khung, form);
+            khung.appendChild(form);
+        });
+
+        var desktop = window.matchMedia("(min-width: 768px)");
+        desktop.addEventListener("change", function (e) {
+            document.querySelectorAll(".vo-mobile-filter").forEach(function (khung) {
+                khung.open = e.matches;
+            });
+        });
+    }
+
     // 3) Tiện ích cho các worker khác: thêm/xóa class trạng thái cho một dòng bảng.
     window.Vo = window.Vo || {};
     window.Vo.dongDangChon = function (dong) {
@@ -74,5 +97,6 @@
     document.addEventListener("DOMContentLoaded", function () {
         ganToast();
         ganNutSidebar();
+        ganBoLocDienThoai();
     });
 })();

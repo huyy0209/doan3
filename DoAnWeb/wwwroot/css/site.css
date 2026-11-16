@@ -1568,6 +1568,42 @@ html[data-bs-theme="dark"] .w6-month-cell.is-today .w6-month-date {
 }
 
 @media (max-width: 767.98px) {
+  .vo-mobile-filter {
+    margin-bottom: 12px;
+  }
+
+  .vo-mobile-filter > summary {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid var(--vo-rule);
+    border-radius: var(--vo-radius);
+    background: var(--vo-surface);
+    color: var(--vo-text);
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+  }
+
+  .vo-mobile-filter > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .vo-mobile-filter > summary::after {
+    content: "+";
+    font-size: 1.2rem;
+  }
+
+  .vo-mobile-filter[open] > summary::after {
+    content: "−";
+  }
+
+  .vo-mobile-filter > form {
+    margin-top: 10px;
+  }
+
   .vo-content {
     padding: 12px 10px 24px;
   }
@@ -1608,5 +1644,91 @@ html[data-bs-theme="dark"] .w6-month-cell.is-today .w6-month-date {
 
   .modal-body {
     overflow-y: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .vo-mobile-filter > summary {
+    display: none;
+  }
+}
+
+/* H1: điều chỉnh vùng chạm, cỡ chữ và bảng cho các màn hình điện thoại. */
+@media (max-width: 767.98px) {
+  .vo-content,
+  .vo-content > *,
+  .vo-card,
+  .vo-panel,
+  .container,
+  .container-fluid {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .vo-content input:not([type="hidden"]),
+  .vo-content select,
+  .vo-content textarea,
+  .vo-search-input,
+  .tk-input-trang {
+    font-size: 16px !important;
+  }
+
+  .vo-content button,
+  .vo-content .btn,
+  .vo-content .vo-pager a,
+  .vo-nav-link,
+  .vo-foot-link,
+  .vo-user-toggle,
+  .vo-sidebar-toggle,
+  .vo-topbar-right .btn,
+  .dropdown-item,
+  .vo-search-goiy a {
+    min-height: 40px;
+  }
+
+  .vo-sidebar-toggle {
+    flex: 0 0 40px;
+    width: 40px;
+    justify-content: center;
+  }
+
+  .vo-content .btn,
+  .vo-content .vo-pager a,
+  .vo-content .btn-group,
+  .vo-content .d-flex {
+    flex-wrap: wrap;
+  }
+
+  .vo-content .btn {
+    min-width: 40px;
+  }
+
+  .vo-content .vo-pager a {
+    min-width: 40px;
+  }
+
+  .vo-content table:not(.ld-week-table):not(.dd-table) {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vo-content table.ld-week-table,
+  .vo-content .ld-week-table {
+    max-width: 100%;
+  }
+
+  .vo-page-title,
+  .vo-page-sub,
+  .vo-content h1,
+  .vo-content h2,
+  .vo-content h3,
+  .vo-content p,
+  .vo-content td,
+  .vo-content th {
+    overflow-wrap: anywhere;
   }
 }
