@@ -26,21 +26,21 @@
     align-items: center;
     gap: .65rem;
     padding: .65rem .5rem;
-    border-top: 1px solid var(--vo-border, #e5e7eb);
+    border-top: 1px solid var(--vo-rule);
     color: inherit;
     text-decoration: none;
 }
 
 .hn-row:hover,
 .hn-row:focus-visible {
-    background: var(--vo-surface-muted, #f8fafc);
+    background: var(--vo-paper-alt);
     color: inherit;
 }
 
 .hn-time {
     flex: 0 0 auto;
     min-width: 3.5rem;
-    color: var(--vo-muted, #64748b);
+    color: var(--vo-text-muted);
     font-size: .82rem;
     font-weight: 700;
 }
@@ -60,7 +60,7 @@
 
 .hn-detail small,
 .hn-empty {
-    color: var(--vo-muted, #64748b);
+    color: var(--vo-text-muted);
     font-size: .82rem;
 }
 

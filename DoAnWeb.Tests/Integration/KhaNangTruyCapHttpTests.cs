@@ -51,7 +51,7 @@ public class KhaNangTruyCapHttpTests : HttpTestBase
         "/TongQuan", "/GiaSu", "/GiaSu/Create", "/HocVien", "/HocVien/Create",
         "/LopHoc", "/LopHoc/GhepLop", "/HocPhi", "/DiemDanh", "/HocTap",
         "/MonHoc", "/NhacNo", "/NhatKy", "/QuanLyTaiKhoan", "/QuanLyTaiKhoan/DatLaiMatKhau/{0}",
-        "/CaiDat", "/SaoLuu", "/Lich", "/LichDay", "/TaiKhoan/DoiMatKhau"
+        "/CaiDat", "/SaoLuu", "/Lich", "/LichDay", "/NhapExcel", "/TimKiem?q=ITG", "/TaiKhoan/DoiMatKhau"
     };
 
     [Fact]
@@ -64,7 +64,8 @@ public class KhaNangTruyCapHttpTests : HttpTestBase
             .Concat(new[]
             {
                 $"/GiaSu/Details/{GS.MaGS}", $"/HocVien/Details/{maHV}", $"/LopHoc/Details/{maLop}",
-                $"/HocPhi/BangKe?maLop={maLop}", $"/HocTap/KetQua/{maHV}", $"/NhatKy/ChiTiet/{maNK}"
+                $"/HocPhi/BangKe?maLop={maLop}", $"/HocTap/KetQua/{maHV}", $"/NhatKy/ChiTiet/{maNK}",
+                $"/LichDay/Details/{maLop}"
             });
 
         foreach (var url in urls)
@@ -73,6 +74,15 @@ public class KhaNangTruyCapHttpTests : HttpTestBase
             Assert.Equal(System.Net.HttpStatusCode.OK, t.Status);
             KiemTra(t);
         }
+
+        var khach = Khach();
+        var dangNhap = await khach.Get("/TaiKhoan/DangNhap");
+        Assert.Equal(System.Net.HttpStatusCode.OK, dangNhap.Status);
+        KiemTra(dangNhap);
+
+        var khongTimThay = await khach.Get("/Loi/KhongTimThay");
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, khongTimThay.Status);
+        KiemTra(khongTimThay);
     }
 
     [Fact]
@@ -119,6 +129,10 @@ public class KhaNangTruyCapHttpTests : HttpTestBase
             string ten = TenTruyCap(t.Doc, nut);
             if (string.IsNullOrWhiteSpace(ten))
                 loi.Add($"Nút thiếu tên truy cập: class='{nut.GetAttribute("class")}'");
+            bool chiCoIcon = nut.QuerySelector("svg, .vo-icon") != null && string.IsNullOrWhiteSpace(nut.TextContent);
+            if (chiCoIcon && (string.IsNullOrWhiteSpace(nut.GetAttribute("aria-label"))
+                || string.IsNullOrWhiteSpace(nut.GetAttribute("title"))))
+                loi.Add($"Nút chỉ có icon cần aria-label và title: class='{nut.GetAttribute("class")}'");
         }
 
         foreach (var anh in t.Doc.QuerySelectorAll("img"))

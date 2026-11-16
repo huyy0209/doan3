@@ -13,7 +13,16 @@
     </div>
     <form asp-action="Index" method="post" class="w6-settings-form">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        @if (!ViewData.ModelState.IsValid)
+        {
+            var loiModel = ViewData.ModelState.Values.SelectMany(giaTri => giaTri.Errors)
+                .Select(loi => loi.ErrorMessage).Where(thongDiep => !string.IsNullOrWhiteSpace(thongDiep)).Distinct();
+            <div class="text-danger" role="alert">
+                <ul class="mb-0">
+                    @foreach (var loi in loiModel) { <li>@loi</li> }
+                </ul>
+            </div>
+        }
         <div>
             <label asp-for="Ten" class="form-label">Tên trung tâm</label>
             <input asp-for="Ten" class="form-control" maxlength="100" placeholder="@CaiDatService.TenMacDinh" />
