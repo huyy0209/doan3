@@ -18,7 +18,7 @@ public sealed class HieuNangWebHttpTests : HttpTestBase
 
     public HieuNangWebHttpTests(ITestOutputHelper output) => _output = output;
 
-    [Fact]
+    [FactHieuNang]
     public async Task Do_thoi_gian_cac_trang_tren_du_lieu_lon()
     {
         string tienTo = "PERF_" + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -190,5 +190,18 @@ SET STATISTICS IO, TIME OFF;";
             conn.InfoMessage -= handler;
             if (mo) conn.Close();
         }
+    }
+}
+
+/// <summary>
+/// Test đo hiệu năng tạo dữ liệu lớn (hàng trăm nghìn dòng) nên chậm và chiếm SQL Server:
+/// chỉ chạy khi đặt biến môi trường CHAY_HIEU_NANG=1, còn lại Skip để bộ test thường nhanh và ổn định.
+/// </summary>
+public sealed class FactHieuNangAttribute : FactAttribute
+{
+    public FactHieuNangAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("CHAY_HIEU_NANG") != "1")
+            Skip = "Test hiệu năng: đặt CHAY_HIEU_NANG=1 để chạy (xem docs/progress/G19.md).";
     }
 }
