@@ -250,12 +250,21 @@ Mặc định dịch vụ chạy dưới **`LocalSystem`** (`NT AUTHORITY\SYSTEM
 -- Chạy trong SQL Server Management Studio (một lần, trên máy chủ CSDL)
 USE master;
 CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS;
-USE QuanLyGiaSu;
+USE QuanLyGiaSu_Web;   -- CSDL riêng của bản web (KHÔNG phải QuanLyGiaSu của app)
 CREATE USER [NT AUTHORITY\SYSTEM] FOR LOGIN [NT AUTHORITY\SYSTEM];
 ALTER ROLE db_datareader ADD MEMBER [NT AUTHORITY\SYSTEM];
 ALTER ROLE db_datawriter ADD MEMBER [NT AUTHORITY\SYSTEM];
+ALTER ROLE db_backupoperator ADD MEMBER [NT AUTHORITY\SYSTEM];  -- trang Sao lưu
 -- Bản web có ghi dữ liệu; không cần quyền DDL (không migration).
 ```
+
+Thiếu bước này, trang đăng nhập báo **"Không kết nối được cơ sở dữ liệu. Kiểm tra SQL Server."** và log có
+`Login failed for user 'NT AUTHORITY\SYSTEM'`. Hay gặp khi mở cho điện thoại qua Tailscale: `tailscale serve`
+chuyển tới `127.0.0.1:5080` (dịch vụ), còn trình duyệt trên máy có thể vào tiến trình `start-web` chạy bằng tài khoản của bạn
+nên vẫn đăng nhập được.
+
+Chức năng **Khôi phục** trong web cần thêm quyền máy chủ `dbcreator` (để `RESTORE`/`ALTER DATABASE`):
+`ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];` — chỉ cấp nếu thật sự cần khôi phục từ web khi chạy dạng dịch vụ.
 
 Nếu CSDL nằm trên máy khác hoặc công ty quy định không dùng `LocalSystem`, chạy dịch vụ bằng
 tài khoản riêng: mở `services.msc` → `QuanLyGiaSuWeb` → **Log On** → *This account*, cấp quyền
