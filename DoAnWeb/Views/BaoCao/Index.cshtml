@@ -1,0 +1,100 @@
+@model DoAnWeb.ViewModels.BaoCaoVM.BaoCaoThangViewModel
+@{
+    ViewData["Title"] = "Báo cáo tháng";
+    ViewData["PageSub"] = $"Tháng {Model.Thang:D2}/{Model.Nam}";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/bao-cao.css" asp-append-version="true" />
+}
+
+<div class="bc-page">
+    <form class="bc-filter" method="get" action="/BaoCao">
+        <div>
+            <label for="bc-thang">Tháng</label>
+            <select id="bc-thang" name="thang">
+                @for (int thang = 1; thang <= 12; thang++)
+                {
+                    <option value="@thang" selected="@(Model.Thang == thang)">Tháng @thang</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="bc-nam">Năm</label>
+            <input id="bc-nam" name="nam" type="number" min="1900" max="@(DateTime.Today.Year + 1)" value="@Model.Nam" required />
+        </div>
+        <button class="btn btn-primary" type="submit">Xem báo cáo</button>
+        <a class="btn btn-outline-success" href="/BaoCao/XuatExcel?thang=@Model.Thang&amp;nam=@Model.Nam">Xuất Excel</a>
+        <button class="btn btn-outline-secondary" type="button" data-bao-cao-in>In A4</button>
+    </form>
+
+    <section class="bc-section">
+        <h2>Tổng hợp tháng @Model.Thang/@Model.Nam</h2>
+        <div class="bc-summary">
+            <article><span>Học phí thu trong tháng</span><strong>@Model.HocPhiThu.ToString("N0") đ</strong></article>
+            <article><span>Học viên mới</span><strong>@Model.HocVienMoi</strong></article>
+            <article><span>Học viên nghỉ</span><strong>@Model.HocVienNghi</strong><small>Chưa có trạng thái nghỉ trong dữ liệu học viên</small></article>
+            <article><span>Nợ cuối tháng</span><strong>@Model.NoCuoiThang.ToString("N0") đ</strong></article>
+        </div>
+        <p class="bc-note">Học viên mới được xác định theo ngày bắt đầu lớp đầu tiên; nợ cuối tháng là học phí trừ các khoản thu đến hết tháng, lớp đã hủy không tính nợ.</p>
+    </section>
+
+    <section class="bc-section">
+        <h2>Theo gia sư</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>Gia sư</th><th class="text-end">Lớp đang dạy</th><th class="text-end">Buổi đã điểm danh</th><th class="text-end">Buổi vắng/nghỉ</th><th class="text-end">Chuyên cần</th></tr></thead>
+                <tbody>
+                    @if (Model.TheoGiaSu.Count == 0)
+                    {
+                        <tr><td colspan="5" class="bc-empty">Không có số liệu trong tháng.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var gs in Model.TheoGiaSu)
+                        {
+                            <tr data-ma-gs="@gs.MaGS">
+                                <th scope="row">@gs.HoTen</th>
+                                <td class="text-end">@gs.SoLopDangDay</td>
+                                <td class="text-end">@gs.SoBuoiDaDiemDanh</td>
+                                <td class="text-end">@gs.SoBuoiVang</td>
+                                <td class="text-end">@gs.TyLeChuyenCan.ToString("0.#")%</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="bc-section">
+        <h2>Theo môn</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>Môn học</th><th class="text-end">Số lớp</th><th class="text-end">Số học viên</th><th class="text-end">Học phí thu trong tháng</th></tr></thead>
+                <tbody>
+                    @if (Model.TheoMon.Count == 0)
+                    {
+                        <tr><td colspan="4" class="bc-empty">Không có số liệu trong tháng.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var mon in Model.TheoMon)
+                        {
+                            <tr>
+                                <th scope="row">@mon.TenMon</th>
+                                <td class="text-end">@mon.SoLop</td>
+                                <td class="text-end">@mon.SoHocVien</td>
+                                <td class="text-end">@mon.HocPhiThu.ToString("N0") đ</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/bao-cao.js" asp-append-version="true"></script>
+}
