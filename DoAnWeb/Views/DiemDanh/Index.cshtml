@@ -5,6 +5,35 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/hoctap.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/hom-nay.css" asp-append-version="true" />
+}
+
+@if (!Model.LaQuanLy && Model.HomNay != null)
+{
+    <section class="vo-card hn-tutor-card" aria-labelledby="hn-tutor-heading">
+        <div class="hn-tutor-summary">
+            <h2 id="hn-tutor-heading">Hôm nay bạn có @Model.HomNay.SoBuoiHomNay buổi</h2>
+            <a href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")">Mở danh sách hôm nay</a>
+        </div>
+        <h3>Buổi chưa điểm danh trong 7 ngày qua (@Model.HomNay.ChuaDiemDanh7Ngay.Count)</h3>
+        @if (Model.HomNay.ChuaDiemDanh7Ngay.Count == 0)
+        {
+            <p class="hn-empty">Không có buổi nào cần điểm danh.</p>
+        }
+        else
+        {
+            <div class="hn-tutor-list">
+                @foreach (var item in Model.HomNay.ChuaDiemDanh7Ngay)
+                {
+                    <a class="hn-row" href="/DiemDanh?ngay=@item.Ngay.ToString("yyyy-MM-dd")&amp;ca=@Uri.EscapeDataString(item.Buoi.CaHoc ?? "")">
+                        <span class="hn-time">@item.Ngay.ToString("dd/MM") · @Constants.CaHoc.TenNgan(item.Buoi.CaHoc)</span>
+                        <span class="hn-detail"><b>@item.Buoi.HocVien</b><small>@item.Buoi.MonHoc · @item.Buoi.TenLop</small></span>
+                        <span class="hn-status is-pending">Điểm danh</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
 }
 
 <section class="vo-section">

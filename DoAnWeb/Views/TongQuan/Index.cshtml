@@ -15,6 +15,7 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/w6.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/hom-nay.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/chartjs/tong-quan.css" asp-append-version="true" />
 }
 
@@ -75,6 +76,73 @@
                     }
                 </a>
             }
+        </div>
+    </section>
+
+    <section class="vo-card hn-card" aria-labelledby="hn-heading">
+        <div class="w6-panel-heading">
+            <div>
+                <h2 id="hn-heading">Hôm nay</h2>
+                <span>@DateTime.Today.ToString("dddd, dd/MM/yyyy", vi)</span>
+            </div>
+        </div>
+        <div class="hn-grid">
+            <section class="hn-column">
+                <h3>Các lớp có buổi học (@Model.HomNay.LopHomNay.Count)</h3>
+                @if (Model.HomNay.LopHomNay.Count == 0)
+                {
+                    <p class="hn-empty">Hôm nay không có buổi học.</p>
+                }
+                else
+                {
+                    @foreach (var lopHomNay in Model.HomNay.LopHomNay)
+                    {
+                        <a class="hn-row" href="/DiemDanh?ngay=@DateTime.Today.ToString("yyyy-MM-dd")&amp;ca=@Uri.EscapeDataString(lopHomNay.CaHoc ?? "")">
+                            <span class="hn-time">@Constants.CaHoc.TenNgan(lopHomNay.CaHoc)</span>
+                            <span class="hn-detail"><b>@lopHomNay.MonHoc</b><small>@lopHomNay.GiaSu · @lopHomNay.HocVien</small></span>
+                            <span class="hn-status @(lopHomNay.DaLuu ? "is-done" : "")">@(lopHomNay.DaLuu ? "Đã điểm danh" : "Chưa điểm danh")</span>
+                        </a>
+                    }
+                }
+            </section>
+
+            <section class="hn-column">
+                <h3>Đã qua giờ, chưa điểm danh (@Model.HomNay.ChuaDiemDanhQuaGio.Count)</h3>
+                @if (Model.HomNay.ChuaDiemDanhQuaGio.Count == 0)
+                {
+                    <p class="hn-empty">Không có buổi nào cần điểm danh.</p>
+                }
+                else
+                {
+                    @foreach (var item in Model.HomNay.ChuaDiemDanhQuaGio)
+                    {
+                        <a class="hn-row" href="/DiemDanh?ngay=@item.Ngay.ToString("yyyy-MM-dd")&amp;ca=@Uri.EscapeDataString(item.Buoi.CaHoc ?? "")">
+                            <span class="hn-time">@Constants.CaHoc.TenNgan(item.Buoi.CaHoc)</span>
+                            <span class="hn-detail"><b>@item.Buoi.HocVien</b><small>@item.Buoi.MonHoc · @item.Buoi.GiaSu</small></span>
+                            <span class="hn-status is-pending">Điểm danh</span>
+                        </a>
+                    }
+                }
+            </section>
+
+            <section class="hn-column">
+                <h3>Học viên nợ quá 30 ngày (@Model.HomNay.NoQuaHan.Count)</h3>
+                @if (Model.HomNay.NoQuaHan.Count == 0)
+                {
+                    <p class="hn-empty">Không có khoản nợ quá hạn.</p>
+                }
+                else
+                {
+                    @foreach (var no in Model.HomNay.NoQuaHan)
+                    {
+                        <a class="hn-row" href="/NhacNo?quaNgay=31">
+                            <span class="hn-time">@no.SoNgayChuaDong ngày</span>
+                            <span class="hn-detail"><b>@no.HocVien</b><small>@no.TenLop · @no.MonHoc</small></span>
+                            <span class="hn-debt">@no.ConNo.ToString("N0", vi) đ</span>
+                        </a>
+                    }
+                }
+            </section>
         </div>
     </section>
 

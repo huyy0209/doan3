@@ -93,6 +93,14 @@
                    aria-current="@(dangMo ? "page" : null)">
                     <partial name="_Icon" model='muc.Icon' />
                     <span class="vo-nav-text">@muc.Ten</span>
+                    @if (muc.Url == "/HocVien")
+                    {
+                        @await Component.InvokeAsync("HomNayBadge", new { loai = "diemDanh" })
+                    }
+                    else if (muc.Url == "/NhacNo")
+                    {
+                        @await Component.InvokeAsync("HomNayBadge", new { loai = "nhacNo" })
+                    }
                 </a>
             }
         </nav>

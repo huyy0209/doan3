@@ -17,15 +17,17 @@ namespace DoAnWeb.Controllers
         private readonly LopHocService _lopHoc;
         private readonly INguoiDungHienTai _nguoiDung;
         private readonly ThongKeBieuDoService _bieuDo;
+        private readonly HomNayService _homNay;
 
         public TongQuanController(TongQuanService tongQuan, HocPhiService hocPhi, LopHocService lopHoc,
-            INguoiDungHienTai nguoiDung, ThongKeBieuDoService bieuDo)
+            INguoiDungHienTai nguoiDung, ThongKeBieuDoService bieuDo, HomNayService homNay)
         {
             _tongQuan = tongQuan;
             _hocPhi = hocPhi;
             _lopHoc = lopHoc;
             _nguoiDung = nguoiDung;
             _bieuDo = bieuDo;
+            _homNay = homNay;
         }
 
         [HttpGet]
@@ -50,6 +52,7 @@ namespace DoAnWeb.Controllers
             return View(new TongQuanIndexViewModel
             {
                 DuLieu = data,
+                HomNay = _homNay.LayChoQuanLy(),
                 SoLopTheoCa = _lopHoc.GetSoLopHomNayTheoCa(),
                 TenQuanLy = _nguoiDung.TenDangNhap,
                 CaHienTai = CaHienTai(DateTime.Now),

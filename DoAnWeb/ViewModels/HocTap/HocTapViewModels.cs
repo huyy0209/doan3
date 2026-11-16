@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DoAnWeb.Data.Entities;
+using DoAnWeb.Services;
 using DoAnWeb.Services.Dto;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -12,6 +13,7 @@ namespace DoAnWeb.ViewModels.HocTapVM
         public string Ca { get; set; }
         public int? MaGS { get; set; }
         public bool LaQuanLy { get; set; }
+        public HomNayGiaSuDuLieu HomNay { get; set; }
         public List<SelectListItem> CacCa { get; set; } = new List<SelectListItem>();
         public List<SelectListItem> GiaSus { get; set; } = new List<SelectListItem>();
         public List<DiemDanhDongViewModel> Rows { get; set; } = new List<DiemDanhDongViewModel>();
