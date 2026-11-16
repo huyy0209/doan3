@@ -16,13 +16,16 @@ namespace DoAnWeb.Controllers
         private readonly HocPhiService _hocPhi;
         private readonly LopHocService _lopHoc;
         private readonly INguoiDungHienTai _nguoiDung;
+        private readonly ThongKeBieuDoService _bieuDo;
 
-        public TongQuanController(TongQuanService tongQuan, HocPhiService hocPhi, LopHocService lopHoc, INguoiDungHienTai nguoiDung)
+        public TongQuanController(TongQuanService tongQuan, HocPhiService hocPhi, LopHocService lopHoc,
+            INguoiDungHienTai nguoiDung, ThongKeBieuDoService bieuDo)
         {
             _tongQuan = tongQuan;
             _hocPhi = hocPhi;
             _lopHoc = lopHoc;
             _nguoiDung = nguoiDung;
+            _bieuDo = bieuDo;
         }
 
         [HttpGet]
@@ -53,6 +56,10 @@ namespace DoAnWeb.Controllers
                 Viec = viec
             });
         }
+
+        /// <summary>Số liệu cho 4 biểu đồ ở trang Tổng quan (chỉ quản lý – cả controller đã gắn [Authorize(Roles = "QuanLy")]).</summary>
+        [HttpGet]
+        public IActionResult BieuDo() => Json(_bieuDo.Lay());
 
         private string TaoUrlViec(ViecCanLam viec, int? maLopNo, int? maLopSapKetThuc, int? maLopSapBatDau)
         {
