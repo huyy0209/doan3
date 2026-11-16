@@ -1,0 +1,220 @@
+/* =====================================================================
+   G9 – Tìm kiếm nhanh toàn cục
+   Ô tìm trên thanh menu (sidebar) + hộp gợi ý + trang /TimKiem.
+   Dùng biến màu --vo-* của site.css để hợp giao diện sáng / tối.
+   ===================================================================== */
+
+/* ---------- Ô tìm trên thanh menu ---------- */
+.vo-search {
+  position: relative;
+  padding: 12px 14px 4px;
+}
+
+.vo-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--vo-board-line);
+  border-radius: var(--vo-radius);
+  background: var(--vo-ink-darker);
+  color: #fff;
+  font-size: .9rem;
+}
+
+.vo-search-input::placeholder {
+  color: var(--vo-ink-muted);
+}
+
+.vo-search-input:focus {
+  outline: 2px solid var(--vo-chalk);
+  outline-offset: 1px;
+  background: var(--vo-ink-dark);
+}
+
+.vo-search-icon {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--vo-ink-muted);
+  pointer-events: none;
+}
+
+/* Hộp gợi ý: nổi trên nội dung, không đẩy layout sidebar */
+.vo-search-goiy {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: calc(100% - 2px);
+  z-index: 45;
+  max-height: 62vh;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--vo-rule);
+  border-radius: 10px;
+  background: var(--vo-surface);
+  color: var(--vo-text);
+  box-shadow: 0 14px 34px rgba(9, 30, 24, .35);
+}
+
+.vo-search-goiy[hidden] {
+  display: none;
+}
+
+.tk-goiy-nhom {
+  padding: 6px 8px 2px;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--vo-text-faint);
+}
+
+.tk-goiy-dong {
+  display: block;
+  padding: 7px 9px;
+  border-radius: 7px;
+  color: var(--vo-text);
+  text-decoration: none;
+}
+
+.tk-goiy-dong:hover,
+.tk-goiy-dong.is-chon {
+  background: var(--vo-ink-soft);
+  color: var(--vo-text);
+}
+
+.tk-goiy-chinh {
+  display: block;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-goiy-phu {
+  display: block;
+  margin-top: 1px;
+  font-size: .78rem;
+  color: var(--vo-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-goiy-trong {
+  padding: 10px 9px;
+  font-size: .84rem;
+  color: var(--vo-text-muted);
+}
+
+/* ---------- Trang /TimKiem ---------- */
+.tk-page {
+  max-width: 860px;
+}
+
+.tk-form-trang {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tk-input-trang {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tk-huong-dan-dong {
+  margin: 0 0 4px;
+  color: var(--vo-text-muted);
+}
+
+.tk-huong-dan-dong:last-child {
+  margin-bottom: 0;
+}
+
+.tk-nhom-tieu-de {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tk-nhom-dem {
+  display: inline-flex;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 7px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: var(--vo-ink-soft);
+  color: var(--vo-ink);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.tk-danh-sach {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tk-danh-sach > li + li {
+  border-top: 1px solid var(--vo-rule);
+}
+
+.tk-dong {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 6px;
+  border-radius: 7px;
+  color: var(--vo-text);
+  text-decoration: none;
+}
+
+.tk-dong:hover {
+  background: var(--vo-paper-alt);
+  color: var(--vo-ink);
+}
+
+.tk-dong-chinh {
+  font-weight: 600;
+}
+
+.tk-dong-phu {
+  font-size: .84rem;
+  color: var(--vo-text-muted);
+}
+
+.tk-trong {
+  margin: 0;
+  color: var(--vo-text-muted);
+}
+
+.tk-ghi-chu {
+  margin: 10px 0 0;
+  font-size: .82rem;
+  color: var(--vo-text-faint);
+}
+
+@media (max-width: 575.98px) {
+  .tk-form-trang {
+    flex-wrap: wrap;
+  }
+
+  .tk-form-trang .btn {
+    width: 100%;
+  }
+
+  .tk-dong {
+    flex-direction: column;
+    gap: 2px;
+  }
+}

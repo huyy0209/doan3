@@ -84,6 +84,7 @@ builder.Services.AddScoped<NhatKyExcelService>();
 builder.Services.AddScoped<TaiKhoanService>();
 builder.Services.AddScoped<GiaSuService>();
 builder.Services.AddScoped<HocVienService>();
+builder.Services.AddScoped<TimKiemNhanhService>();
 builder.Services.AddScoped<LopHocService>();
 builder.Services.AddScoped<SaoLuuService>();
 // Service phụ do W0 chuyển: HocTap, HocPhi, MonHoc, TongQuan, ThongBao, CaiDat, ThongKe, BaoCao
