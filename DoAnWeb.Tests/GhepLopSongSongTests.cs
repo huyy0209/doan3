@@ -68,7 +68,7 @@ public class GhepLopSongSongTests : DbTestBase
         })).ToArray();
         await Task.WhenAll(tasks);
 
-        Assert.Single(tasks, t => t.Result == null);
+        Assert.Equal(1, tasks.Count(t => t.Result == null));
         Assert.All(tasks.Where(t => t.Result != null), t => Assert.IsType<InvalidOperationException>(t.Result));
         Assert.Equal(1, Db.LopHocs.Count(l => l.MaGS == gs.MaGS));
     }
@@ -101,7 +101,7 @@ public class GhepLopSongSongTests : DbTestBase
         finally { giu.Dispose(); }
 
         await Task.WhenAll(tasks);
-        Assert.Single(tasks, t => t.Result == null);
+        Assert.Equal(1, tasks.Count(t => t.Result == null));
         Assert.Equal(1, Db.LopHocs.Count(l => l.MaGS == gs.MaGS));
     }
 
