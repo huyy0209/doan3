@@ -2,6 +2,7 @@ using DoAnWeb.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace DoAnWeb.Tests;
@@ -102,6 +103,12 @@ public class SaoLuuServiceTests
             var before = await service.KhoiPhucAsync(source);
             Assert.Matches("^QuanLyGiaSu_\\d{8}_\\d{6}\\.bak$", before);
             Assert.True(new FileInfo(Path.Combine(folder, before)).Length > 0);
+            await using var db = TestDb.TaoContext();
+            await db.Database.OpenConnectionAsync();
+            await using var command = db.Database.GetDbConnection().CreateCommand();
+            command.CommandText = "SELECT DB_NAME()";
+            var actualDatabase = (string)await command.ExecuteScalarAsync();
+            Assert.Equal(TestDb.TenCsdl, actualDatabase);
         }
         finally
         {

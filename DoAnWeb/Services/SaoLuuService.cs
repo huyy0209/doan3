@@ -121,7 +121,7 @@ public sealed class SaoLuuService
                 await using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = $"ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE";
-                    await cmd.ExecuteNonQueryAsync(cancellationToken);
+                    await cmd.ExecuteNonQueryAsync(CancellationToken.None);
                     singleUser = true;
                 }
                 await using (var cmd = conn.CreateCommand())
@@ -129,17 +129,21 @@ public sealed class SaoLuuService
                     cmd.CommandText = $"RESTORE DATABASE [{database}] FROM DISK = @duongDan WITH REPLACE, CHECKSUM";
                     cmd.CommandTimeout = 0;
                     cmd.Parameters.Add("@duongDan", System.Data.SqlDbType.NVarChar, 4000).Value = source;
-                    await cmd.ExecuteNonQueryAsync(cancellationToken);
+                    await cmd.ExecuteNonQueryAsync(CancellationToken.None);
                 }
             }
             finally
             {
-                if (singleUser)
+                try
                 {
-                    await using var cmd = conn.CreateCommand();
-                    cmd.CommandText = $"ALTER DATABASE [{database}] SET MULTI_USER";
-                    await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    if (singleUser)
+                    {
+                        await using var cmd = conn.CreateCommand();
+                        cmd.CommandText = $"ALTER DATABASE [{database}] SET MULTI_USER";
+                        await cmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    }
                 }
+                finally { SqlConnection.ClearAllPools(); }
             }
             _logger.LogInformation("Khôi phục CSDL {TenCsdl} từ {Tep}; bản hiện tại trước khôi phục được lưu tại {BanTruoc}", database, source, before);
             return Path.GetFileName(before);
