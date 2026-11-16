@@ -49,7 +49,7 @@ namespace DoAnWeb.Controllers
 
             if (!SoTien.TryParse(input.SoTien, out var soTien))
             {
-                ModelState.AddModelError("ThanhToan.SoTien", "Nhập số tiền, ví dụ 1.500.000.");
+                ModelState.AddModelError("ThanhToan.SoTien", SoTien.ThongBaoDinhDang);
                 return View("Index", TaoModel(input.MaLop, input.TuKhoa, input.TinhTrang, input, trang, soDong, sapXep, chieu));
             }
 
