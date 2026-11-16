@@ -5,7 +5,7 @@
     var daDangNhap = User?.Identity?.IsAuthenticated == true;
     Layout = daDangNhap ? "_Layout" : "_LayoutTrong";
 }
-<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow")" style="text-align:center">
+<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow") g3-center">
     <div class="vo-error-code">403</div>
     <div class="vo-error-title">@Model.TieuDe</div>
     <p class="vo-error-text mb-4">@Model.MoTa</p>

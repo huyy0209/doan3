@@ -5,17 +5,17 @@
     var daDangNhap = User?.Identity?.IsAuthenticated == true;
     Layout = daDangNhap ? "_Layout" : "_LayoutTrong";
 }
-<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow")" style="text-align:center">
+<div class="@(daDangNhap ? "vo-card" : "vo-panel-narrow") g3-center">
     <div class="vo-error-code">500</div>
     <div class="vo-error-title">@Model.TieuDe</div>
     <p class="vo-error-text mb-3">@Model.MoTa</p>
 
     @if (!string.IsNullOrWhiteSpace(Model.MaTraCuu))
     {
-        <p class="vo-muted mb-1" style="font-size:.82rem">
+        <p class="vo-muted mb-1 g3-small">
             Mã tra cứu: <code>@Model.MaTraCuu</code>
         </p>
-        <p class="vo-error-text mb-4" style="font-size:.8rem">
+        <p class="vo-error-text mb-4 g3-smaller">
             Khi báo lỗi, anh/chị đọc mã này để quản lý tìm đúng dòng nhật ký.
         </p>
     }

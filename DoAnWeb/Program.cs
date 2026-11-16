@@ -3,7 +3,9 @@ using DoAnWeb.Data;
 using DoAnWeb.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,27 @@ builder.Services.AddControllersWithViews(o =>
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddResponseCompression(o =>
+{
+    o.EnableForHttps = true;
+    o.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    o.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.AddRateLimiter(o =>
+{
+    int soLan = Math.Clamp(builder.Configuration.GetValue<int?>("BaoMat:GioiHanDangNhap:SoLan") ?? 10, 1, 1000);
+    int soPhut = Math.Clamp(builder.Configuration.GetValue<int?>("BaoMat:GioiHanDangNhap:TrongPhut") ?? 5, 1, 1440);
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("gioi-han-dang-nhap", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "khong-ro-ip",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = soLan,
+            Window = TimeSpan.FromMinutes(soPhut),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        }));
+});
 
 // ---------- Service nghiệp vụ (scoped: mỗi request một DbContext) ----------
 builder.Services.AddScoped<INguoiDungHienTai, NguoiDungHttp>();
@@ -72,6 +95,21 @@ var app = builder.Build();
 
 // ---------- Trang lỗi tiếng Việt: 404/403/500 dùng chung giao diện app ----------
 app.UseStatusCodePagesWithReExecute("/Loi/{0}");
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+        return Task.CompletedTask;
+    });
+    await next();
+});
 
 if (!app.Environment.IsDevelopment())
 {
@@ -104,8 +142,20 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 });
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseResponseCompression();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        string path = context.Context.Request.Path.Value ?? "";
+        if (path.StartsWith("/lib/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/js/", StringComparison.OrdinalIgnoreCase))
+            context.Context.Response.Headers.CacheControl = "public,max-age=604800";
+    }
+});
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
