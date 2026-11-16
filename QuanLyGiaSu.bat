@@ -1,7 +1,7 @@
 @echo off
 rem ==========================================================================
 rem  Quản lý gia sư - BẢN WEB: menu khởi động duy nhất.
-rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|dong-bo|shortcut|tu-xa|dich-vu
+rem  Chạy thẳng: QuanLyGiaSu.bat web|stop|cai-csdl|sao-luu|dong-bo|shortcut|tu-xa|dich-vu|iis
 rem  Các script con nằm trong thư mục scripts\
 rem ==========================================================================
 setlocal EnableExtensions
@@ -16,6 +16,7 @@ if /I "%~1"=="dong-bo" goto dong_bo
 if /I "%~1"=="shortcut" goto tao_shortcut
 if /I "%~1"=="tu-xa" goto tu_xa
 if /I "%~1"=="dich-vu" goto dich_vu
+if /I "%~1"=="iis" goto iis
 if /I not "%~1"=="" goto lenh_khong_hop_le
 
 :menu
@@ -31,13 +32,15 @@ echo  ║  4. Sao lưu CSDL                                         ║
 echo  ║  5. Kiểm đồng bộ CSDL app ↔ web                          ║
 echo  ║  6. Tạo shortcut "Quản lý gia sư" ra Desktop             ║
 echo  ║  7. Mở cho điện thoại (Tailscale)                        ║
+echo  ║  8. Cài / cập nhật IIS (Administrator)                   ║
 echo  ║  9. Cài dịch vụ web (Administrator)                      ║
 echo  ║  0. Thoát                                                ║
 echo  ╚══════════════════════════════════════════════════════════╝
 echo.
-choice /c 123456790 /n /m "Chọn chức năng: "
-if errorlevel 9 goto thoat
-if errorlevel 8 goto menu_dich_vu
+choice /c 1234567890 /n /m "Chọn chức năng: "
+if errorlevel 10 goto thoat
+if errorlevel 9 goto menu_dich_vu
+if errorlevel 8 goto menu_iis
 if errorlevel 7 goto menu_tu_xa
 if errorlevel 6 goto menu_shortcut
 if errorlevel 5 goto menu_dong_bo
@@ -73,6 +76,10 @@ goto menu_cho_tiep
 
 :menu_dich_vu
 call :dich_vu
+goto menu_cho_tiep
+
+:menu_iis
+call :iis
 goto menu_cho_tiep
 
 :menu_tu_xa
@@ -129,6 +136,11 @@ rem Mở HTTPS trong tailnet Tailscale; không dùng Funnel vì sẽ công khai 
 powershell -ExecutionPolicy Bypass -File "%~dp0scripts\mo-truy-cap-tu-xa.ps1" %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %ERRORLEVEL%
 
+:iis
+rem Publish và cấu hình IIS (cần Run as administrator); dùng -WhatIf để xem trước.
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\cai-iis.ps1" %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %ERRORLEVEL%
+
 :shortcut
 powershell -NoProfile -Command "$desktop = [Environment]::GetFolderPath('Desktop'); $shell = New-Object -ComObject WScript.Shell; $shortcut = $shell.CreateShortcut((Join-Path $desktop 'Quản lý gia sư.lnk')); $shortcut.TargetPath = '%~f0'; $shortcut.WorkingDirectory = '%~dp0'; $icon = Join-Path '%~dp0' 'assets\QuanLyGiaSu.ico'; if (Test-Path $icon) { $shortcut.IconLocation = $icon }; $shortcut.Save()"
 if errorlevel 1 (
@@ -140,7 +152,7 @@ exit /b 0
 
 :lenh_khong_hop_le
 echo [X] Lệnh không hợp lệ: %~1
-echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|dong-bo^|shortcut^|tu-xa^|dich-vu
+echo     Dùng: QuanLyGiaSu.bat web^|stop^|cai-csdl^|sao-luu^|dong-bo^|shortcut^|tu-xa^|dich-vu^|iis
 exit /b 2
 
 :thoat

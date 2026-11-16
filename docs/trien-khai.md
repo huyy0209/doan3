@@ -304,3 +304,111 @@ powershell -ExecutionPolicy Bypass -File scripts\cai-dich-vu-web.ps1 -GoBo -What
 ```
 
 Kết quả xem trước được ghi lại trong `docs/progress/E7.md`.
+
+## 11. Triển khai lên IIS
+
+IIS phù hợp khi máy chủ đã dùng Windows Server/IIS hoặc cần quản lý binding và chứng
+chỉ tập trung. `DoAnWeb\DoAnWeb.csproj` nhắm `net8.0` và đặt `RollForward=Major`:
+cài **.NET 8 Hosting Bundle** (bao gồm ASP.NET Core Module V2/ANCM và runtime .NET 8)
+để khớp chính xác với ứng dụng. Có thể chạy trên ASP.NET Core runtime major mới hơn
+nhờ `RollForward=Major`, nhưng phải cài Hosting Bundle của phiên bản đó để có ANCM.
+Sau khi cài/cập nhật Hosting Bundle, khởi động lại IIS hoặc máy chủ. Script chỉ kiểm tra
+và báo thành phần còn thiếu, không tải hay cài IIS/Hosting Bundle thay bạn.
+
+Mở PowerShell bằng **Run as administrator**, hoặc dùng menu **8. Cài / cập nhật IIS**:
+
+```bat
+QuanLyGiaSu.bat iis -WhatIf
+QuanLyGiaSu.bat iis
+```
+
+Script `scripts\cai-iis.ps1` publish `Release`, tạo hoặc cập nhật App Pool cùng tên
+site (mặc định `QuanLyGiaSuWeb`) với **No Managed Code**, binding HTTP `*:5080`, và
+thư mục `%ProgramFiles%\QuanLyGiaSuIIS`. Có thể đổi tên, cổng và thư mục:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\cai-iis.ps1 `
+    -TenSite "DoAnGiaSu" -Cong 8080 -ThuMuc "D:\Web\DoAnGiaSu"
+```
+
+Lệnh publish tương đương (chạy tại thư mục gốc repo):
+
+```powershell
+dotnet publish DoAnWeb\DoAnWeb.csproj -c Release -o "D:\Web\DoAnGiaSu" --nologo
+```
+
+ASP.NET Core Web SDK tự sinh `web.config` vào thư mục publish để IIS gọi ANCM; không
+cần chép hoặc commit `web.config` riêng. Script kiểm tra file này trước khi thiết lập
+site. App Pool dùng danh tính ảo `IIS AppPool\<tên-site>`: script cấp Read/Execute
+cho thư mục ứng dụng và Modify cho `logs` cùng `sao-luu` bên dưới thư mục triển khai.
+Nếu đổi vị trí backup qua `SaoLuu:ThuMuc`, cấp thêm Modify cho App Pool trên thư mục
+đó. SQL Server cũng cần quyền ghi tại vị trí backup vì chính dịch vụ SQL Server tạo
+file `.bak`; khi SQL Server ở máy khác, dùng đường dẫn chia sẻ phù hợp và cấp quyền
+cho danh tính dịch vụ SQL Server trên máy chủ SQL.
+
+### Cấu hình Production, SQL và HTTPS
+
+Tạo `appsettings.Production.json` cạnh `DoAnWeb.dll` với cấu hình riêng của máy chủ
+(không chép mẫu Kestrel nếu không dùng chứng chỉ Kestrel). Ví dụ cho SQL Server cùng
+máy và backup trong thư mục do script tạo:
+
+```json
+{
+  "ConnectionStrings": {
+    "QuanLyGiaSu": "Server=.;Database=QuanLyGiaSu_Web;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  },
+  "SaoLuu": {
+    "ThuMuc": "C:\\Program Files\\QuanLyGiaSuIIS\\sao-luu"
+  },
+  "BaoMat": {
+    "BatBuocHttps": true
+  }
+}
+```
+
+Chỉ đặt `BaoMat:BatBuocHttps=true` sau khi HTTPS binding đã hoạt động. Không commit
+mật khẩu hay file cấu hình có bí mật. IIS mặc định chạy ứng dụng ở môi trường
+`Production`. Có thể dùng biến môi trường .NET thay cho file, với dấu hai chấm trong
+tên cấu hình thay bằng hai dấu gạch dưới, ví dụ `ConnectionStrings__QuanLyGiaSu` và
+`BaoMat__BatBuocHttps`. Có thể cấu hình qua `environmentVariables` trong `web.config`
+sinh từ publish; sau khi đổi cấu hình, recycle App Pool. Chuỗi kết nối mẫu trong
+`appsettings.json` dùng Windows Authentication tới `QuanLyGiaSu_Web`, không phải CSDL
+WinForms `QuanLyGiaSu`.
+
+Nếu SQL Server cùng máy, cấp quyền tối thiểu cho danh tính App Pool trên CSDL web:
+
+```sql
+USE master;
+CREATE LOGIN [IIS APPPOOL\QuanLyGiaSuWeb] FROM WINDOWS;
+USE QuanLyGiaSu_Web;
+CREATE USER [IIS APPPOOL\QuanLyGiaSuWeb] FOR LOGIN [IIS APPPOOL\QuanLyGiaSuWeb];
+ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\QuanLyGiaSuWeb];
+ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\QuanLyGiaSuWeb];
+```
+
+Thay tên App Pool nếu `-TenSite` khác. Nếu SQL Server ở máy khác, dùng danh tính
+Windows/domain phù hợp (App Pool identity cục bộ không tự trở thành tài khoản SQL hợp
+lệ trên máy từ xa), hoặc SQL login và giữ bí mật trong cấu hình Production. Không cấp
+quyền DDL nếu ứng dụng không cần thay đổi schema.
+
+Trong IIS Manager, mở **Sites → \<site> → Bindings… → Add**, chọn `https`, cổng `443`
+(hoặc cổng đã cấp), hostname nếu cần, và chứng chỉ TLS máy khách tin cậy. Mở cổng tại
+tường lửa theo chính sách mạng. Có thể giữ binding HTTP để chuyển hướng HTTPS; đặt
+`BaoMat:BatBuocHttps=true` chỉ sau khi HTTPS đã kiểm tra thành công. Ứng dụng đã bật
+forwarded headers cho `X-Forwarded-For` và `X-Forwarded-Proto`; cấu hình hiện tại chỉ
+tin proxy loopback. Giữ giới hạn proxy tin cậy đó. Nếu TLS được kết thúc ở reverse
+proxy bên ngoài IIS, chỉ cấu hình đúng địa chỉ proxy tin cậy, không tin header
+forwarded từ mọi nguồn.
+
+### Sự cố IIS thường gặp
+
+| Lỗi | Nguyên nhân thường gặp / cách xử lý |
+|---|---|
+| **500.19** | IIS không đọc được cấu hình: `web.config` hỏng/không hợp lệ, mục cấu hình bị khóa hoặc thiếu module ASP.NET Core. Kiểm tra XML trong file publish, cài Hosting Bundle đúng kiến trúc và khởi động lại IIS. |
+| **500.30** | Ứng dụng không khởi động: thiếu ASP.NET Core Runtime tương thích, cấu hình Production/chuỗi SQL sai hoặc không kết nối được CSDL. Kiểm tra Event Viewer → Windows Logs → Application, cài đúng Hosting Bundle và chạy `dotnet --list-runtimes`. |
+| Không ghi được log hoặc backup | Cấp Modify cho `IIS AppPool\<tên-site>` trên `logs`/`SaoLuu:ThuMuc`; đồng thời cấp quyền ghi backup cho tài khoản dịch vụ SQL Server. |
+
+Để chẩn đoán sâu, kiểm tra log Windows Application và `logs\doanweb-YYYYMMDD.log`.
+Có thể bật `stdoutLogEnabled` trong `web.config` tạm thời và đặt `stdoutLogFile`
+vào thư mục được App Pool ghi; tắt lại ngay sau khi lấy log vì stdout log không tự
+xoay vòng và có thể chiếm dung lượng.
