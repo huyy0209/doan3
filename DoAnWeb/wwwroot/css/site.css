@@ -57,6 +57,8 @@
   /* Xanh mực (hành động chính) + xanh bảng (sidebar) */
   --vo-ink: #1B7A5E;
   --vo-ink-hover: #14624B;
+  --vo-ink-action: var(--vo-ink);
+  --vo-ink-action-hover: var(--vo-ink-hover);
   --vo-ink-dark: #1D4A40;
   --vo-ink-darker: #163A32;
   --vo-ink-soft: #E3F1EC;
@@ -70,6 +72,9 @@
   --vo-chalk-soft: #FCF3D9;
   --vo-margin: #C4403C;
   --vo-margin-soft: #FBE9E8;
+  --vo-danger-action: var(--vo-margin);
+  --vo-danger: var(--vo-margin);
+  --vo-danger-soft: var(--vo-margin-soft);
 
   /* Trạng thái */
   --vo-info: #2B6FD6;
@@ -107,6 +112,61 @@
   --bs-primary: var(--vo-ink);
   --bs-primary-rgb: 27, 122, 94;
   --bs-border-radius: var(--vo-radius);
+}
+
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --vo-paper: #141B19;
+  --vo-paper-alt: #1C2522;
+  --vo-surface: #202B27;
+  --vo-rule: #35443E;
+  --vo-rule-strong: #506159;
+  --vo-ink: #72CBAA;
+  --vo-ink-hover: #91DDBF;
+  --vo-ink-action: #176B50;
+  --vo-ink-action-hover: #1A7D5E;
+  --vo-ink-dark: #162C25;
+  --vo-ink-darker: #101F1A;
+  --vo-ink-soft: #243D33;
+  --vo-ink-select: #2B493D;
+  --vo-ink-muted: #B0CEC1;
+  --vo-ink-focus: #26372F;
+  --vo-board-line: #315444;
+  --vo-chalk-soft: #443918;
+  --vo-margin: #FF827C;
+  --vo-margin-soft: #432826;
+  --vo-danger: #FF827C;
+  --vo-danger-soft: #432826;
+  --vo-danger-action: #A33E39;
+  --vo-info: #87BAFF;
+  --vo-info-soft: #23344B;
+  --vo-success: #78D5A5;
+  --vo-success-soft: #233A2E;
+  --vo-warning: #EFBD67;
+  --vo-warning-soft: #42351F;
+  --vo-neutral: #B5C3BD;
+  --vo-neutral-soft: #303B36;
+  --vo-text: #E7EEEA;
+  --vo-text-muted: #BAC8C1;
+  --vo-text-faint: #9EAEA6;
+  --vo-row-select: #253B52;
+  --vo-row-select-bar: #87BAFF;
+  --bs-body-color: var(--vo-text);
+  --bs-body-bg: var(--vo-paper);
+  --bs-emphasis-color: var(--vo-text);
+  --bs-secondary-color: var(--vo-text-muted);
+  --bs-tertiary-color: var(--vo-text-faint);
+  --bs-secondary-bg: var(--vo-surface);
+  --bs-tertiary-bg: var(--vo-paper-alt);
+  --bs-border-color: var(--vo-rule);
+  --bs-link-color: var(--vo-ink);
+  --bs-link-hover-color: var(--vo-ink-hover);
+  --bs-primary: var(--vo-ink);
+  --bs-primary-rgb: 114, 203, 170;
+}
+
+html[data-bs-theme="light"] {
+  color-scheme: light;
 }
 
 /* ---------------------------------------------------------------------
@@ -797,10 +857,10 @@ table.vo-table .vo-cell-actions .btn {
 
 /* Nút chính = xanh mực */
 .btn-primary {
-  --bs-btn-bg: var(--vo-ink);
-  --bs-btn-border-color: var(--vo-ink);
-  --bs-btn-hover-bg: var(--vo-ink-hover);
-  --bs-btn-hover-border-color: var(--vo-ink-hover);
+  --bs-btn-bg: var(--vo-ink-action);
+  --bs-btn-border-color: var(--vo-ink-action);
+  --bs-btn-hover-bg: var(--vo-ink-action-hover);
+  --bs-btn-hover-border-color: var(--vo-ink-action-hover);
   --bs-btn-active-bg: var(--vo-ink-darker);
   --bs-btn-active-border-color: var(--vo-ink-darker);
   --bs-btn-disabled-bg: var(--vo-neutral-soft);
@@ -832,14 +892,14 @@ table.vo-table .vo-cell-actions .btn {
 }
 
 .btn-ink-soft:hover {
-  color: var(--vo-ink-darker);
+  color: var(--vo-ink-hover);
   background: var(--vo-ink-select);
 }
 
 /* Nút xóa / hủy lớp = bút đỏ */
 .btn-danger {
-  --bs-btn-bg: var(--vo-margin);
-  --bs-btn-border-color: var(--vo-margin);
+  --bs-btn-bg: var(--vo-danger-action);
+  --bs-btn-border-color: var(--vo-danger-action);
   --bs-btn-hover-bg: #A93632;
   --bs-btn-hover-border-color: #A93632;
   --bs-btn-active-bg: #932F2B;
@@ -855,8 +915,8 @@ table.vo-table .vo-cell-actions .btn {
 
 .btn-outline-danger:hover {
   color: #fff;
-  background: var(--vo-margin);
-  border-color: var(--vo-margin);
+  background: var(--vo-danger-action);
+  border-color: var(--vo-danger-action);
 }
 
 /* Nút không nền (Làm mới, điều hướng) */
@@ -1028,6 +1088,13 @@ table.vo-table .vo-cell-actions .btn {
 .alert-warning { background: var(--vo-warning-soft); color: var(--vo-warning); border-color: #EFDDB6; }
 .alert-info    { background: var(--vo-info-soft);    color: var(--vo-info);    border-color: #C9DCF6; }
 
+html[data-bs-theme="dark"] .alert-success,
+html[data-bs-theme="dark"] .alert-danger,
+html[data-bs-theme="dark"] .alert-warning,
+html[data-bs-theme="dark"] .alert-info {
+  border-color: var(--vo-rule-strong);
+}
+
 .dropdown-menu {
   border: 1px solid var(--vo-rule);
   border-radius: 10px;
@@ -1036,8 +1103,14 @@ table.vo-table .vo-cell-actions .btn {
 }
 
 .dropdown-item:active {
-  background: var(--vo-ink);
+  background: var(--vo-ink-action);
   color: #fff;
+}
+
+html[data-bs-theme="dark"] .ca-o.is-selected,
+html[data-bs-theme="dark"] .thu-o.is-selected,
+html[data-bs-theme="dark"] .w6-month-cell.is-today .w6-month-date {
+  background: var(--vo-ink-action);
 }
 
 .nav-tabs {
@@ -1261,8 +1334,8 @@ table.vo-table .vo-cell-actions .btn {
 
 .vo-auth-hint {
   background: var(--vo-chalk-soft);
-  color: #7A5A0C;
-  border: 1px solid #EFDDB6;
+  color: var(--vo-warning);
+  border: 1px solid var(--vo-rule-strong);
   border-radius: var(--vo-radius);
   padding: 9px 12px;
   font-size: 0.84rem;
