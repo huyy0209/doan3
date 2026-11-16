@@ -17,6 +17,7 @@ namespace DoAnWeb.Tests.Integration;
 public class PhanQuyenHttpTests : HttpTestBase
 {
     [Fact]
+    [Trait("Can", "SqlServerWindows")]
     public async Task Moc_khoi_phuc_thu_hoi_cookie_cua_phien_khac()
     {
         var phien1 = await DangNhapQL();
