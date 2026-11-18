@@ -86,7 +86,9 @@ public abstract class HttpTestBase : IDisposable
     {
         var gs = new GiaSu
         {
-            HoTen = hoTen, SDT = sdt ?? SdtTest(), ChuyenMon = chuyenMon,
+            HoTen = hoTen,
+            SDT = sdt ?? SdtTest(),
+            ChuyenMon = chuyenMon,
             TrangThai = trangThai ?? Constants.GiaSuStatus.Ranh
         };
         Db.GiaSus.Add(gs);
@@ -114,8 +116,12 @@ public abstract class HttpTestBase : IDisposable
     {
         var tk = new TaiKhoan
         {
-            TenDangNhap = ten, MatKhauHash = MatKhau.Bam(matKhau), VaiTro = vaiTro, MaGS = maGS,
-            HoatDong = true, NgayTao = DateTime.Now
+            TenDangNhap = ten,
+            MatKhauHash = MatKhau.Bam(matKhau),
+            VaiTro = vaiTro,
+            MaGS = maGS,
+            HoatDong = true,
+            NgayTao = DateTime.Now
         };
         Db.TaiKhoans.Add(tk);
         Db.SaveChanges();
@@ -128,7 +134,11 @@ public abstract class HttpTestBase : IDisposable
     {
         var lop = new LopHoc
         {
-            MaGS = gs?.MaGS, MaHV = hv?.MaHV, MonHoc = monHoc, TenLop = TenItg(), HocPhi = hocPhi,
+            MaGS = gs?.MaGS,
+            MaHV = hv?.MaHV,
+            MonHoc = monHoc,
+            TenLop = TenItg(),
+            HocPhi = hocPhi,
             TrangThai = trangThai ?? Constants.LopHocStatus.DangDienRa,
             ThoiGianBatDau = batDau ?? DateTime.Today.AddDays(-3),
             ThoiGianKetThuc = ketThuc ?? DateTime.Today.AddDays(30).AddHours(11),

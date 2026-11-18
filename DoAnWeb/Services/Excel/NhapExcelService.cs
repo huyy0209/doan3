@@ -131,9 +131,14 @@ public sealed class NhapExcelService
                 {
                     _hocVien.LuuHoSo(null, new HoSoHocVien
                     {
-                        HoTen = row.GiaTri[0], SDT = RongNull(row.GiaTri[1]), DiaChi = RongNull(row.GiaTri[2]),
-                        TenPhuHuynh = RongNull(row.GiaTri[3]), SDTPhuHuynh = RongNull(row.GiaTri[4]),
-                        TruongLop = RongNull(row.GiaTri[5]), TrinhDo = RongNull(row.GiaTri[6]), GhiChu = RongNull(row.GiaTri[7])
+                        HoTen = row.GiaTri[0],
+                        SDT = RongNull(row.GiaTri[1]),
+                        DiaChi = RongNull(row.GiaTri[2]),
+                        TenPhuHuynh = RongNull(row.GiaTri[3]),
+                        SDTPhuHuynh = RongNull(row.GiaTri[4]),
+                        TruongLop = RongNull(row.GiaTri[5]),
+                        TrinhDo = RongNull(row.GiaTri[6]),
+                        GhiChu = RongNull(row.GiaTri[7])
                     });
                 }
                 else
@@ -141,8 +146,13 @@ public sealed class NhapExcelService
                     int? kinhNghiem = string.IsNullOrWhiteSpace(row.GiaTri[5]) ? null : int.Parse(row.GiaTri[5], CultureInfo.InvariantCulture);
                     _giaSu.LuuHoSo(null, new HoSoGiaSu
                     {
-                        HoTen = row.GiaTri[0], SDT = row.GiaTri[1], ChuyenMon = row.GiaTri[2], Email = RongNull(row.GiaTri[3]),
-                        HocVan = RongNull(row.GiaTri[4]), KinhNghiem = kinhNghiem, GhiChu = RongNull(row.GiaTri[6])
+                        HoTen = row.GiaTri[0],
+                        SDT = row.GiaTri[1],
+                        ChuyenMon = row.GiaTri[2],
+                        Email = RongNull(row.GiaTri[3]),
+                        HocVan = RongNull(row.GiaTri[4]),
+                        KinhNghiem = kinhNghiem,
+                        GhiChu = RongNull(row.GiaTri[6])
                     });
                 }
                 nhap++;

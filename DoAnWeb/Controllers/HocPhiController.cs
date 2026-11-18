@@ -62,8 +62,13 @@ public class HocPhiController : Controller
             TempData["ThongBao"] = $"Đã ghi nhận {SoTien.Dinh(soTien)} đ.";
             return RedirectToAction(nameof(Index), new
             {
-                maLop = input.MaLop, tuKhoa = input.TuKhoa, tinhTrang = input.TinhTrang,
-                trang, soDong, sapXep, chieu
+                maLop = input.MaLop,
+                tuKhoa = input.TuKhoa,
+                tinhTrang = input.TinhTrang,
+                trang,
+                soDong,
+                sapXep,
+                chieu
             });
         }
         catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException)

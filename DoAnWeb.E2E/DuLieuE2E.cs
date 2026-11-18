@@ -64,13 +64,20 @@ public sealed class DuLieuE2E
 
         QuanLy = new TaiKhoan
         {
-            TenDangNhap = "e2e_ql_" + Hau, MatKhauHash = MatKhauBam(), VaiTro = Constants.VaiTro.QuanLy,
-            HoatDong = true, NgayTao = DateTime.Now
+            TenDangNhap = "e2e_ql_" + Hau,
+            MatKhauHash = MatKhauBam(),
+            VaiTro = Constants.VaiTro.QuanLy,
+            HoatDong = true,
+            NgayTao = DateTime.Now
         };
         TaiKhoanGS = new TaiKhoan
         {
-            TenDangNhap = "e2e_gs_" + Hau, MatKhauHash = MatKhauBam(), VaiTro = Constants.VaiTro.GiaSu,
-            MaGS = GS_B.MaGS, HoatDong = true, NgayTao = DateTime.Now
+            TenDangNhap = "e2e_gs_" + Hau,
+            MatKhauHash = MatKhauBam(),
+            VaiTro = Constants.VaiTro.GiaSu,
+            MaGS = GS_B.MaGS,
+            HoatDong = true,
+            NgayTao = DateTime.Now
         };
         db.TaiKhoans.AddRange(QuanLy, TaiKhoanGS);
 
@@ -85,7 +92,11 @@ public sealed class DuLieuE2E
         // Đang diễn ra từ 3 ngày trước tới 30 ngày sau, học hằng ngày (ThuHoc = null) → hôm nay luôn có buổi.
         var lop = new LopHoc
         {
-            MaGS = gs.MaGS, MaHV = hv.MaHV, MonHoc = TenMon, TenLop = $"E2E_Lop_{nhan}_{Hau}", HocPhi = hocPhi,
+            MaGS = gs.MaGS,
+            MaHV = hv.MaHV,
+            MonHoc = TenMon,
+            TenLop = $"E2E_Lop_{nhan}_{Hau}",
+            HocPhi = hocPhi,
             TrangThai = Constants.LopHocStatus.DangDienRa,
             ThoiGianBatDau = DateTime.Today.AddDays(-3),
             ThoiGianKetThuc = DateTime.Today.AddDays(30).AddHours(11),

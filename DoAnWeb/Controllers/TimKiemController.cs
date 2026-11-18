@@ -38,20 +38,26 @@ public class TimKiemController : Controller
             if (kq.TongHocVien > 0)
                 nhom.Add(new NhomKetQuaVM
                 {
-                    Ma = "tk-nhom-hoc-vien", TieuDe = "Học viên",
-                    Items = kq.HocViens, Tong = kq.TongHocVien
+                    Ma = "tk-nhom-hoc-vien",
+                    TieuDe = "Học viên",
+                    Items = kq.HocViens,
+                    Tong = kq.TongHocVien
                 });
             if (_nguoiDung.LaQuanLy && kq.TongGiaSu > 0)
                 nhom.Add(new NhomKetQuaVM
                 {
-                    Ma = "tk-nhom-gia-su", TieuDe = "Gia sư",
-                    Items = kq.GiaSus, Tong = kq.TongGiaSu
+                    Ma = "tk-nhom-gia-su",
+                    TieuDe = "Gia sư",
+                    Items = kq.GiaSus,
+                    Tong = kq.TongGiaSu
                 });
             if (kq.TongLop > 0)
                 nhom.Add(new NhomKetQuaVM
                 {
-                    Ma = "tk-nhom-lop", TieuDe = "Lớp học",
-                    Items = kq.Lops, Tong = kq.TongLop
+                    Ma = "tk-nhom-lop",
+                    TieuDe = "Lớp học",
+                    Items = kq.Lops,
+                    Tong = kq.TongLop
                 });
         }
 

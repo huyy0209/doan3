@@ -27,18 +27,29 @@ public class KhaNangTruyCapHttpTests : HttpTestBase
         var lop = TaoLop(GS, hv);
         Db.BuoiHocs.Add(new BuoiHoc
         {
-            MaLop = lop.MaLop, NgayHoc = DateTime.Today.AddDays(-1),
-            DiemDanh = "Có mặt", Diem = 8, CaHoc = lop.CaHoc
+            MaLop = lop.MaLop,
+            NgayHoc = DateTime.Today.AddDays(-1),
+            DiemDanh = "Có mặt",
+            Diem = 8,
+            CaHoc = lop.CaHoc
         });
         Db.ThanhToans.Add(new ThanhToan
         {
-            MaLop = lop.MaLop, SoTien = 50000, NgayDong = DateTime.Now, HinhThuc = "Tiền mặt"
+            MaLop = lop.MaLop,
+            SoTien = 50000,
+            NgayDong = DateTime.Now,
+            HinhThuc = "Tiền mặt"
         });
         var nk = new NhatKy
         {
-            ThoiGian = DateTime.Now, MaTK = QL.MaTK, TenDangNhap = QL.TenDangNhap,
-            HanhDong = "Tạo", Bang = "GiaSu", KhoaChinh = GS.MaGS.ToString(),
-            ChiTiet = "{\"HoTen\":\"ITG\"}", DiaChiIP = "127.0.0.1"
+            ThoiGian = DateTime.Now,
+            MaTK = QL.MaTK,
+            TenDangNhap = QL.TenDangNhap,
+            HanhDong = "Tạo",
+            Bang = "GiaSu",
+            KhoaChinh = GS.MaGS.ToString(),
+            ChiTiet = "{\"HoTen\":\"ITG\"}",
+            DiaChiIP = "127.0.0.1"
         };
         Db.NhatKys.Add(nk);
         Db.SaveChanges();
