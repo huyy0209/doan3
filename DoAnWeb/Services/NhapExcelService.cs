@@ -5,7 +5,7 @@ using ClosedXML.Excel;
 using DoAnWeb.Common;
 using DoAnWeb.Data;
 using DoAnWeb.Services.Validators;
-using DoAnWeb.ViewModels.NhapExcelVM;
+using DoAnWeb.ViewModels.NhapExcel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 

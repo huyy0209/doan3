@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
 using DoAnWeb.Infrastructure;
-using DoAnWeb.ViewModels.SaoLuuVM;
+using DoAnWeb.ViewModels.SaoLuu;
 
 namespace DoAnWeb.Services;
 

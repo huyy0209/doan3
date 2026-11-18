@@ -167,7 +167,7 @@ public class SaoLuuServiceTests
     [Fact]
     public void Khoi_phuc_bat_gioi_han_tan_suat_giong_dang_nhap()
     {
-        var method = typeof(DoAnWeb.Controllers.SaoLuuController).GetMethod(nameof(DoAnWeb.Controllers.SaoLuuController.KhoiPhuc), new[] { typeof(DoAnWeb.ViewModels.SaoLuuVM.KhoiPhucSaoLuuVM), typeof(CancellationToken) });
+        var method = typeof(DoAnWeb.Controllers.SaoLuuController).GetMethod(nameof(DoAnWeb.Controllers.SaoLuuController.KhoiPhuc), new[] { typeof(DoAnWeb.ViewModels.SaoLuu.KhoiPhucSaoLuuVM), typeof(CancellationToken) });
         Assert.NotNull(method);
         var attribute = Assert.Single(method!.GetCustomAttributes(typeof(Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute), false));
         Assert.Equal("gioi-han-dang-nhap", ((Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute)attribute).PolicyName);

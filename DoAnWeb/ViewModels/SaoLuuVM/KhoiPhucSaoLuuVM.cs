@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DoAnWeb.ViewModels.SaoLuuVM;
+namespace DoAnWeb.ViewModels.SaoLuu;
 
 public sealed class KhoiPhucSaoLuuVM
 {

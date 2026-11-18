@@ -2,290 +2,290 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DoAnWeb.Common
+namespace DoAnWeb.Common;
+
+
+/// <summary>
+/// Lớp chứa các hằng số dùng chung trong ứng dụng
+/// OOP: Encapsulation - Tập trung quản lý các giá trị constant
+/// </summary>
+public static class Constants
 {
     /// <summary>
-    /// Lớp chứa các hằng số dùng chung trong ứng dụng
-    /// OOP: Encapsulation - Tập trung quản lý các giá trị constant
+    /// ✨ Trạng thái Gia Sư - CẬP NHẬT CHO OPTION 2
     /// </summary>
-    public static class Constants
+    public static class GiaSuStatus
     {
-        /// <summary>
-        /// ✨ Trạng thái Gia Sư - CẬP NHẬT CHO OPTION 2
-        /// </summary>
-        public static class GiaSuStatus
-        {
-            public const string Ranh = "Rảnh";
-            public const string Ban = "Bận";
-            public const string DangDay = "Đang dạy";
-            public const string SanSang = "Sẵn sàng";
-            public const string TamNghi = "Tạm nghỉ"; // Không nhận lớp mới
+        public const string Ranh = "Rảnh";
+        public const string Ban = "Bận";
+        public const string DangDay = "Đang dạy";
+        public const string SanSang = "Sẵn sàng";
+        public const string TamNghi = "Tạm nghỉ"; // Không nhận lớp mới
 
-            /// <summary>Các trạng thái hiển thị trên form Gia Sư</summary>
-            public static readonly string[] TatCa = { Ranh, Ban, DangDay, TamNghi };
-        }
+        /// <summary>Các trạng thái hiển thị trên form Gia Sư</summary>
+        public static readonly string[] TatCa = { Ranh, Ban, DangDay, TamNghi };
+    }
 
-        /// <summary>
-        /// ✨ Trạng thái Lớp Học - CẬP NHẬT CHO OPTION 2
-        /// </summary>
-        public static class LopHocStatus
-        {
-            // Trạng thái mới cho Option 2
-            public const string ChuaBatDau = "Chưa bắt đầu";
-            public const string DangDienRa = "Đang diễn ra";
-            public const string DaKetThuc = "Đã kết thúc";
+    /// <summary>
+    /// ✨ Trạng thái Lớp Học - CẬP NHẬT CHO OPTION 2
+    /// </summary>
+    public static class LopHocStatus
+    {
+        // Trạng thái mới cho Option 2
+        public const string ChuaBatDau = "Chưa bắt đầu";
+        public const string DangDienRa = "Đang diễn ra";
+        public const string DaKetThuc = "Đã kết thúc";
 
-            // Trạng thái cũ - Backward compatible
-            public const string DangHoc = "Đang học";
-            public const string HoanThanh = "Hoàn thành";
-            public const string SanSang = "Sẵn sàng";
+        // Trạng thái cũ - Backward compatible
+        public const string DangHoc = "Đang học";
+        public const string HoanThanh = "Hoàn thành";
+        public const string SanSang = "Sẵn sàng";
 
-            // Lớp bị hủy giữa chừng - giữ lại để còn lịch sử/thống kê
-            public const string DaHuy = "Đã hủy";
-
-            /// <summary>
-            /// Các trạng thái được coi là lớp "đang hoạt động" (chiếm lịch gia sư/học viên).
-            /// Dùng mảng để EF dịch được sang câu lệnh SQL IN (...).
-            /// </summary>
-            public static readonly string[] HoatDong = { ChuaBatDau, DangDienRa, DangHoc };
-
-            public static bool LaHoatDong(string trangThai)
-            {
-                return trangThai == ChuaBatDau || trangThai == DangDienRa || trangThai == DangHoc;
-            }
-        }
+        // Lớp bị hủy giữa chừng - giữ lại để còn lịch sử/thống kê
+        public const string DaHuy = "Đã hủy";
 
         /// <summary>
-        /// ✨ Ca học tại trung tâm - MỚI CHO OPTION 2
+        /// Các trạng thái được coi là lớp "đang hoạt động" (chiếm lịch gia sư/học viên).
+        /// Dùng mảng để EF dịch được sang câu lệnh SQL IN (...).
         /// </summary>
-        public static class CaHoc
+        public static readonly string[] HoatDong = { ChuaBatDau, DangDienRa, DangHoc };
+
+        public static bool LaHoatDong(string trangThai)
         {
-            public const string Sang = "Sáng (7h-9h)";
-            public const string SangMuon = "Sáng muộn (9h-11h)";
-            public const string Chieu = "Chiều (14h-16h)";
-            public const string ChieuMuon = "Chiều muộn (16h-18h)";
-            public const string Toi = "Tối (18h-20h)";
-            public const string ToiMuon = "Tối muộn (20h-22h)";
-
-            public static readonly string[] TatCaCaHoc = new string[]
-            {
-                Sang,
-                SangMuon,
-                Chieu,
-                ChieuMuon,
-                Toi,
-                ToiMuon
-            };
-
-            /// <summary>"Tối (18h-20h)" =&gt; "Tối"</summary>
-            public static string TenNgan(string caHoc)
-            {
-                if (string.IsNullOrEmpty(caHoc)) return "";
-                int i = caHoc.IndexOf(" (", System.StringComparison.Ordinal);
-                return i > 0 ? caHoc.Substring(0, i) : caHoc;
-            }
-
-            /// <summary>
-            /// Lấy giờ bắt đầu / kết thúc từ tên ca, ví dụ "Tối (18h-20h)" => (18, 20).
-            /// Trả về false nếu tên ca không đúng định dạng.
-            /// </summary>
-            public static bool TryGetGio(string caHoc, out int gioBatDau, out int gioKetThuc)
-            {
-                gioBatDau = gioKetThuc = 0;
-                if (string.IsNullOrEmpty(caHoc)) return false;
-
-                var m = System.Text.RegularExpressions.Regex.Match(caHoc, @"\((\d{1,2})h-(\d{1,2})h\)");
-                if (!m.Success) return false;
-
-                gioBatDau = int.Parse(m.Groups[1].Value);
-                gioKetThuc = int.Parse(m.Groups[2].Value);
-                return true;
-            }
+            return trangThai == ChuaBatDau || trangThai == DangDienRa || trangThai == DangHoc;
         }
+    }
 
+    /// <summary>
+    /// ✨ Ca học tại trung tâm - MỚI CHO OPTION 2
+    /// </summary>
+    public static class CaHoc
+    {
+        public const string Sang = "Sáng (7h-9h)";
+        public const string SangMuon = "Sáng muộn (9h-11h)";
+        public const string Chieu = "Chiều (14h-16h)";
+        public const string ChieuMuon = "Chiều muộn (16h-18h)";
+        public const string Toi = "Tối (18h-20h)";
+        public const string ToiMuon = "Tối muộn (20h-22h)";
 
-        /// <summary>
-        /// ✅ Thông báo - BỔ SUNG ĐẦY ĐỦ
-        /// </summary>
-        /// <summary>Điểm danh một buổi học</summary>
-        /// <summary>
-        /// Thứ học trong tuần. Lưu dạng "2,4,6" (2 = thứ Hai ... 8 = Chủ nhật); null / rỗng = học hằng ngày.
-        /// </summary>
-        public static class ThuHoc
+        public static readonly string[] TatCaCaHoc = new string[]
         {
-            public static readonly int[] TatCa = { 2, 3, 4, 5, 6, 7, 8 };
+            Sang,
+            SangMuon,
+            Chieu,
+            ChieuMuon,
+            Toi,
+            ToiMuon
+        };
 
-            /// <summary>Thứ của một ngày: thứ Hai = 2 ... Chủ nhật = 8</summary>
-            public static int Cua(DateTime ngay) => ngay.DayOfWeek == DayOfWeek.Sunday ? 8 : (int)ngay.DayOfWeek + 1;
-
-            public static string Ten(int thu) => thu == 8 ? "CN" : "T" + thu;
-
-            /// <summary>Tập thứ học; rỗng = hằng ngày</summary>
-            public static HashSet<int> Doc(string thuHoc)
-            {
-                var kq = new HashSet<int>();
-                if (string.IsNullOrWhiteSpace(thuHoc)) return kq;
-                foreach (var p in thuHoc.Split(','))
-                {
-                    int t;
-                    if (int.TryParse(p.Trim(), out t) && t >= 2 && t <= 8) kq.Add(t);
-                }
-                return kq.Count == 7 ? new HashSet<int>() : kq;
-            }
-
-            /// <summary>Chuỗi để lưu; null nếu chọn đủ 7 ngày hoặc không chọn gì (= hằng ngày)</summary>
-            public static string Ghi(IEnumerable<int> thu)
-            {
-                var ds = (thu ?? new int[0]).Where(t => t >= 2 && t <= 8).Distinct().OrderBy(t => t).ToList();
-                return ds.Count == 0 || ds.Count == 7 ? null : string.Join(",", ds);
-            }
-
-            /// <summary>"T2-T4-T6" hoặc "Hằng ngày"</summary>
-            public static string MoTa(string thuHoc)
-            {
-                var ds = Doc(thuHoc);
-                return ds.Count == 0 ? "Hằng ngày" : string.Join("-", ds.OrderBy(t => t).Select(Ten));
-            }
-
-            public static bool CoHoc(string thuHoc, DateTime ngay)
-            {
-                var ds = Doc(thuHoc);
-                return ds.Count == 0 || ds.Contains(Cua(ngay));
-            }
-        }
-
-        /// <summary>Loại môn: môn chính xếp loại theo điểm, môn năng khiếu xếp theo cấp độ</summary>
-        public static class LoaiMon
+        /// <summary>"Tối (18h-20h)" =&gt; "Tối"</summary>
+        public static string TenNgan(string caHoc)
         {
-            public const string Chinh = "Chính";
-            public const string NangKhieu = "Năng khiếu";
-            public static readonly string[] TatCa = { Chinh, NangKhieu };
-
-            /// <summary>Điểm bài thi lên cấp từ mức này trở lên là đạt</summary>
-            public const decimal DiemDatThiLenCap = 8m;
-        }
-
-        public static class DiemDanh
-        {
-            public const string CoMat = "Có mặt";
-            public const string DiTre = "Đi trễ";
-            public const string VangCoPhep = "Vắng có phép";
-            public const string VangKhongPhep = "Vắng không phép";
-
-            public static readonly string[] TatCa = { CoMat, DiTre, VangCoPhep, VangKhongPhep };
-
-            /// <summary>Có mặt hoặc đi trễ => có học, được làm bài test</summary>
-            public static bool CoHoc(string diemDanh)
-            {
-                return diemDanh == CoMat || diemDanh == DiTre;
-            }
-        }
-
-        /// <summary>Vai trò tài khoản</summary>
-        public static class VaiTro
-        {
-            public const string QuanLy = "QuanLy";
-            public const string GiaSu = "GiaSu";
-
-            public static string TenHienThi(string vaiTro)
-            {
-                return vaiTro == QuanLy ? "Quản lý" : "Gia sư";
-            }
-        }
-
-        /// <summary>Gợi ý cho ô nhập (vẫn gõ được giá trị khác)</summary>
-        public static class GoiY
-        {
-            public static readonly string[] TrinhDo = { "Vỡ lòng", "Căn bản", "Sơ cấp", "Trung cấp", "Nâng cao" };
-            public static readonly string[] HinhThucThanhToan = { "Tiền mặt", "Chuyển khoản" };
-        }
-
-        public static class Messages
-        {
-            // Titles
-            public const string SuccessTitle = "Thành công";
-            public const string ErrorTitle = "Lỗi";
-            public const string WarningTitle = "Cảnh báo";
-            public const string InfoTitle = "Thông tin";
-            public const string ConfirmTitle = "Xác nhận";
-
-            // Common messages
-            public const string ThemThanhCong = "Thêm mới thành công!";
-            public const string SuaThanhCong = "Cập nhật thành công!";
-            public const string XoaThanhCong = "Xóa thành công!";
-            public const string LamMoiThanhCong = "Làm mới dữ liệu thành công!";
-            public const string GhepLopThanhCong = "Ghép lớp thành công!";
-            public const string HuyThaoTac = "Đã hủy thao tác!";  // ✅ THÊM MỚI
-
-            public const string LoiKhiThem = "Lỗi khi thêm: ";
-            public const string LoiKhiSua = "Lỗi khi sửa: ";
-            public const string LoiKhiXoa = "Lỗi khi xóa: ";
-            public const string LoiKhiGhepLop = "Lỗi khi ghép lớp: ";
-
-            // Validation messages cho Gia Sư
-            public const string VuiLongNhapHoTen = "Vui lòng nhập họ tên!";
-            public const string VuiLongNhapSDT = "Vui lòng nhập số điện thoại!";
-            public const string SDTKhongHopLe = "Số điện thoại không hợp lệ! (10-11 số)";
-            public const string VuiLongNhapChuyenMon = "Vui lòng nhập chuyên môn!";
-
-            // Validation messages cho Học Viên
-            public const string VuiLongNhapDiaChi = "Vui lòng nhập địa chỉ!";
-
-            // Validation messages - General
-            public const string VuiLongNhapDayDu = "Vui lòng nhập đầy đủ thông tin!";
-            public const string VuiLongChonHocVien = "Vui lòng chọn học viên!";
-            public const string VuiLongChonGiaSu = "Vui lòng chọn gia sư!";
-            public const string VuiLongChonCaHoc = "Vui lòng chọn ca học!";
-            public const string HocPhiKhongHopLe = "Học phí phải lớn hơn 0!";
-            public const string GiaSuKhongRanh = "Gia sư đang bận, không thể ghép lớp!";
-            public const string CaHocBiTrung = "Ca học đã bị trùng với lớp khác!";
-            public const string HoTenKhongHopLe = "Họ tên phải từ 2-100 ký tự và không chứa chữ số!";
-            public const string SDTDaTonTai = "Số điện thoại đã được dùng cho gia sư khác!";
-            public const string GiaSuTamNghi = "Gia sư đang tạm nghỉ, không thể nhận lớp mới!";
-            public const string CaHocKhongHopLe = "Ca học không hợp lệ!";
-
-            // Messages mới cho Option 2
-            public const string ThoiGianKhongHopLe = "Thời gian bắt đầu phải trước thời gian kết thúc!";
-            public const string ThoiGianQuaKhu = "Không thể tạo lớp học với thời gian trong quá khứ!";
-            public const string ThoiGianTrung = "Thời gian học bị trùng với lớp khác!";
-
-            // Confirmation messages
-            public const string XacNhanXoa = "Bạn có chắc chắn muốn xóa?";
+            if (string.IsNullOrEmpty(caHoc)) return "";
+            int i = caHoc.IndexOf(" (", System.StringComparison.Ordinal);
+            return i > 0 ? caHoc.Substring(0, i) : caHoc;
         }
 
         /// <summary>
-        /// Validation Patterns
+        /// Lấy giờ bắt đầu / kết thúc từ tên ca, ví dụ "Tối (18h-20h)" => (18, 20).
+        /// Trả về false nếu tên ca không đúng định dạng.
         /// </summary>
-        public static class Validation
+        public static bool TryGetGio(string caHoc, out int gioBatDau, out int gioKetThuc)
         {
-            public const string PhoneRegex = @"^0\d{9,10}$";
-            public const string EmailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-            public const int MinNameLength = 2;
-            public const int MaxNameLength = 100;
-            public const int MaxChuyenMonLength = 100;
-            public const int MaxDiaChiLength = 200;
-            public const int MaxMonHocLength = 50;
-            public const decimal MaxHocPhi = 100000000m; // 100 triệu / khóa
+            gioBatDau = gioKetThuc = 0;
+            if (string.IsNullOrEmpty(caHoc)) return false;
+
+            var m = System.Text.RegularExpressions.Regex.Match(caHoc, @"\((\d{1,2})h-(\d{1,2})h\)");
+            if (!m.Success) return false;
+
+            gioBatDau = int.Parse(m.Groups[1].Value);
+            gioKetThuc = int.Parse(m.Groups[2].Value);
+            return true;
+        }
+    }
+
+
+    /// <summary>
+    /// ✅ Thông báo - BỔ SUNG ĐẦY ĐỦ
+    /// </summary>
+    /// <summary>Điểm danh một buổi học</summary>
+    /// <summary>
+    /// Thứ học trong tuần. Lưu dạng "2,4,6" (2 = thứ Hai ... 8 = Chủ nhật); null / rỗng = học hằng ngày.
+    /// </summary>
+    public static class ThuHoc
+    {
+        public static readonly int[] TatCa = { 2, 3, 4, 5, 6, 7, 8 };
+
+        /// <summary>Thứ của một ngày: thứ Hai = 2 ... Chủ nhật = 8</summary>
+        public static int Cua(DateTime ngay) => ngay.DayOfWeek == DayOfWeek.Sunday ? 8 : (int)ngay.DayOfWeek + 1;
+
+        public static string Ten(int thu) => thu == 8 ? "CN" : "T" + thu;
+
+        /// <summary>Tập thứ học; rỗng = hằng ngày</summary>
+        public static HashSet<int> Doc(string thuHoc)
+        {
+            var kq = new HashSet<int>();
+            if (string.IsNullOrWhiteSpace(thuHoc)) return kq;
+            foreach (var p in thuHoc.Split(','))
+            {
+                int t;
+                if (int.TryParse(p.Trim(), out t) && t >= 2 && t <= 8) kq.Add(t);
+            }
+            return kq.Count == 7 ? new HashSet<int>() : kq;
         }
 
-        /// <summary>
-        /// ✨ Cấu hình Timer - MỚI CHO OPTION 2
-        /// </summary>
-        public static class Timer
+        /// <summary>Chuỗi để lưu; null nếu chọn đủ 7 ngày hoặc không chọn gì (= hằng ngày)</summary>
+        public static string Ghi(IEnumerable<int> thu)
         {
-            public const int AutoUpdateInterval = 60000; // milliseconds
-            public const int DashboardRefreshInterval = 30000; // milliseconds
+            var ds = (thu ?? new int[0]).Where(t => t >= 2 && t <= 8).Distinct().OrderBy(t => t).ToList();
+            return ds.Count == 0 || ds.Count == 7 ? null : string.Join(",", ds);
         }
 
-        /// <summary>
-        /// Format hiển thị
-        /// </summary>
-        public static class Format
+        /// <summary>"T2-T4-T6" hoặc "Hằng ngày"</summary>
+        public static string MoTa(string thuHoc)
         {
-            public const string DateFormat = "dd/MM/yyyy";
-            public const string DateTimeFormat = "dd/MM/yyyy HH:mm";
-            public const string TimeFormat = "HH:mm";
-            public const string CurrencyFormat = "N0";
+            var ds = Doc(thuHoc);
+            return ds.Count == 0 ? "Hằng ngày" : string.Join("-", ds.OrderBy(t => t).Select(Ten));
         }
+
+        public static bool CoHoc(string thuHoc, DateTime ngay)
+        {
+            var ds = Doc(thuHoc);
+            return ds.Count == 0 || ds.Contains(Cua(ngay));
+        }
+    }
+
+    /// <summary>Loại môn: môn chính xếp loại theo điểm, môn năng khiếu xếp theo cấp độ</summary>
+    public static class LoaiMon
+    {
+        public const string Chinh = "Chính";
+        public const string NangKhieu = "Năng khiếu";
+        public static readonly string[] TatCa = { Chinh, NangKhieu };
+
+        /// <summary>Điểm bài thi lên cấp từ mức này trở lên là đạt</summary>
+        public const decimal DiemDatThiLenCap = 8m;
+    }
+
+    public static class DiemDanh
+    {
+        public const string CoMat = "Có mặt";
+        public const string DiTre = "Đi trễ";
+        public const string VangCoPhep = "Vắng có phép";
+        public const string VangKhongPhep = "Vắng không phép";
+
+        public static readonly string[] TatCa = { CoMat, DiTre, VangCoPhep, VangKhongPhep };
+
+        /// <summary>Có mặt hoặc đi trễ => có học, được làm bài test</summary>
+        public static bool CoHoc(string diemDanh)
+        {
+            return diemDanh == CoMat || diemDanh == DiTre;
+        }
+    }
+
+    /// <summary>Vai trò tài khoản</summary>
+    public static class VaiTro
+    {
+        public const string QuanLy = "QuanLy";
+        public const string GiaSu = "GiaSu";
+
+        public static string TenHienThi(string vaiTro)
+        {
+            return vaiTro == QuanLy ? "Quản lý" : "Gia sư";
+        }
+    }
+
+    /// <summary>Gợi ý cho ô nhập (vẫn gõ được giá trị khác)</summary>
+    public static class GoiY
+    {
+        public static readonly string[] TrinhDo = { "Vỡ lòng", "Căn bản", "Sơ cấp", "Trung cấp", "Nâng cao" };
+        public static readonly string[] HinhThucThanhToan = { "Tiền mặt", "Chuyển khoản" };
+    }
+
+    public static class Messages
+    {
+        // Titles
+        public const string SuccessTitle = "Thành công";
+        public const string ErrorTitle = "Lỗi";
+        public const string WarningTitle = "Cảnh báo";
+        public const string InfoTitle = "Thông tin";
+        public const string ConfirmTitle = "Xác nhận";
+
+        // Common messages
+        public const string ThemThanhCong = "Thêm mới thành công!";
+        public const string SuaThanhCong = "Cập nhật thành công!";
+        public const string XoaThanhCong = "Xóa thành công!";
+        public const string LamMoiThanhCong = "Làm mới dữ liệu thành công!";
+        public const string GhepLopThanhCong = "Ghép lớp thành công!";
+        public const string HuyThaoTac = "Đã hủy thao tác!";  // ✅ THÊM MỚI
+
+        public const string LoiKhiThem = "Lỗi khi thêm: ";
+        public const string LoiKhiSua = "Lỗi khi sửa: ";
+        public const string LoiKhiXoa = "Lỗi khi xóa: ";
+        public const string LoiKhiGhepLop = "Lỗi khi ghép lớp: ";
+
+        // Validation messages cho Gia Sư
+        public const string VuiLongNhapHoTen = "Vui lòng nhập họ tên!";
+        public const string VuiLongNhapSDT = "Vui lòng nhập số điện thoại!";
+        public const string SDTKhongHopLe = "Số điện thoại không hợp lệ! (10-11 số)";
+        public const string VuiLongNhapChuyenMon = "Vui lòng nhập chuyên môn!";
+
+        // Validation messages cho Học Viên
+        public const string VuiLongNhapDiaChi = "Vui lòng nhập địa chỉ!";
+
+        // Validation messages - General
+        public const string VuiLongNhapDayDu = "Vui lòng nhập đầy đủ thông tin!";
+        public const string VuiLongChonHocVien = "Vui lòng chọn học viên!";
+        public const string VuiLongChonGiaSu = "Vui lòng chọn gia sư!";
+        public const string VuiLongChonCaHoc = "Vui lòng chọn ca học!";
+        public const string HocPhiKhongHopLe = "Học phí phải lớn hơn 0!";
+        public const string GiaSuKhongRanh = "Gia sư đang bận, không thể ghép lớp!";
+        public const string CaHocBiTrung = "Ca học đã bị trùng với lớp khác!";
+        public const string HoTenKhongHopLe = "Họ tên phải từ 2-100 ký tự và không chứa chữ số!";
+        public const string SDTDaTonTai = "Số điện thoại đã được dùng cho gia sư khác!";
+        public const string GiaSuTamNghi = "Gia sư đang tạm nghỉ, không thể nhận lớp mới!";
+        public const string CaHocKhongHopLe = "Ca học không hợp lệ!";
+
+        // Messages mới cho Option 2
+        public const string ThoiGianKhongHopLe = "Thời gian bắt đầu phải trước thời gian kết thúc!";
+        public const string ThoiGianQuaKhu = "Không thể tạo lớp học với thời gian trong quá khứ!";
+        public const string ThoiGianTrung = "Thời gian học bị trùng với lớp khác!";
+
+        // Confirmation messages
+        public const string XacNhanXoa = "Bạn có chắc chắn muốn xóa?";
+    }
+
+    /// <summary>
+    /// Validation Patterns
+    /// </summary>
+    public static class Validation
+    {
+        public const string PhoneRegex = @"^0\d{9,10}$";
+        public const string EmailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        public const int MinNameLength = 2;
+        public const int MaxNameLength = 100;
+        public const int MaxChuyenMonLength = 100;
+        public const int MaxDiaChiLength = 200;
+        public const int MaxMonHocLength = 50;
+        public const decimal MaxHocPhi = 100000000m; // 100 triệu / khóa
+    }
+
+    /// <summary>
+    /// ✨ Cấu hình Timer - MỚI CHO OPTION 2
+    /// </summary>
+    public static class Timer
+    {
+        public const int AutoUpdateInterval = 60000; // milliseconds
+        public const int DashboardRefreshInterval = 30000; // milliseconds
+    }
+
+    /// <summary>
+    /// Format hiển thị
+    /// </summary>
+    public static class Format
+    {
+        public const string DateFormat = "dd/MM/yyyy";
+        public const string DateTimeFormat = "dd/MM/yyyy HH:mm";
+        public const string TimeFormat = "HH:mm";
+        public const string CurrencyFormat = "N0";
     }
 }

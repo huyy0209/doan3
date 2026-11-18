@@ -1,4 +1,4 @@
-﻿namespace DoAnWeb.Models;
+namespace DoAnWeb.Models;
 
 public class ErrorViewModel
 {

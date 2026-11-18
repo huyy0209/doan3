@@ -1,7 +1,7 @@
 using DoAnWeb.Common;
 using DoAnWeb.Data.Entities;
 using DoAnWeb.Services;
-using DoAnWeb.ViewModels.LichDayVM;
+using DoAnWeb.ViewModels.LichDay;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

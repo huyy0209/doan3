@@ -1,6 +1,6 @@
 using DoAnWeb.Data.Entities;
 
-namespace DoAnWeb.ViewModels.LichDayVM;
+namespace DoAnWeb.ViewModels.LichDay;
 
 public class LichDayIndexViewModel
 {
@@ -8,7 +8,7 @@ public class LichDayIndexViewModel
     public List<LichDayNgayViewModel> CacNgay { get; set; } = new();
     public bool LaQuanLy { get; set; }
     public int? MaGS { get; set; }
-    public List<GiaSu> GiaSus { get; set; } = new();
+    public List<DoAnWeb.Data.Entities.GiaSu> GiaSus { get; set; } = new();
     public string MonHoc { get; set; }
     public List<string> CacMon { get; set; } = new();
     public int SoLop { get; set; }
@@ -27,10 +27,10 @@ public class LichDayNgayViewModel
 public class LichDayCaViewModel
 {
     public string Ten { get; set; }
-    public List<LopHoc> LopHoc { get; set; } = new();
+    public List<DoAnWeb.Data.Entities.LopHoc> LopHoc { get; set; } = new();
 }
 
 public class LichDayChiTietViewModel
 {
-    public LopHoc LopHoc { get; set; }
+    public DoAnWeb.Data.Entities.LopHoc LopHoc { get; set; }
 }

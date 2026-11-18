@@ -1,4 +1,4 @@
-namespace DoAnWeb.ViewModels.NhapExcelVM;
+namespace DoAnWeb.ViewModels.NhapExcel;
 
 public sealed class NhapExcelVM
 {

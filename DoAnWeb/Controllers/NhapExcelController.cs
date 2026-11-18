@@ -1,6 +1,6 @@
 using DoAnWeb.Common;
 using DoAnWeb.Services;
-using DoAnWeb.ViewModels.NhapExcelVM;
+using DoAnWeb.ViewModels.NhapExcel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

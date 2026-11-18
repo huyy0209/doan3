@@ -4,7 +4,7 @@ using DoAnWeb.Data.Entities;
 using DoAnWeb.Services.Validators;
 using HocVienEntity = DoAnWeb.Data.Entities.HocVien;
 
-namespace DoAnWeb.ViewModels.HocVienVM;
+namespace DoAnWeb.ViewModels.HocVien;
 
 public class HocVienIndexVM
 {

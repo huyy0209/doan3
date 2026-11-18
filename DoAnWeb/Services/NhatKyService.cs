@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using DoAnWeb.Data;
 using DoAnWeb.Data.Entities;
 using DoAnWeb.Infrastructure;
-using DoAnWeb.ViewModels.NhatKyVM;
+using DoAnWeb.ViewModels.NhatKy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
