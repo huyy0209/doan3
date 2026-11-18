@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using DoAnWeb.Models;
+using DoAnWeb.ViewModels;
 using DoAnWeb.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
