@@ -12,7 +12,7 @@
 - Agent id Orca ví dụ trong help: `claude, codex, cursor, antigravity, muse, zcode, opencode, opencode2`.
 - .NET: chỉ SDK 10.0.301 / runtime 10.0.9. `dotnet-ef` 10.0.8 cài global.
 - SQL Server `.` có DB `QuanLyGiaSu` (đủ bảng tới v7+, 33 tài khoản; `admin` QuanLy, `gs1..` GiaSu mật khẩu mẫu `123456`).
-- `dotnet build DoAnWD.slnx` lỗi sẵn (WinForms thiếu package EF6 qua packages.config) – không phải do web.
+- `dotnet build DoAnWeb.slnx` lỗi sẵn (WinForms thiếu package EF6 qua packages.config) – không phải do web.
 
 ## Trạng thái task
 | Task | Trạng thái | Agent | Worktree | Nhánh | Ghi chú |

@@ -80,7 +80,7 @@ doan3/ (nhánh web)
 ├── QuanLyGiaSu.bat     # Menu khởi động
 ├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat, cai-dich-vu-web.ps1
 ├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
-├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
+├── DoAnWeb.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
 ├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
 ├── DoAnWeb/            # ASP.NET Core 8 MVC: Controllers, Views, ViewModels, Services (nghiệp vụ), Data (EF Core), wwwroot
 ├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Web_Test_p{pid}

@@ -214,7 +214,7 @@ Quyết định kỹ thuật:
    (b) cài thêm runtime ASP.NET Core 8;
    (c) đổi sang `net10.0`.
 3. **Phạm vi**: phân công chỉ có Gia sư, Học viên, Tài khoản (W1) và Lớp/Ghép lớp (W2). Các màn **Điểm danh, Kết quả/Học bù, Học phí, Môn học, Lịch, Tổng quan đầy đủ, Cài đặt** chưa ai làm. Đề xuất: GĐ1 vẫn chuyển toàn bộ service (để test), màn hình các phần này để **ngoài phạm vi đợt này**, ghi vào báo cáo "chưa làm". Đồng ý, hay muốn thêm task W5?
-4. **Build gate**: `dotnet build DoAnWD.slnx` hiện **đã lỗi** sẵn (WinForms dùng packages.config, thiếu `packages/EntityFramework.6.5.1`). Đề xuất: vẫn thêm DoAnWeb + DoAnWeb.Tests vào `DoAnWD.slnx`, nhưng tiêu chí "build pass" = `dotnet build DoAnWeb/DoAnWeb.csproj` và `dotnet test DoAnWeb.Tests/DoAnWeb.Tests.csproj`. Đồng ý?
+4. **Build gate**: `dotnet build DoAnWeb.slnx` hiện **đã lỗi** sẵn (WinForms dùng packages.config, thiếu `packages/EntityFramework.6.5.1`). Đề xuất: vẫn thêm DoAnWeb + DoAnWeb.Tests vào `DoAnWeb.slnx`, nhưng tiêu chí "build pass" = `dotnet build DoAnWeb/DoAnWeb.csproj` và `dotnet test DoAnWeb.Tests/DoAnWeb.Tests.csproj`. Đồng ý?
 5. **Tài khoản admin lần đầu** (TK-10, TK-11): web cũng tự tạo `admin/admin123` khi bảng rỗng và bắt đổi mật khẩu mặc định? (DB hiện có 33 tài khoản nên không ảnh hưởng dữ liệu đang có.) Đề xuất: có.
 6. **Cột `LopHoc.MaMon` (v7)**: WinForms khi ghép lớp **không** ghi `MaMon` (chỉ ghi `MonHoc` chuỗi, `LopHocService.cs:153-165`). Web có ghi thêm `MaMon` không? Đề xuất: có (đúng ý v7, không đổi schema) – nhưng đây là thay đổi hành vi nhỏ nên hỏi.
 7. **Test W3 cần CSDL**: đề xuất test luật thuần (validator, MatKhau, TrungLich, DemSoBuoi, TienTrinhCapDo, XepLoai…) không cần DB, còn test service (xung đột lịch, transaction, khóa đăng nhập) dùng **SQLite in-memory** qua EF Core. Không chạm DB thật. Đồng ý?
@@ -230,10 +230,10 @@ cần sửa file chung (Program.cs, _Layout, Services) thì `ask` coordinator.
 
 | Task | Agent (dự phòng) | Worktree / nhánh | Được sửa | Không được sửa | Nội dung |
 |---|---|---|---|---|---|
-| GĐ1 | Coordinator | `huyy0209/cập-nhật-lên-web` | `DoAnWeb/**` (khung), `DoAnWD.slnx`, `docs/web-*.md` | `DoAnWD/**`, `Database/**`, `start.bat`, `stop.bat` | csproj, Program.cs, appsettings, Data/ (scaffold), Common/, Services/ (toàn bộ BLL), `INguoiDungHienTai`, `TaiKhoanController` (DangNhap/DangXuat/DoiMatKhau/KhongCoQuyen), `HomeController`, `Views/Shared/_Layout` + menu theo vai trò, `wwwroot/` (Bootstrap, font, site.css) |
+| GĐ1 | Coordinator | `huyy0209/cập-nhật-lên-web` | `DoAnWeb/**` (khung), `DoAnWeb.slnx`, `docs/web-*.md` | `DoAnWD/**`, `Database/**`, `start.bat`, `stop.bat` | csproj, Program.cs, appsettings, Data/ (scaffold), Common/, Services/ (toàn bộ BLL), `INguoiDungHienTai`, `TaiKhoanController` (DangNhap/DangXuat/DoiMatKhau/KhongCoQuyen), `HomeController`, `Views/Shared/_Layout` + menu theo vai trò, `wwwroot/` (Bootstrap, font, site.css) |
 | W1 | copilot → opencode → deepseek | `new-child` tên `web-w1` | `DoAnWeb/Controllers/GiaSuController.cs`, `HocVienController.cs`, `QuanLyTaiKhoanController.cs`; `DoAnWeb/Views/GiaSu/**`, `Views/HocVien/**`, `Views/QuanLyTaiKhoan/**`; `DoAnWeb/ViewModels/GiaSu/**`, `ViewModels/HocVien/**`, `ViewModels/QuanLyTaiKhoan/**`; `docs/progress/W1.md` | Services, Data, Program.cs, _Layout | DS + tìm + lọc, thêm/sửa/xóa, validate (dùng validator có sẵn + DataAnnotations) cho Gia sư, Học viên, Tài khoản (tạo, đặt lại MK, khóa/mở). Luật: GS-*, HV-*, TK-12..18 |
 | W2 | opencode → copilot → deepseek | `new-child` tên `web-w2` | `DoAnWeb/Controllers/LopHocController.cs`; `DoAnWeb/Views/LopHoc/**`; `DoAnWeb/ViewModels/LopHoc/**`; `DoAnWeb/wwwroot/js/lophoc.js`; `docs/progress/W2.md` | Services (chỉ gọi, không viết lại nghiệp vụ), Data, Program.cs, _Layout | DS lớp + lọc, chi tiết, ghép lớp (form + kiểm tra xung đột AJAX gọi `LopHocService.TimXungDot`), sửa lớp, hủy lớp, xóa lớp. Luật: LH-* |
-| W3 | deepseek → copilot → opencode | `new-child` tên `web-w3` | `DoAnWeb.Tests/**`, `docs/progress/W3.md` | mọi thứ khác (kể cả `DoAnWD.slnx` – coordinator thêm khi merge) | xUnit test luật ở mục 3 (mã luật trong `[Trait("Luat", …)]`), bắt buộc có TK-01..03 (hash seed 123456), LH-11..15, LH-18 (rollback), TK-06..09. Lỗi thật trong service → báo coordinator, không tự sửa service |
+| W3 | deepseek → copilot → opencode | `new-child` tên `web-w3` | `DoAnWeb.Tests/**`, `docs/progress/W3.md` | mọi thứ khác (kể cả `DoAnWeb.slnx` – coordinator thêm khi merge) | xUnit test luật ở mục 3 (mã luật trong `[Trait("Luat", …)]`), bắt buộc có TK-01..03 (hash seed 123456), LH-11..15, LH-18 (rollback), TK-06..09. Lỗi thật trong service → báo coordinator, không tự sửa service |
 | W4 | antigravity → (bỏ, coordinator review 10 mục) | `new-child` tên `web-w4`, **chỉ chạy sau khi W1–W3 merge** | `docs/web-review.md` | mọi file code | Review bản web, tối đa 15 mục, xếp theo mức độ |
 
 Thứ tự: GĐ1 (commit "feat(web): dựng khung ASP.NET Core") → W1, W2, W3, W5, W6 song song → merge + build + test → W4 → GĐ3 (start-web.bat, stop-web.bat, README, push).
@@ -257,7 +257,7 @@ Liên kết giữa trang: dùng route cố định trong bảng mục 1 (vd. `/H
 1. Agent: dùng id `copilot`, `opencode`, `antigravity`; DeepSeek thử `dsh` (người dùng đã bật sẵn trong Orca).
 2. `net8.0` + `RollForward=Major`.
 3. Làm đủ mọi màn hình, giao diện giống app (thêm W5, W6, mở rộng W2).
-4. Build gate = `dotnet build DoAnWeb/DoAnWeb.csproj` + `dotnet test DoAnWeb.Tests`; vẫn thêm 2 project vào `DoAnWD.slnx`.
+4. Build gate = `dotnet build DoAnWeb/DoAnWeb.csproj` + `dotnet test DoAnWeb.Tests`; vẫn thêm 2 project vào `DoAnWeb.slnx`.
 5. Web tự tạo `admin/admin123` khi bảng rỗng + bắt đổi mật khẩu mặc định.
 6. Ghép lớp ghi thêm `MaMon`.
 7. Test dùng SQL Server thật: tạo DB riêng `QuanLyGiaSu_Test` (BACKUP/RESTORE từ `QuanLyGiaSu`), tự tạo dữ liệu mẫu; không ghi vào `QuanLyGiaSu`.
