@@ -124,3 +124,7 @@ Giai đoạn E: E6 merge ae433bc, E7 merge 9f729f3, E8 merge 386f465 – CI xanh
 - I3 review vòng 4 (codex: rate limit trang khôi phục d3ec5b3, docs 39abfd8). Người dùng bảo dừng codex để tiết kiệm token → coordinator hoàn tất mục 5 từ mã dở của codex (b1b0e2c): thu hồi mọi phiên sau khôi phục (mốc ở logs/restore-state.json), bản sao lưu thiếu bảng web thì quay về bản trước. Merge 2ec360c, test 508 pass + 1 skip. Đợt I xong: I1–I3.
 - I2 hướng dẫn + script IIS (copilot, 565ae37) đã merge; -WhatIf trên máy này báo thiếu IIS như dự kiến.
 - Sau khi I1, I2 merge: I3 review vòng 4 (codex) cho I1.
+
+## Đợt J (2026-11-18)
+- Mở link công khai bằng Tailscale Funnel (https://laptop-f4ff7a2n.taild0bf18.ts.net/, link ngắn is.gd/QeODbI); SQL Server đặt tự khởi động; tài khoản quản lý `giangvien` cho giảng viên (mật khẩu chỉ lưu trên Desktop máy chủ). Chủ repo chọn giữ mật khẩu mẫu.
+- J1 dọn code (copilot, web-j1): namespace một dòng, ViewModels bỏ hậu tố VM, Services chia Nen/Excel/NhatKy, DoAnWD.slnx → DoAnWeb.slnx, bỏ using thừa + format. Merge 1af0d27: build 0 cảnh báo, test 508 + 1 skip, E2E 12/12.
