@@ -1,3 +1,4 @@
+using DoAnWeb.Services.Excel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +8,7 @@ using ClosedXML.Excel;
 using DoAnWeb.Services.Dto;
 using DoAnWeb.ViewModels.BaoCao;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.Excel;
 
 
 /// <summary>

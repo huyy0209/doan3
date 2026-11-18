@@ -1,6 +1,7 @@
+using DoAnWeb.Services.NhatKy;
 using System;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.NhatKy;
 
 /// <summary>Nhận diện và che các trường liên hệ, định danh trong nhật ký.</summary>
 internal static class NhatKyBaoMat

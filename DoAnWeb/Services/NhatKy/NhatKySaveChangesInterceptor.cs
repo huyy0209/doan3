@@ -1,3 +1,4 @@
+using DoAnWeb.Services.NhatKy;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.NhatKy;
 
 public sealed class NhatKySaveChangesInterceptor : SaveChangesInterceptor
 {
@@ -119,7 +120,7 @@ public sealed class NhatKySaveChangesInterceptor : SaveChangesInterceptor
     {
         _choGhi.Clear();
         foreach (var entry in db.ChangeTracker.Entries()
-                     .Where(e => e.Entity is not NhatKy &&
+                     .Where(e => e.Entity is not DoAnWeb.Data.Entities.NhatKy &&
                          e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted))
         {
             var bang = entry.Metadata.GetTableName();

@@ -1,3 +1,4 @@
+using DoAnWeb.Services.NhatKy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using DoAnWeb.ViewModels.NhatKy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.NhatKy;
 
 public sealed class NhatKyService
 {
@@ -38,7 +39,7 @@ public sealed class NhatKyService
             soDong = PhanTrang.SoDongMacDinh;
         int soTrang = Math.Max(1, (int)Math.Ceiling(tongSo / (double)soDong));
         trang = Math.Clamp(trang, 1, soTrang);
-        var ketQua = new KetQuaTrang<NhatKy>
+        var ketQua = new KetQuaTrang<DoAnWeb.Data.Entities.NhatKy>
         {
             Items = q.OrderByDescending(n => n.ThoiGian).ThenByDescending(n => n.MaNK)
                 .Skip((trang - 1) * soDong).Take(soDong).ToList(),
@@ -75,7 +76,7 @@ public sealed class NhatKyService
         };
     }
 
-    public IReadOnlyList<NhatKy> Xuat(
+    public IReadOnlyList<DoAnWeb.Data.Entities.NhatKy> Xuat(
         DateTime? tuNgay, DateTime? denNgay, string nguoi, string hanhDong, string bang) =>
         Loc(tuNgay, denNgay, nguoi, hanhDong, bang)
             .OrderByDescending(n => n.ThoiGian).ThenByDescending(n => n.MaNK).ToList();
@@ -115,7 +116,7 @@ public sealed class NhatKyService
 
     public async Task GhiSuKienAsync(string hanhDong, string tenDangNhap, int? maTK = null)
     {
-        var muc = new NhatKy
+        var muc = new DoAnWeb.Data.Entities.NhatKy
         {
             ThoiGian = DateTime.Now,
             MaTK = maTK,
@@ -127,7 +128,7 @@ public sealed class NhatKyService
         await _db.SaveChangesAsync();
     }
 
-    private IQueryable<NhatKy> Loc(
+    private IQueryable<DoAnWeb.Data.Entities.NhatKy> Loc(
         DateTime? tuNgay, DateTime? denNgay, string nguoi, string hanhDong, string bang)
     {
         var q = _db.NhatKys.AsNoTracking().AsQueryable();

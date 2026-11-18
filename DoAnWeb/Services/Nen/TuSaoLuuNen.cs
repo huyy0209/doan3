@@ -1,6 +1,7 @@
+using DoAnWeb.Services.Nen;
 using System.Globalization;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.Nen;
 
 public sealed class TuSaoLuuNen : BackgroundService
 {
