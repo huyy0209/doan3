@@ -1,4 +1,4 @@
-namespace DoAnWeb.ViewModels.SaoLuuVM;
+namespace DoAnWeb.ViewModels.SaoLuu;
 
 public sealed class SaoLuuIndexVM
 {

@@ -285,7 +285,7 @@ public class KichBanTests : GiaoDienTestBase
             await trang.GotoAsync(Url("/TaiKhoan/DangNhap"));
             await trang.FillAsync("#TenDangNhap", tenDangNhap);
             await trang.FillAsync("#MatKhau", DuLieuE2E.MatKhau);
-            await trang.ClickAsync("form button[type=submit]", new() { NoWaitAfter = true });
+            await trang.ClickAsync("form button[type=submit]");
             await Expect(trang).ToHaveURLAsync(new Regex(laQuanLy ? "/TongQuan" : "/DiemDanh"));
             await trang.AddInitScriptAsync(
                 "window.__e2eCsp = []; document.addEventListener('securitypolicyviolation', " +

@@ -1,4 +1,5 @@
-namespace DoAnWeb.Services;
+using DoAnWeb.Services.Nen;
+namespace DoAnWeb.Services.Nen;
 
 public sealed class ThongBaoNen : BackgroundService
 {

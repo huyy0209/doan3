@@ -80,9 +80,21 @@ doan3/ (nhánh web)
 ├── QuanLyGiaSu.bat     # Menu khởi động
 ├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat, cai-dich-vu-web.ps1
 ├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
-├── DoAnWD.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
+├── DoAnWeb.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
 ├── Database/           # Script SQL đánh số theo thứ tự chạy (dùng chung với nhánh app)
-├── DoAnWeb/            # ASP.NET Core 8 MVC: Controllers, Views, ViewModels, Services (nghiệp vụ), Data (EF Core), wwwroot
+├── DoAnWeb/            # ASP.NET Core 8 MVC
+│   ├── Controllers/    # Controller và route của ứng dụng
+│   ├── Views/          # Razor view; view import chung
+│   ├── ViewModels/     # ViewModel theo màn hình, không hậu tố VM trong tên thư mục
+│   ├── Services/       # Nghiệp vụ chung
+│   │   ├── Nen/        # Job nền và tác vụ tự động
+│   │   ├── Excel/      # Nhập/xuất Excel và nhật ký Excel
+│   │   ├── NhatKy/     # Nhật ký nghiệp vụ và audit
+│   │   ├── Dto/        # DTO dùng chung
+│   │   └── Validators/ # Validator nghiệp vụ
+│   ├── Data/           # Entity và DbContext EF Core
+│   ├── Infrastructure/ # Filter, logging, phân trang và hạ tầng
+│   └── wwwroot/        # CSS, JavaScript, hình ảnh và thư viện tĩnh
 ├── DoAnWeb.Tests/      # xUnit – luật nghiệp vụ, chạy trên CSDL QuanLyGiaSu_Web_Test_p{pid}
 ├── DoAnWeb.E2E/        # Playwright – kiểm thử giao diện trên Chromium headless, web Kestrel thật + QuanLyGiaSu_Web_Test_p{pid}
 └── docs/               # web-plan.md, web-progress.md, web-review.md, progress/

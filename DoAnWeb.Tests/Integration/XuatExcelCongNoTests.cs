@@ -1,3 +1,4 @@
+using DoAnWeb.Services.Excel;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -21,7 +22,10 @@ public class XuatExcelCongNoTests : XuatExcelTestBase
         var lop = TaoLop(GS, hv, hocPhi: 2000000m);
         Db.ThanhToans.Add(new ThanhToan
         {
-            MaLop = lop.MaLop, SoTien = 500000, NgayDong = DateTime.Now, HinhThuc = "Tiền mặt"
+            MaLop = lop.MaLop,
+            SoTien = 500000,
+            NgayDong = DateTime.Now,
+            HinhThuc = "Tiền mặt"
         });
         Db.SaveChanges();
         var ql = await DangNhapQL();

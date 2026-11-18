@@ -1,13 +1,14 @@
+using DoAnWeb.Services.Excel;
 using System.Collections.Generic;
 using System.IO;
 using ClosedXML.Excel;
 using DoAnWeb.Data.Entities;
 
-namespace DoAnWeb.Services;
+namespace DoAnWeb.Services.Excel;
 
 public sealed class NhatKyExcelService
 {
-    public byte[] Tao(IEnumerable<NhatKy> danhSach)
+    public byte[] Tao(IEnumerable<DoAnWeb.Data.Entities.NhatKy> danhSach)
     {
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Nhật ký");

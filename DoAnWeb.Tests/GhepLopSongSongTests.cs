@@ -43,8 +43,14 @@ public class GhepLopSongSongTests : DbTestBase
 {
     private static GhepLopYeuCau YeuCau(GiaSu gs, HocVien hv, string mon, DateTime batDau) => new()
     {
-        MaGS = gs.MaGS, MaHV = hv.MaHV, MonHoc = mon, HocPhi = 500000,
-        BatDau = batDau, KetThuc = batDau.AddDays(10), CaHoc = Constants.CaHoc.Sang, TenLop = TenTest()
+        MaGS = gs.MaGS,
+        MaHV = hv.MaHV,
+        MonHoc = mon,
+        HocPhi = 500000,
+        BatDau = batDau,
+        KetThuc = batDau.AddDays(10),
+        CaHoc = Constants.CaHoc.Sang,
+        TenLop = TenTest()
     };
 
     [Fact]

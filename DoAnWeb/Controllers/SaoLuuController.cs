@@ -1,4 +1,4 @@
-using DoAnWeb.ViewModels.SaoLuuVM;
+using DoAnWeb.ViewModels.SaoLuu;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
