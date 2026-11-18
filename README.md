@@ -58,6 +58,8 @@ dotnet test DoAnWeb.E2E --filter "Loai=ChupAnh"                    # chụp lạ
 
 Khi triển khai qua HTTPS ngoài localhost, đặt `BaoMat:BatBuocHttps` thành `true` trong `DoAnWeb/appsettings.json` (hoặc cấu hình tương ứng trong môi trường triển khai) để cookie chỉ được gửi qua HTTPS. Mặc định là `false` để `start-web.bat` tiếp tục chạy HTTP tại `http://localhost:5080`.
 
+**Bật / tắt nhanh (dịch vụ + link công khai Tailscale Funnel):** bấm đúp **`BatWeb.bat`** để bật SQL Server, dịch vụ `QuanLyGiaSuWeb` (tự cài nếu chưa có) và Funnel rồi mở link công khai; **`TatWeb.bat`** tắt Funnel, dừng dịch vụ và để nó không tự chạy khi khởi động máy. Hai file tự xin quyền Administrator (`scripts/bat-tat-web.ps1`).
+
 **Chạy như dịch vụ Windows / mở cho máy khác trong LAN:** chạy `QuanLyGiaSu.bat dich-vu` bằng quyền Administrator (hoặc mục **9** trong menu) để publish và cài dịch vụ `QuanLyGiaSuWeb` tự khởi động cùng máy; thêm `-MoTuongLua` để mở cổng cho LAN, `-WhatIf` để xem trước các lệnh, `-GoBo` để gỡ. Hướng dẫn từng bước (tường lửa, HTTPS cho LAN, xem log ở `logs/`, quyền SQL Server, xử lý sự cố): **`docs/trien-khai.md`**.
 
 **Kiểm tra đồng bộ CSDL:** Chạy `QuanLyGiaSu.bat dong-bo` hoặc trực tiếp `powershell -ExecutionPolicy Bypass -File scripts/kiem-dong-bo-csdl.ps1` để kiểm tra Database/ giữa nhánh app và web. Script trả về 0 nếu giống, 1 nếu khác.
@@ -78,6 +80,7 @@ Tài liệu chuyển đổi: `docs/web-plan.md` (màn hình, quyền, luật ngh
 ```
 doan3/ (nhánh web)
 ├── QuanLyGiaSu.bat     # Menu khởi động
+├── BatWeb.bat / TatWeb.bat  # Bật / tắt web (dịch vụ + Funnel)
 ├── scripts/            # start-web.bat, stop-web.bat, CaiDatCSDL.bat, SaoLuuCSDL.bat, cai-dich-vu-web.ps1
 ├── assets/             # QuanLyGiaSu.ico + tao-icon.ps1
 ├── DoAnWeb.slnx         # Solution: DoAnWeb + DoAnWeb.Tests + DoAnWeb.E2E
